@@ -1,0 +1,24 @@
+class GameController:
+    def __init__(self, board_manager, white_player, black_player):
+        self.board_manager = board_manager
+        self.white_player = white_player
+        self.black_player = black_player
+
+    def play(self):
+        """Run the game loop until it's over."""
+        print("Starting game...")
+        print(self.board_manager)
+
+        while not self.board_manager.is_game_over():
+            current_player = (
+                self.white_player if self.board_manager.board.turn else self.black_player
+            )
+
+            print(f"\n{current_player.color.capitalize()}'s turn")
+
+            move = current_player.get_move(self.board_manager)
+            self.board_manager.apply_move(move)
+
+            print(self.board_manager)
+
+        print("Game over:", self.board_manager.get_result())
