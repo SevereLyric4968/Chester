@@ -3,6 +3,8 @@ from core.engine_interface import EngineInterface
 from core.players import HumanPlayer, AIPlayer
 from core.human_interface import HumanInterface
 from core.game_controller import GameController
+from core.chess_gui import ChessGui
+from core.gui_interface import GuiInterface
 import json
 
 def load_config(path="config.json"):
@@ -14,6 +16,9 @@ if __name__ == "__main__":
 
     # 1. Create board
     bm = BoardManager()
+    gui = ChessGui(bm.board)
+
+    gui_interface = GuiInterface(gui, bm)
 
     # 2. Setup engine
     engine_cfg = config["engine"]
@@ -30,23 +35,20 @@ if __name__ == "__main__":
 
     if mode == "human_vs_ai":
         if human_side == "white":
-            white = HumanPlayer("white", HumanInterface())
+            white = HumanPlayer("white", gui_interface)
             black = AIPlayer("black", engine)
         else:
             white = AIPlayer("white", engine)
-            black = HumanPlayer("black", HumanInterface())
+            black = HumanPlayer("black", gui_interface)
 
     elif mode == "ai_vs_ai":
         white = AIPlayer("white", engine)
         black = AIPlayer("black", engine)
 
     elif mode == "human_vs_human":
-        white = HumanPlayer("white", HumanInterface())
-        black = HumanPlayer("black", HumanInterface())
-
-    else:
-        raise ValueError(f"Unknown mode: {mode}")
+        white = HumanPlayer("white", gui_interface)
+        black = HumanPlayer("black", gui_interface)
 
     # 4. Run game
-    game = GameController(bm, white, black)
+    game = GameController(bm, white, black,gui)
     game.play()

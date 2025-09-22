@@ -1,5 +1,5 @@
 {
-  "mode": "ai_vs_ai",
+  "mode": "human_vs_ai",
   "human_side": "white",
   "engine": {
     "path": "C:/Users/Jayda/PycharmProjects/Chester/stockfish-windows-x86-64-avx2/stockfish/stockfish-windows-x86-64-avx2.exe",
