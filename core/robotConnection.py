@@ -1,4 +1,5 @@
 from pyniryo import *
+#version mismatch which doesn't seem fixable
 robot = NiryoRobot("10.10.10.10")
 robot.calibrate_auto()
 
