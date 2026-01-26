@@ -6,5 +6,7 @@
     "depth": 15,
     "threads": 2,
     "min_time": 30
-  }
+  },
+  "robot_1_ip": "blah blah",
+  "robot_2_ip": "blah blah"
 }
