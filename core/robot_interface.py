@@ -3,41 +3,70 @@ import chess
 
 class RobotInterface:
     def translate(self,move,board):
-        pass
         moveQueue=[] #list of target destination tuples
 
         fromSq=move[:2]
         toSq=move[2:4]
-        piece=board.piece_at(fromSq)
-
-        isCapture=board.piece_at(toSq)!=None
-        isEnPassant=piece==chess.PAWN and board.piece_at(toSq)==None and fromSq[0]!=toSq[0]
+        piece=board.piece_at(chess.parse_square(fromSq)
+)
+        isCapture=board.piece_at(chess.parse_square(toSq))!=None
+        isEnPassant=piece==chess.PAWN and board.piece_at(chess.parse_square(toSq))==None and fromSq[0]!=toSq[0]
         isCastling = piece==chess.KING and fromSq[0]=="e" and toSq[0] in {"g","c"}
         isPromotion=len(move)==5
 
+        isWhite=piece.color==chess.WHITE
+        homeRank=1 if isWhite else 8
+        pawnDir=1 if isWhite else -1
+
         #find case and queue correct move(s)
-        #todo replace print with correct move sequence
         if isCastling:
-            print("move king to square")
-            print("move rook to square")
+            #kingside
+            if toSq[0]=="g":
+                # move king to square
+                moveQueue.append((fromSq,toSq))
+
+                # move rook to square
+                moveQueue.append(("h"+str(homeRank),"f"+str(homeRank)))
+            #queenside
+            if toSq[0]=="c":
+                # move king to square
+                moveQueue.append((fromSq,toSq))
+
+                # move rook to square
+                moveQueue.append(("a"+str(homeRank),"d"+str(homeRank)))
 
         elif isPromotion:
             if isCapture:
-                print("move dead piece to storage slot")
-                print("move pawn to square")
-                print("move pawn to storage slot")
-                print("move piece from storage slot to square")
+                #move dead piece to storage slot
+                moveQueue.append((toSq,board.piece_at(chess.parse_square(toSq)).symbol()))
+
+            #move pawn to square
+            moveQueue.append((fromSq,toSq))
+
+            #move pawn to storage slot
+            moveQueue.append((toSq,board.piece_at(chess.parse_square(toSq)).symbol()))
+            #move piece from storage slot to square
+            moveQueue.append((move[4],toSq))
+
 
         elif isEnPassant:
-            print("move pawn to square")
-            print("move dead piece to storage slot")
+            #move pawn to square
+            moveQueue.append((fromSq,toSq))
+
+            #move dead piece to storage slot
+            moveQueue.append((toSq[0]+str(int(toSq)-pawnDir),board.piece_at(chess.parse_square(toSq[0]+str(int(toSq)-pawnDir))).symbol()))
+
 
         elif isCapture:
-            print("move dead piece to graveyard")
-            print("move piece to square")
+            #move dead piece to graveyard
+            moveQueue.append(toSq,board.piece_at(chess.parse_square(toSq)).symbol())
+
+            #move piece to square
+            moveQueue.append((fromSq,toSq))
 
         else:
-            print("move piece to square")
+            #move piece to square
+            moveQueue.append((fromSq,toSq))
 
         return moveQueue
 
@@ -45,8 +74,15 @@ class RobotInterface:
         for move in moveQueue:
             #pickup
             if len.move[0]==1:
-                #find lowest index unoccupied storage slot
-                #move to storageMap[piece][slot]
+                piece=move[0]
+                #find highest index occupied storage slot
+                for slot in storageOccupancy[piece]:
+                    if storageOccupancy[piece][len(storageOccupancy)-slot]==True:
+                        targetSlot=slot
+                        storageOccupancy[piece][slot]=False
+                        break
+
+                #move to storageMap[piece][targetSlot]
                 #pickup
             else:
                 #move to boardMap[move[0]]
@@ -54,8 +90,14 @@ class RobotInterface:
 
             #drop
             if len.move[1]==1:
-                #find highest index occupied storage slot
-                #move to storageMap[piece][slot]
+                piece=move[1]
+                #find lowest index unoccupied storage slot
+                for slot in storageOccupancy[piece]:
+                    if storageOccupancy[piece][slot]==False:
+                        targetSlot=slot
+                        storageOccupancy[piece][slot]=True
+                        break
+                #move to storageMap[piece][targetSlot]
                 #drop
             else:
                 #move to boardMap[move[1]]
@@ -100,3 +142,19 @@ class RobotInterface:
                 y=pos[1]*offset+blackStartPos[1]
                 storageMap[piece].append((x,y))
         return storageMap
+
+    def init_storage_ocupancy(self,storageMap):
+        # True = Occupied
+        # False = Free
+        storageOccupancy={}
+        for pieceType in storageMap:
+            storageOccupancy[pieceType]=[]
+            for piece in range(len(storageMap[pieceType])):
+                storageOccupancy[pieceType].append(True)
+        return storageOccupancy
+
+    def init_storage(self):
+        storageMap=self.init_storageMap((0,0),(10,0),1)
+        storageOccupancy=self.init_storage_ocupancy(storageMap)
+
+        return storageMap,storageOccupancy
