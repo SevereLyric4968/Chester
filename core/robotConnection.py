@@ -49,6 +49,8 @@ pose_home = PoseObject(0.14, 0, 0.2, 0, 0.75, 0)
 #robot.move_pose(pose_home)
 #robot2.move_pose(pose_home)
 
+
+
 #pick and place code
 
 robot.calibrate_auto()
