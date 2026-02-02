@@ -10,8 +10,8 @@ class RobotInterface:
         piece=board.piece_at(chess.parse_square(fromSq)
 )
         isCapture=board.piece_at(chess.parse_square(toSq))!=None
-        isEnPassant=piece==chess.PAWN and board.piece_at(chess.parse_square(toSq))==None and fromSq[0]!=toSq[0]
-        isCastling = piece==chess.KING and fromSq[0]=="e" and toSq[0] in {"g","c"}
+        isEnPassant=piece.piece_type==chess.PAWN and board.piece_at(chess.parse_square(toSq))==None and fromSq[0]!=toSq[0]
+        isCastling = piece.piece_type==chess.KING and fromSq[0]=="e" and toSq[0] in {"g","c"}
         isPromotion=len(move)==5
 
         isWhite=piece.color==chess.WHITE
@@ -44,7 +44,9 @@ class RobotInterface:
             moveQueue.append((fromSq,toSq))
 
             #move pawn to storage slot
-            moveQueue.append((toSq,board.piece_at(chess.parse_square(toSq)).symbol()))
+            pawnSymbol = 'P' if isWhite else 'p'
+            moveQueue.append((toSq, pawnSymbol))
+
             #move piece from storage slot to square
             moveQueue.append((move[4],toSq))
 
@@ -54,12 +56,12 @@ class RobotInterface:
             moveQueue.append((fromSq,toSq))
 
             #move dead piece to storage slot
-            moveQueue.append((toSq[0]+str(int(toSq)-pawnDir),board.piece_at(chess.parse_square(toSq[0]+str(int(toSq)-pawnDir))).symbol()))
+            moveQueue.append((toSq[0]+str(int(toSq[1])-pawnDir),board.piece_at(chess.parse_square(toSq[0]+str(int(toSq[1])-pawnDir))).symbol()))
 
 
         elif isCapture:
             #move dead piece to graveyard
-            moveQueue.append(toSq,board.piece_at(chess.parse_square(toSq)).symbol())
+            moveQueue.append((toSq,board.piece_at(chess.parse_square(toSq)).symbol()))
 
             #move piece to square
             moveQueue.append((fromSq,toSq))
@@ -71,37 +73,42 @@ class RobotInterface:
         return moveQueue
 
     def executeMoveQueue(self,moveQueue,storageMap,boardMap,storageOccupancy):
-        for move in moveQueue:
+        print("Starting move queue:")
+        for i,move in enumerate(moveQueue):
+            print(f"Executing move {i+1} of {len(moveQueue)} : {move}")
             #pickup
-            if len.move[0]==1:
+            if len(move[0])==1:
                 piece=move[0]
                 #find highest index occupied storage slot
-                for slot in storageOccupancy[piece]:
-                    if storageOccupancy[piece][len(storageOccupancy)-slot]==True:
-                        targetSlot=slot
-                        storageOccupancy[piece][slot]=False
+                for i in reversed(range(len(storageOccupancy[piece]))):
+                    if storageOccupancy[piece][i]:
+                        targetSlot = i
+                        storageOccupancy[piece][i] = False
                         break
 
                 #move to storageMap[piece][targetSlot]
-                #pickup
+                print(f"Moving to slot {piece}{targetSlot} ({storageMap[piece][targetSlot]})...")
             else:
                 #move to boardMap[move[0]]
-                #pickup
+                print(f"Moving to square {move[1]} ({boardMap[move[1]]})...")
+            print("pickup")
 
             #drop
-            if len.move[1]==1:
+            if len(move[1])==1:
                 piece=move[1]
                 #find lowest index unoccupied storage slot
-                for slot in storageOccupancy[piece]:
-                    if storageOccupancy[piece][slot]==False:
-                        targetSlot=slot
-                        storageOccupancy[piece][slot]=True
+                for i in range(len(storageOccupancy[piece])):
+                    if not storageOccupancy[piece][i]:
+                        targetSlot = i
+                        storageOccupancy[piece][i] = True
                         break
                 #move to storageMap[piece][targetSlot]
-                #drop
+                print(f"Moving to slot {piece}{targetSlot} ({storageMap[piece][targetSlot]})...")
             else:
                 #move to boardMap[move[1]]
-                #drop
+                print(f"Moving to square {move[0]} ({boardMap[move[0]]})...")
+            #drop
+            print("drop")
 
     def init_board_map(self,startPos,offset):
         boardMap={}
@@ -143,7 +150,7 @@ class RobotInterface:
                 storageMap[piece].append((x,y))
         return storageMap
 
-    def init_storage_ocupancy(self,storageMap):
+    def init_storage_occupancy(self,storageMap):
         # True = Occupied
         # False = Free
         storageOccupancy={}
@@ -155,6 +162,6 @@ class RobotInterface:
 
     def init_storage(self):
         storageMap=self.init_storageMap((0,0),(10,0),1)
-        storageOccupancy=self.init_storage_ocupancy(storageMap)
+        storageOccupancy=self.init_storage_occupancy(storageMap)
 
         return storageMap,storageOccupancy
