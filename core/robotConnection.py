@@ -1,7 +1,8 @@
 from pyniryo import *
 # "pip install "pyniryo<1.2"" <- this fixed it
-robotIpAddress = "10.10.10.10" #this for hotspot - may update when robot cooperates
-robot2IpAddress = "192.168.42.1" #this for ethernet
+#robotIpAddress = "10.10.10.10" #this for hotspot - may update when robot cooperates
+robotIpAddress = "192.168.42.2"
+robot2IpAddress = "192.168.42.1" #this for ethernet use a laptop with IP address 192.168.42.100
 print("a")
 
 print("b")
