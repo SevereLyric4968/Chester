@@ -4,22 +4,19 @@ import chess
 class RobotInterface:
     def translate(self,move,board):
         pass
+        moveQueue=[] #list of target destination tuples
+
         fromSq=move[:2]
         toSq=move[2:4]
         piece=board.piece_at(fromSq)
+
         isCapture=board.piece_at(toSq)!=None
         isEnPassant=piece==chess.PAWN and board.piece_at(toSq)==None and fromSq[0]!=toSq[0]
         isCastling = piece==chess.KING and fromSq[0]=="e" and toSq[0] in {"g","c"}
         isPromotion=len(move)==5
-        #take move
-        #select case
-        #complete appropriate moves
 
-        #cases
-
-        #normal move
-
-        #capture
+        #find case and queue correct move(s)
+        #todo replace print with correct move sequence
         if isCastling:
             print("move king to square")
             print("move rook to square")
@@ -42,20 +39,27 @@ class RobotInterface:
         else:
             print("move piece to square")
 
+        return moveQueue
 
-    def send_move(self,target,destination):
-        pass
+    def executeMoveQueue(self,moveQueue,storageMap,boardMap,storageOccupancy):
+        for move in moveQueue:
+            #pickup
+            if len.move[0]==1:
+                #find lowest index unoccupied storage slot
+                #move to storageMap[piece][slot]
+                #pickup
+            else:
+                #move to boardMap[move[0]]
+                #pickup
 
-    def sendToStorage(self):
-        pass
-
-    def getFromStorage(self):
-        pass
-
-    def capture(self,fromSquare,piece):
-        pass
-    def move(self,fromSquare,toSquare):
-        pass
+            #drop
+            if len.move[1]==1:
+                #find highest index occupied storage slot
+                #move to storageMap[piece][slot]
+                #drop
+            else:
+                #move to boardMap[move[1]]
+                #drop
 
     def init_board_map(self,startPos,offset):
         boardMap={}
@@ -68,8 +72,6 @@ class RobotInterface:
 
     def init_storage_map(self,whiteStartPos,blackStartPos,offset):
         storageMap={}
-        rows=8
-        cols=3
         layout={
             'p' : [(0,i) for i in range(8)],
             'r' : [(1,0),(1,1),(2,0),(2,1)],
@@ -91,13 +93,10 @@ class RobotInterface:
                 storageMap[piece.upper()].append((x,y))
 
             #black
-            #potentially need to flip black but thats a later problem
+            #todo potentially need to flip black but thats a later problem
             storageMap[piece]=[]
             for pos in layout[piece]:
                 x=pos[0]*offset+blackStartPos[0]
                 y=pos[1]*offset+blackStartPos[1]
                 storageMap[piece].append((x,y))
         return storageMap
-ri=RobotInterface()
-storageMap=ri.init_storage_map((0,0),(10,0),1)
-print(storageMap)
