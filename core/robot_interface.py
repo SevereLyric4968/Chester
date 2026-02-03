@@ -2,6 +2,11 @@ import chess
 
 
 class RobotInterface:
+
+    def __init__(self, boardStart=(1, 1), boardOffset=1,whiteStorageStart=(0, 0), blackStorageStart=(10, 0),storageOffset=1):
+        self.boardMap = self.init_board_map(boardStart, boardOffset)
+        self.storageMap, self.storageOccupancy = self.init_storage(whiteStorageStart,blackStorageStart,storageOffset)
+
     def translate(self,move,board):
         moveQueue=[] #list of target destination tuples
 
@@ -72,7 +77,7 @@ class RobotInterface:
 
         return moveQueue
 
-    def executeMoveQueue(self,moveQueue,storageMap,boardMap,storageOccupancy):
+    def executeMoveQueue(self,moveQueue):
         print("Starting move queue:")
         for i,move in enumerate(moveQueue):
             print(f"Executing move {i+1} of {len(moveQueue)} : {move}")
@@ -80,33 +85,33 @@ class RobotInterface:
             if len(move[0])==1:
                 piece=move[0]
                 #find highest index occupied storage slot
-                for i in reversed(range(len(storageOccupancy[piece]))):
-                    if storageOccupancy[piece][i]:
+                for i in reversed(range(len(self.storageOccupancy[piece]))):
+                    if self.storageOccupancy[piece][i]:
                         targetSlot = i
-                        storageOccupancy[piece][i] = False
+                        self.storageOccupancy[piece][i] = False
                         break
 
                 #move to storageMap[piece][targetSlot]
-                print(f"Moving to slot {piece}{targetSlot} ({storageMap[piece][targetSlot]})...")
+                print(f"Moving to slot {piece}{targetSlot} ({self.storageMap[piece][targetSlot]})...")
             else:
                 #move to boardMap[move[0]]
-                print(f"Moving to square {move[1]} ({boardMap[move[1]]})...")
+                print(f"Moving to square {move[0]} ({self.boardMap[move[0]]})...")
             print("pickup")
 
             #drop
             if len(move[1])==1:
                 piece=move[1]
                 #find lowest index unoccupied storage slot
-                for i in range(len(storageOccupancy[piece])):
-                    if not storageOccupancy[piece][i]:
+                for i in range(len(self.storageOccupancy[piece])):
+                    if not self.storageOccupancy[piece][i]:
                         targetSlot = i
-                        storageOccupancy[piece][i] = True
+                        self.storageOccupancy[piece][i] = True
                         break
                 #move to storageMap[piece][targetSlot]
-                print(f"Moving to slot {piece}{targetSlot} ({storageMap[piece][targetSlot]})...")
+                print(f"Moving to slot {piece}{targetSlot} ({self.storageMap[piece][targetSlot]})...")
             else:
                 #move to boardMap[move[1]]
-                print(f"Moving to square {move[0]} ({boardMap[move[0]]})...")
+                print(f"Moving to square {move[1]} ({self.boardMap[move[1]]})...")
             #drop
             print("drop")
 
@@ -150,18 +155,33 @@ class RobotInterface:
                 storageMap[piece].append((x,y))
         return storageMap
 
-    def init_storage_occupancy(self,storageMap):
+    def init_storage_occupancy(self,storageMap,mode="standard"):
         # True = Occupied
         # False = Free
+        standardCounts={
+            'P': 8, 'p' : 8,
+            'R': 2, 'r' : 2,
+            'N': 2, 'n' : 2,
+            'B': 2, 'b' : 2,
+            'Q': 1, 'q' : 1,
+            'K': 1, 'k' : 1
+        }
+        #todo read board and manually count instead of hard code
+
         storageOccupancy={}
         for pieceType in storageMap:
             storageOccupancy[pieceType]=[]
-            for piece in range(len(storageMap[pieceType])):
-                storageOccupancy[pieceType].append(True)
+            totalSlots = len(storageMap[pieceType])
+            onBoard=standardCounts[pieceType]
+            for i in range(totalSlots):
+                if mode=="standard":
+                    storageOccupancy[pieceType].append(i>onBoard)
+                else:
+                    storageOccupancy[pieceType].append(True)
         return storageOccupancy
 
-    def init_storage(self):
-        storageMap=self.init_storageMap((0,0),(10,0),1)
+    def init_storage(self,whiteStartPos,blackStartPos,offset):
+        storageMap=self.init_storage_map(whiteStartPos,blackStartPos,offset)
         storageOccupancy=self.init_storage_occupancy(storageMap)
 
         return storageMap,storageOccupancy

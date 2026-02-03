@@ -1,12 +1,13 @@
 class GameController:
-    def __init__(self, board_manager, white_player, black_player,gui=None):
+    def __init__(self, board_manager, white_player, black_player,gui=None,robotInterface=None):
         self.board_manager = board_manager
         self.white_player = white_player
         self.black_player = black_player
         self.gui=gui
+        self.robotInterface=robotInterface
 
     def play(self):
-        """Run the game loop until it's over."""
+        #Run the game loop until it's over.
         print("Starting game...")
         print(self.board_manager)
         if self.gui:
@@ -21,7 +22,15 @@ class GameController:
 
             print(f"\n{current_player.color.capitalize()}'s turn")
 
+            boardBefore = self.board_manager.board.copy()
+
             move = current_player.get_move(self.board_manager)
+
+            #robot execution
+            if self.robotInterface is not None:
+                moveQueue = self.robotInterface.translate(move, boardBefore)
+                self.robotInterface.executeMoveQueue(moveQueue)
+
             self.board_manager.apply_move(move)
 
             print(self.board_manager)
