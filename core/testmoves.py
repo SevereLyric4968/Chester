@@ -13,9 +13,10 @@ robot2.calibrate_auto()
 
 #(0.203, -0.339, 0.027, 0, 1.5, 0) robot
 #(0.2, 0.3, 0.038, 0, 1.5, 0) robot2
+#test both at 0.038 for calibration start
 
-pickup_location = PoseObject(0.203, -0.339, 0.001, 0, 1.5, 0) # in meters and radians 0.038
-pickup2_location = PoseObject(0.2, 0.3, 0.035, 0, 1.5, 0) # in meters and radians 0.038
+pickup_location = PoseObject(0.203, -0.339, 0.028, 0, 1.5, 0) # in meters and radians 0.038
+pickup2_location = PoseObject(0.2, 0.3, 0.037, 0, 1.5, 0) # in meters and radians 0.038
 pose_home = PoseObject(0.14, 0, 0.2, 0, 1.5, 0)
 
 robot.move_pose(pickup_location)
