@@ -1,7 +1,6 @@
 from core.board_manager import BoardManager
 from core.engine_interface import EngineInterface
 from core.players import HumanPlayer, AIPlayer
-from core.human_interface import HumanInterface
 from core.game_controller import GameController
 from core.robot_interface import RobotInterface
 from core.chess_gui import ChessGui

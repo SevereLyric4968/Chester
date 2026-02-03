@@ -1,11 +1,12 @@
 import chess
-
+from core.robot_manipulator import RobotManipulator
 
 class RobotInterface:
 
     def __init__(self, boardStart=(360, -100), boardOffset=31,whiteStorageStart=(0, 0), blackStorageStart=(10, 0),storageOffset=1):
         self.boardMap = self.init_board_map(boardStart, boardOffset)
         self.storageMap, self.storageOccupancy = self.init_storage(whiteStorageStart,blackStorageStart,storageOffset)
+        self.rm=RobotManipulator()
 
     def translate(self,move,board):
         moveQueue=[] #list of target destination tuples
@@ -93,9 +94,11 @@ class RobotInterface:
 
                 #move to storageMap[piece][targetSlot]
                 print(f"Moving to slot {piece}{targetSlot} ({self.storageMap[piece][targetSlot]})...")
+
             else:
                 #move to boardMap[move[0]]
                 print(f"Moving to square {move[0]} ({self.boardMap[move[0]]})...")
+
             print("pickup")
 
             #drop

@@ -1,6 +1,6 @@
 {
-  "robot_1_ip": "blah blah",
-  "robot_2_ip": "blah blah",
+  "robot_1_ip": "192.168.42.1",
+  "robot_2_ip": "192.168.42.2",
 
   "robot_1_control_type": "rc",
   "robot_2_control_type": "rc",
