@@ -1,12 +1,14 @@
 {
-  "mode": "human_vs_ai",
-  "human_side": "white",
+  "robot_1_ip": "blah blah",
+  "robot_2_ip": "blah blah",
+
+  "robot_1_control_type": "rc",
+  "robot_2_control_type": "rc",
+
   "engine": {
     "path": "C:/Users/Jayda/PycharmProjects/Chester/stockfish-windows-x86-64-avx2/stockfish/stockfish-windows-x86-64-avx2.exe",
     "depth": 15,
     "threads": 2,
     "min_time": 30
-  },
-  "robot_1_ip": "blah blah",
-  "robot_2_ip": "blah blah"
+  }
 }
