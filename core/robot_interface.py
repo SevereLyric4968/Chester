@@ -25,7 +25,7 @@ class RobotInterface:
         homeRank=1 if isWhite else 8
         pawnDir=1 if isWhite else -1
 
-        #find case and queue correct move(s)
+        #find case and queue correct moves
         if isCastling:
             #kingside
             if toSq[0]=="g":

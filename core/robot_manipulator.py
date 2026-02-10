@@ -1,7 +1,6 @@
 from pyniryo import NiryoRobot, PinID, PoseObject
 
 
-
 #from main import load_config
 
 
