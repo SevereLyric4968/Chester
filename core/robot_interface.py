@@ -3,18 +3,19 @@ from core.robot_manipulator import RobotManipulator
 
 class RobotInterface:
 
-    def __init__(self, boardStart=(360, -100), boardOffset=31,whiteStorageStart=(0, 0), blackStorageStart=(10, 0),storageOffset=1):
+    def __init__(self, boardStart=(369, -110.5), boardOffset=31,whiteStorageStart=(170, 170), blackStorageStart=(170, -180),storageOffset=0):
         self.boardMap = self.init_board_map(boardStart, boardOffset)
         self.storageMap, self.storageOccupancy = self.init_storage(whiteStorageStart,blackStorageStart,storageOffset)
         self.rm=RobotManipulator()
 
     def translate(self,move,board):
+
         moveQueue=[] #list of target destination tuples
 
         fromSq=move[:2]
         toSq=move[2:4]
-        piece=board.piece_at(chess.parse_square(fromSq)
-)
+        piece=board.piece_at(chess.parse_square(fromSq))
+
         isCapture=board.piece_at(chess.parse_square(toSq))!=None
         isEnPassant=piece.piece_type==chess.PAWN and board.piece_at(chess.parse_square(toSq))==None and fromSq[0]!=toSq[0]
         isCastling = piece.piece_type==chess.KING and fromSq[0]=="e" and toSq[0] in {"g","c"}
@@ -94,12 +95,16 @@ class RobotInterface:
 
                 #move to storageMap[piece][targetSlot]
                 print(f"Moving to slot {piece}{targetSlot} ({self.storageMap[piece][targetSlot]})...")
+                x,y= self.storageMap[piece][targetSlot]
 
             else:
                 #move to boardMap[move[0]]
                 print(f"Moving to square {move[0]} ({self.boardMap[move[0]]})...")
+                x,y=self.boardMap[move[0]]
 
+            self.rm.move(x, y)
             print("pickup")
+            self.rm.pickup()
 
             #drop
             if len(move[1])==1:
@@ -112,18 +117,22 @@ class RobotInterface:
                         break
                 #move to storageMap[piece][targetSlot]
                 print(f"Moving to slot {piece}{targetSlot} ({self.storageMap[piece][targetSlot]})...")
+                x,y=self.storageMap[piece][targetSlot]
             else:
                 #move to boardMap[move[1]]
                 print(f"Moving to square {move[1]} ({self.boardMap[move[1]]})...")
+                x,y=self.boardMap[move[1]]
             #drop
+            self.rm.move(x, y)
             print("drop")
+            self.rm.place()
 
     def init_board_map(self,startPos,offset):
         boardMap={}
         for rank in range(8):
             for file in range(8):
                 square=chr(ord("a")+file)+str(rank+1)
-                boardMap[square]=(startPos[0]-offset*file,startPos[1]+offset*rank)
+                boardMap[square]=(startPos[0]-offset*rank,startPos[1]+offset*file)
 
         return boardMap
 
@@ -188,3 +197,9 @@ class RobotInterface:
         storageOccupancy=self.init_storage_occupancy(storageMap)
 
         return storageMap,storageOccupancy
+
+"""board=chess.Board()
+ri=RobotInterface()
+queue = ri.translate("a1a2", board)
+print("Queue:", queue)
+ri.executeMoveQueue(queue)"""

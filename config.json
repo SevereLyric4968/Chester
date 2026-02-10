@@ -1,9 +1,9 @@
 {
-  "robot_1_ip": "192.168.42.1",
+  "robot_1_ip": "10.10.10.10",
   "robot_2_ip": "192.168.42.2",
 
-  "robot_1_control_type": "rc",
-  "robot_2_control_type": "rc",
+  "robot_1_control_type": "ai",
+  "robot_2_control_type": "ai",
 
   "engine": {
     "path": "C:/Users/Jayda/PycharmProjects/Chester/stockfish-windows-x86-64-avx2/stockfish/stockfish-windows-x86-64-avx2.exe",
