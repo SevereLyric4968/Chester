@@ -1,6 +1,6 @@
 from core.board_manager import BoardManager
 from core.engine_interface import EngineInterface
-from core.players import HumanPlayer, AIPlayer
+from core.players import rcPlayer, AIPlayer
 from core.game_controller import GameController
 from core.robot_interface import RobotInterface
 from core.chess_gui import ChessGui
@@ -36,14 +36,14 @@ if __name__ == "__main__":
     robot2Type = config["robot_2_control_type"]  # black
 
     if robot1Type == "rc":
-        white = HumanPlayer("white", gui_interface)
+        white = rcPlayer("white", gui_interface)
     elif robot1Type == "ai":
         white = AIPlayer("white", engine)
     else:
         raise ValueError("Invalid robot_1_control_type")
 
     if robot2Type == "rc":
-        black = HumanPlayer("black", gui_interface)
+        black = rcPlayer("black", gui_interface)
     elif robot2Type == "ai":
         black = AIPlayer("black", engine)
     else:

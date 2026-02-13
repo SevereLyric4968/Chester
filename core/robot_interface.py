@@ -3,15 +3,16 @@ from core.robot_manipulator import RobotManipulator
 
 class RobotInterface:
 
-    def __init__(self, boardStart=(369, -110.5), boardOffset=31,whiteStorageStart=(170, 170), blackStorageStart=(170, -180),storageOffset=0):
+    def __init__(self, boardStart=(369, -110.5), boardOffset=31,whiteStorageStart=(170, 170), blackStorageStart=(170, -180),storageOffset=0,robot_white=None,robot_black=None):
         self.boardMap = self.init_board_map(boardStart, boardOffset)
         self.storageMap, self.storageOccupancy = self.init_storage(whiteStorageStart,blackStorageStart,storageOffset)
-        self.rm=RobotManipulator()
 
+        self.rm=RobotManipulator()
+        if robot_white == None || robot_black == None:
+            pass
     def translate(self,move,board):
 
         moveQueue=[] #list of target destination tuples
-
         fromSq=move[:2]
         toSq=move[2:4]
         piece=board.piece_at(chess.parse_square(fromSq))
@@ -80,6 +81,10 @@ class RobotInterface:
         return moveQueue
 
     def executeMoveQueue(self,moveQueue):
+        """if white
+        rm=rm1
+        else
+        rm=rm2"""
         print("Starting move queue:")
         for i,move in enumerate(moveQueue):
             print(f"Executing move {i+1} of {len(moveQueue)} : {move}")
@@ -126,6 +131,8 @@ class RobotInterface:
             self.rm.move(x, y)
             print("drop")
             self.rm.place()
+
+        self.rm.return_home()
 
     def init_board_map(self,startPos,offset):
         boardMap={}

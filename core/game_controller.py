@@ -1,5 +1,5 @@
 class GameController:
-    def __init__(self, board_manager, white_player, black_player,gui=None,robotInterface=None):
+    def __init__(self, board_manager, white_player, black_player,gui,robotInterface):
         self.board_manager = board_manager
         self.white_player = white_player
         self.black_player = black_player
@@ -10,10 +10,10 @@ class GameController:
         #Run the game loop until it's over.
         print("Starting game...")
         print(self.board_manager)
-        if self.gui:
-            self.gui.draw_board(self.board_manager.board)
-            self.gui.window.update_idletasks()
-            self.gui.window.update()
+
+        self.gui.draw_board(self.board_manager.board)
+        self.gui.window.update_idletasks()
+        self.gui.window.update()
 
         while not self.board_manager.is_game_over():
             current_player = (
@@ -27,18 +27,23 @@ class GameController:
             move = current_player.get_move(self.board_manager)
 
             #robot execution
-            if self.robotInterface is not None:
-                moveQueue = self.robotInterface.translate(move, boardBefore)
-                self.robotInterface.executeMoveQueue(moveQueue)
+            moveQueue = self.robotInterface.translate(move, boardBefore)
+            self.robotInterface.executeMoveQueue(moveQueue)
 
             self.board_manager.apply_move(move)
 
             print(self.board_manager)
 
-            # update GUI if present
+            # update gui
             if self.gui:
                 self.gui.draw_board(self.board_manager.board)
                 self.gui.window.update_idletasks()
                 self.gui.window.update()
 
         print("Game over:", self.board_manager.get_result())
+
+"""class DualRobotController(GameController):
+    def __init__(self):
+        pass
+
+    def play(self):"""

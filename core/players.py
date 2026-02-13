@@ -11,7 +11,7 @@ class Player(ABC):
         """Return a move in UCI format (e.g., 'e2e4')."""
         pass
 
-class HumanPlayer(Player):
+class rcPlayer(Player):
     def __init__(self, color, interface):
         super().__init__(color)
         self.interface = interface  # An instance of HumanInterface
