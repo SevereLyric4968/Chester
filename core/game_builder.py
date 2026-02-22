@@ -1,8 +1,7 @@
 from core.board_manager import BoardManager
 from core.game_controller import GameController
 from core.engine_interface import EngineInterface
-from core.players import AIPlayer, rcPlayer
-from core.human_interface import HumanInterface
+from core.players import AIPlayer, rcPlayer, HumanPlayer
 from core.robot_interface import RobotInterface
 from core.chess_gui import ChessGui
 from core.vision_interface import VisionInterface
@@ -42,8 +41,7 @@ class GameBuilder():
         black_player_type=config["player_2_type"]
 
         if white_player_type=="human":
-            #need vision shid
-            pass
+            white = HumanPlayer("white",VisionInterface)
         elif white_player_type=="ai":
             white = AIPlayer("white", engine)
             white_robot=config["white_robot_ip"]
@@ -53,8 +51,7 @@ class GameBuilder():
         else:
             raise ValueError("Invalid player_1_type")
         if black_player_type=="human":
-            #need vision shid
-            pass
+            black = HumanPlayer("black",VisionInterface)
         elif black_player_type=="ai":
             black = AIPlayer("black", engine)
             black_robot = config["black_robot_ip"]
@@ -69,10 +66,12 @@ class GameBuilder():
         if config["controlType"]=="drunk adam":
             robotInterface = RobotInterface(white_robot, black_robot)
         elif config["controlType"]=="robot wars":
-            robotInterface = RobotInterface(robot1=config["robot_1_ip"],robot2=config["robot_2_ip"])
+            robotInterface = RobotInterface(white_robot, black_robot)
         elif config["controlType"]=="man vs ned":
-            robotInterface = RobotInterface(robot1=config["robot_1_ip"])
-            visionInterface = VisionInterface()
+            if config["player_1_type"]=="human":
+                robotInterface = RobotInterface(black_robot)
+            else:
+                robotInterface = RobotInterface(white_robot)
 
         controller = GameController(
             board_manager=bm,

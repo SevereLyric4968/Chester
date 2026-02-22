@@ -7,9 +7,14 @@ class RobotInterface:
         self.boardMap = self.init_board_map(boardStart, boardOffset)
         self.storageMap, self.storageOccupancy = self.init_storage(whiteStorageStart,blackStorageStart,storageOffset)
 
-        self.rm=RobotManipulator()
-        if robot_white == None || robot_black == None:
-            pass
+        if robot_white is None and robot_black is not None:
+            self.black_rm=RobotManipulator()
+        elif robot_white is not None and robot_black is None:
+            self.white_rm=RobotManipulator()
+        else:
+            self.white_rm=RobotManipulator()
+            self.black_rm=self.white_rm
+
     def translate(self,move,board):
 
         moveQueue=[] #list of target destination tuples
@@ -23,6 +28,7 @@ class RobotInterface:
         isPromotion=len(move)==5
 
         isWhite=piece.color==chess.WHITE
+        global isWhite
         homeRank=1 if isWhite else 8
         pawnDir=1 if isWhite else -1
 
@@ -81,10 +87,16 @@ class RobotInterface:
         return moveQueue
 
     def executeMoveQueue(self,moveQueue):
-        """if white
-        rm=rm1
-        else
-        rm=rm2"""
+
+        if isWhite:
+            if self.white_rm is None:
+                return
+            rm=self.white_rm
+        else:
+            if self.black_rm is None:
+                return
+            rm=self.black_rm
+
         print("Starting move queue:")
         for i,move in enumerate(moveQueue):
             print(f"Executing move {i+1} of {len(moveQueue)} : {move}")
@@ -107,9 +119,9 @@ class RobotInterface:
                 print(f"Moving to square {move[0]} ({self.boardMap[move[0]]})...")
                 x,y=self.boardMap[move[0]]
 
-            self.rm.move(x, y)
+            rm.move(x, y)
             print("pickup")
-            self.rm.pickup()
+            rm.pickup()
 
             #drop
             if len(move[1])==1:
@@ -128,11 +140,11 @@ class RobotInterface:
                 print(f"Moving to square {move[1]} ({self.boardMap[move[1]]})...")
                 x,y=self.boardMap[move[1]]
             #drop
-            self.rm.move(x, y)
+            rm.move(x, y)
             print("drop")
-            self.rm.place()
+            rm.place()
 
-        self.rm.return_home()
+        rm.return_home()
 
     def init_board_map(self,startPos,offset):
         boardMap={}

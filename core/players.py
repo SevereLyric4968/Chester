@@ -30,6 +30,14 @@ class AIPlayer(Player):
         self.engine.set_position(board_manager.get_fen())
         return self.engine.get_best_move()
 
+class HumanPlayer(Player):
+    def __init__(self, color, interface):
+        super().__init__(color)
+        self.interface = interface  # An instance of HumanInterface
+
+    def get_move(self, board_manager):
+        # Ask human for a move
+        return self.interface.get_move(board_manager)
 
 class RobotController:
     def __init__(self, robotInterface):

@@ -1,6 +1,7 @@
 class VisionInterface:
     def __init__(self):
         #connect camera
+        pass
 
     def get_move(self,board_manager):
         while True:
