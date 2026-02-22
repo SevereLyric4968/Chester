@@ -3,16 +3,29 @@ from core.robot_manipulator import RobotManipulator
 
 class RobotInterface:
 
-    def __init__(self, boardStart=(369, -110.5), boardOffset=31,whiteStorageStart=(170, 170), blackStorageStart=(170, -180),storageOffset=0,robot_white=None,robot_black=None):
-        self.boardMap = self.init_board_map(boardStart, boardOffset)
-        self.storageMap, self.storageOccupancy = self.init_storage(whiteStorageStart,blackStorageStart,storageOffset)
+    def __init__(self ,robot_white=None,robot_black=None):
+
+        whiteBoardCoords={
+            "boardStart": (369,-110.5),
+            "boardOffset": 31,
+            "whiteStorageStart": (170, 170),
+            "blackStorageStart": (170, -180),
+            "storageOffset": 0
+        }
+        blackBoardCoords={
+            "boardStart": self.translate_position(whiteBoardCoords["boardStart"]),
+            "boardOffset": whiteBoardCoords["boardOffset"],
+            "whiteStorageStart": self.translate_position(whiteBoardCoords["whiteStorageStart"]),
+            "blackStorageStart": self.translate_position(whiteBoardCoords["blackStorageStart"]),
+            "storageOffset": whiteBoardCoords["storageOffset"]
+        }
 
         if robot_white is None and robot_black is not None:
-            self.black_rm=RobotManipulator()
+            self.black_rm=RobotManipulator(blackBoardCoords)
         elif robot_white is not None and robot_black is None:
-            self.white_rm=RobotManipulator()
+            self.white_rm=RobotManipulator(whiteBoardCoords)
         else:
-            self.white_rm=RobotManipulator()
+            self.white_rm=RobotManipulator(whiteBoardCoords)
             self.black_rm=self.white_rm
 
     def translate(self,move,board):
@@ -104,20 +117,20 @@ class RobotInterface:
             if len(move[0])==1:
                 piece=move[0]
                 #find highest index occupied storage slot
-                for i in reversed(range(len(self.storageOccupancy[piece]))):
-                    if self.storageOccupancy[piece][i]:
+                for i in reversed(range(len(rm.storageOccupancy[piece]))):
+                    if rm.storageOccupancy[piece][i]:
                         targetSlot = i
-                        self.storageOccupancy[piece][i] = False
+                        rm.storageOccupancy[piece][i] = False
                         break
 
                 #move to storageMap[piece][targetSlot]
-                print(f"Moving to slot {piece}{targetSlot} ({self.storageMap[piece][targetSlot]})...")
-                x,y= self.storageMap[piece][targetSlot]
+                print(f"Moving to slot {piece}{targetSlot} ({rm.storageMap[piece][targetSlot]})...")
+                x,y= rm.storageMap[piece][targetSlot]
 
             else:
                 #move to boardMap[move[0]]
-                print(f"Moving to square {move[0]} ({self.boardMap[move[0]]})...")
-                x,y=self.boardMap[move[0]]
+                print(f"Moving to square {move[0]} ({rm.boardMap[move[0]]})...")
+                x,y=rm.boardMap[move[0]]
 
             rm.move(x, y)
             print("pickup")
@@ -146,79 +159,6 @@ class RobotInterface:
 
         rm.return_home()
 
-    def init_board_map(self,startPos,offset):
-        boardMap={}
-        for rank in range(8):
-            for file in range(8):
-                square=chr(ord("a")+file)+str(rank+1)
-                boardMap[square]=(startPos[0]-offset*rank,startPos[1]+offset*file)
-
-        return boardMap
-
-    def init_storage_map(self,whiteStartPos,blackStartPos,offset):
-        storageMap={}
-        layout={
-            'p' : [(0,i) for i in range(8)],
-            'r' : [(1,0),(1,1),(2,0),(2,1)],
-            'n' : [(1,2),(1,3),(2,2),(2,3)],
-            'b' : [(1,4),(1,5),(2,4),(2,5)],
-            'q' : [(1,7),(2,6),(2,7)],
-            'k' : [(1,6)]
-        }
-        for piece in layout:
-            # iterate through piece positions
-            # apply offset between grid squares
-            # append to list in dictionary
-
-            #white
-            storageMap[piece.upper()]=[]
-            for pos in layout[piece]:
-                x=pos[0]*offset+whiteStartPos[0]
-                y=pos[1]*offset+whiteStartPos[1]
-                storageMap[piece.upper()].append((x,y))
-
-            #black
-            #todo potentially need to flip black but thats a later problem
-            storageMap[piece]=[]
-            for pos in layout[piece]:
-                x=pos[0]*offset+blackStartPos[0]
-                y=pos[1]*offset+blackStartPos[1]
-                storageMap[piece].append((x,y))
-        return storageMap
-
-    def init_storage_occupancy(self,storageMap,mode="standard"):
-        # True = Occupied
-        # False = Free
-        standardCounts={
-            'P': 8, 'p' : 8,
-            'R': 2, 'r' : 2,
-            'N': 2, 'n' : 2,
-            'B': 2, 'b' : 2,
-            'Q': 1, 'q' : 1,
-            'K': 1, 'k' : 1
-        }
-        #todo read board and manually count instead of hard code
-
-        storageOccupancy={}
-        for pieceType in storageMap:
-            storageOccupancy[pieceType]=[]
-            totalSlots = len(storageMap[pieceType])
-            onBoard=standardCounts[pieceType]
-            for i in range(totalSlots):
-                if mode=="standard":
-                    storageOccupancy[pieceType].append(i>onBoard)
-                else:
-                    storageOccupancy[pieceType].append(True)
-        return storageOccupancy
-
-    def init_storage(self,whiteStartPos,blackStartPos,offset):
-        storageMap=self.init_storage_map(whiteStartPos,blackStartPos,offset)
-        storageOccupancy=self.init_storage_occupancy(storageMap)
-
-        return storageMap,storageOccupancy
-
-"""board=chess.Board()
-ri=RobotInterface()
-queue = ri.translate("a1a2", board)
-print("Queue:", queue)
-ri.executeMoveQueue(queue)"""
+    def translate_position(self,position,x_translation=400):
+        x=-position[0]+x_translation
+        y=-position[1]
