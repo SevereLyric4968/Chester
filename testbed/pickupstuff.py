@@ -62,7 +62,7 @@ def find_pink_centroid_px(
                 centroid = (cx, cy)
                 found = True
 
-    # Visualization
+    # Visualisation
     if show:
         vis = bgr_img.copy()
 
@@ -100,7 +100,7 @@ def find_pink_centroid_px(
             2,
         )
 
-        cv2.imshow("Niryo Camera (vis)", vis)
+        cv2.imshow("Niryo Camera", vis)
         cv2.imshow("Pink Mask", mask)
 
     return centroid
