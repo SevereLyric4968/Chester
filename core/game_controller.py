@@ -4,7 +4,7 @@ class GameController:
         self.white_player = white_player
         self.black_player = black_player
         self.gui=gui
-        self.robotInterface=robotInterface
+        #self.robotInterface=robotInterface
 
     def play(self):
         #Run the game loop until it's over.
@@ -27,8 +27,8 @@ class GameController:
             move = current_player.get_move(self.board_manager)
 
             #robot execution
-            moveQueue = self.robotInterface.translate(move, boardBefore)
-            self.robotInterface.executeMoveQueue(moveQueue)
+            """moveQueue = self.robotInterface.translate(move, boardBefore)
+            self.robotInterface.executeMoveQueue(moveQueue)"""
 
             self.board_manager.apply_move(move)
 
@@ -41,9 +41,3 @@ class GameController:
                 self.gui.window.update()
 
         print("Game over:", self.board_manager.get_result())
-
-"""class DualRobotController(GameController):
-    def __init__(self):
-        pass
-
-    def play(self):"""

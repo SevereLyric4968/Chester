@@ -85,7 +85,6 @@ class RobotManipulator:
                 storageMap[piece.upper()].append((x,y))
 
             #black
-            #todo potentially need to flip black but thats a later problem
             storageMap[piece]=[]
             for pos in layout[piece]:
                 x=pos[0]*offset+blackStartPos[0]

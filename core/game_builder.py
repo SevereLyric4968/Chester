@@ -5,7 +5,7 @@ from core.players import AIPlayer, rcPlayer, HumanPlayer
 from core.robot_interface import RobotInterface
 from core.chess_gui import ChessGui
 from core.vision_interface import VisionInterface
-from gui_interface import GuiInterface
+from core.gui_interface import GuiInterface
 
 import json
 
@@ -18,7 +18,6 @@ class GameBuilder():
     def build(mode):
 
         board = BoardManager()
-        engine = EngineInterface("stockfish.exe")
         config = load_config()
 
         # 1. create board
@@ -63,7 +62,7 @@ class GameBuilder():
 
         # 4. setup control mode
 
-        if config["controlType"]=="drunk adam":
+        """if config["controlType"]=="drunk adam":
             robotInterface = RobotInterface(white_robot, black_robot)
         elif config["controlType"]=="robot wars":
             robotInterface = RobotInterface(white_robot, black_robot)
@@ -71,14 +70,15 @@ class GameBuilder():
             if config["player_1_type"]=="human":
                 robotInterface = RobotInterface(black_robot)
             else:
-                robotInterface = RobotInterface(white_robot)
+                robotInterface = RobotInterface(white_robot)"""
 
         controller = GameController(
             board_manager=bm,
             white_player=white,
             black_player=black,
             gui=gui,
-            robotInterface=robotInterface
+            #robotInterface=robotInterface
+            robotInterface=None
         )
 
         return controller
