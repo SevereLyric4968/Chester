@@ -21,12 +21,12 @@ class RobotInterface:
         }
 
         if robot_white is None and robot_black is not None:
-            self.black_rm=RobotManipulator(blackBoardCoords)
+            self.black_rm=RobotManipulator(robot_black,blackBoardCoords)
         elif robot_white is not None and robot_black is None:
-            self.white_rm=RobotManipulator(whiteBoardCoords)
+            self.white_rm=RobotManipulator(robot_white,whiteBoardCoords)
         else:
-            self.white_rm=RobotManipulator(whiteBoardCoords)
-            self.black_rm=self.white_rm
+            self.white_rm=RobotManipulator(robot_white,whiteBoardCoords)
+            self.black_rm=RobotManipulator(robot_white,whiteBoardCoords)
 
     def translate(self,move,board):
 
@@ -40,8 +40,9 @@ class RobotInterface:
         isCastling = piece.piece_type==chess.KING and fromSq[0]=="e" and toSq[0] in {"g","c"}
         isPromotion=len(move)==5
 
-        isWhite=piece.color==chess.WHITE
         global isWhite
+        isWhite=piece.color==chess.WHITE
+
         homeRank=1 if isWhite else 8
         pawnDir=1 if isWhite else -1
 
@@ -75,7 +76,8 @@ class RobotInterface:
             moveQueue.append((toSq, pawnSymbol))
 
             #move piece from storage slot to square
-            moveQueue.append((move[4],toSq))
+            pieceSymbol = move[4].capitalize() if isWhite else move[4]
+            moveQueue.append((pieceSymbol,toSq))
 
 
         elif isEnPassant:
@@ -100,7 +102,7 @@ class RobotInterface:
         return moveQueue
 
     def executeMoveQueue(self,moveQueue):
-
+        #todo pass piece into pick and place
         if isWhite:
             if self.white_rm is None:
                 return
@@ -140,18 +142,18 @@ class RobotInterface:
             if len(move[1])==1:
                 piece=move[1]
                 #find lowest index unoccupied storage slot
-                for i in range(len(self.storageOccupancy[piece])):
-                    if not self.storageOccupancy[piece][i]:
+                for i in range(len(rm.storageOccupancy[piece])):
+                    if not rm.storageOccupancy[piece][i]:
                         targetSlot = i
-                        self.storageOccupancy[piece][i] = True
+                        rm.storageOccupancy[piece][i] = True
                         break
                 #move to storageMap[piece][targetSlot]
-                print(f"Moving to slot {piece}{targetSlot} ({self.storageMap[piece][targetSlot]})...")
-                x,y=self.storageMap[piece][targetSlot]
+                print(f"Moving to slot {piece}{targetSlot} ({rm.storageMap[piece][targetSlot]})...")
+                x,y=rm.storageMap[piece][targetSlot]
             else:
                 #move to boardMap[move[1]]
-                print(f"Moving to square {move[1]} ({self.boardMap[move[1]]})...")
-                x,y=self.boardMap[move[1]]
+                print(f"Moving to square {move[1]} ({rm.boardMap[move[1]]})...")
+                x,y=rm.boardMap[move[1]]
             #drop
             rm.move(x, y)
             print("drop")
