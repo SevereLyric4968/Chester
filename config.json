@@ -2,7 +2,7 @@
   "control_type": "drunk adam",
 
   "player_1_type": "rc",
-  "player_2_type": "ai",
+  "player_2_type": "rc",
 
   "white_robot_ip": "10.10.10.10",
   "black_robot_ip": "192.168.42.2",
