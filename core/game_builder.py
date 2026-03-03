@@ -17,7 +17,6 @@ class GameBuilder():
 
     def build(mode):
 
-        board = BoardManager()
         config = load_config()
 
         # 1. create board
