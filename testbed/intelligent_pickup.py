@@ -338,14 +338,12 @@ class VisualCenteringController: #Read camera frame - Detect pink centroid (cx, 
             JT = self.J.T
             dxy = LA.solve(JT @ self.J + (lam**2) * np.eye(2), JT @ e0_vec)
 
-            if err_norm > 120: #bigger steps when far and smaller when close
+            if err_norm > 70: #bigger steps when far and smaller when close
                 k = 0.18
-            elif err_norm > 60:
+            elif err_norm > 30:
                 k = 0.14
-            elif err_norm > 25:
-                k = 0.10
             else:
-                k = 0.07   
+                k = 0.10   
 
             step = k * dxy
 
