@@ -1,5 +1,5 @@
 from pyniryo import NiryoRobot, PinID, PoseObject
-from utils.zCalibration import ZCalibraition as zCal
+from z_calibration import ZCalibration as zCal
 
 class RobotManipulator:
 
