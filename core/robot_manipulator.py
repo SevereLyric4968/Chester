@@ -1,5 +1,5 @@
 from pyniryo import NiryoRobot, PinID, PoseObject
-from utils.zCalibration import ZCalibraition as zCal
+#from utils.zCalibration import ZCalibraition as zCal
 
 class RobotManipulator:
 
@@ -28,7 +28,7 @@ class RobotManipulator:
 
             self.robot.calibrate_auto()
             print("robot calibrated")
-            zCal.start()
+            #zCal.start()
         except:
             print("robot failed to connect")
             self.robot = None
