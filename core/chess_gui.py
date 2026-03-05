@@ -2,18 +2,9 @@ import os
 import tkinter as tk
 from tkinter import ttk
 from PIL import Image, ImageTk
-import chess
-
-
-import os
-import tkinter as tk
-from tkinter import ttk
-from PIL import Image, ImageTk
-import chess
-
 
 class ChessGui:
-    def __init__(self, board=None):
+    def __init__(self, board=None,databus=None):
         self.window = tk.Tk()
         self.window.title("Chester - Chess GUI")
         self.window.state("zoomed")

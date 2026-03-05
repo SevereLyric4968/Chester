@@ -1,0 +1,32 @@
+class RobotState:
+    def __init__(self):
+        self.movementStatus = "idle"
+        self.connectionStatus = "not connected"
+        self.homedStatus = "not homed"
+        self.speed = 100
+
+
+class GameState:
+    def __init__(self):
+        self.turn = "white"
+        self.status = "normal"
+
+
+class DataBus:
+    def __init__(self):
+        self.game = GameState()
+        self.robot1 = RobotState()
+        self.robot2 = RobotState()
+
+        self.gameLog = []
+        self.execLog = []
+        self.errorLog = []
+
+    def logGame(self, msg):
+        self.gameLog.append(msg)
+
+    def logExec(self, msg):
+        self.execLog.append(msg)
+
+    def logError(self, msg):
+        self.errorLog.append(msg)

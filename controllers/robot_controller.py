@@ -3,7 +3,7 @@ from core.robot_manipulator import RobotManipulator
 
 class RobotInterface:
 
-    def __init__(self ,robot_white=None,robot_black=None):
+    def __init__(self ,robot_white=None,robot_black=None,databus=None):
 
         whiteBoardCoords={
             "boardStart": (369,-110.5),

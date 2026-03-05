@@ -1,13 +1,12 @@
-from operator import truediv
-
 from core.board_manager import BoardManager
-from core.game_controller import GameController
-from core.engine_interface import EngineInterface
-from core.players import AIPlayer, rcPlayer, HumanPlayer
-from core.robot_interface import RobotInterface
+from controllers.game_controller import GameController
+from players.players import EngineInterface
+from players.players import AIPlayer, rcPlayer, HumanPlayer
+from controllers.robot_controller import RobotInterface
 from core.chess_gui import ChessGui
-from core.vision_interface import VisionInterface
-from core.gui_interface import GuiInterface
+from players.vision_interface import VisionInterface
+from players.players import GuiInterface
+from core.data_bus import DataBus
 
 import json
 
@@ -24,7 +23,8 @@ class GameBuilder():
 
         # 1. create board
         bm = BoardManager()
-        gui = ChessGui(bm.board)
+        databus = DataBus()
+        gui = ChessGui(bm.board,databus)
 
         gui_interface = GuiInterface(gui, bm)
 
@@ -91,7 +91,8 @@ class GameBuilder():
             white_player=white,
             black_player=black,
             gui=gui,
-            robotInterface=RobotInterface(white_robot, black_robot)
+            robotInterface=RobotInterface(white_robot, black_robot,databus),
+            databus=databus
         )
 
         return controller
