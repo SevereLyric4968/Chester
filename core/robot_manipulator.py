@@ -1,5 +1,5 @@
 from pyniryo import NiryoRobot, PinID, PoseObject
-#from utils.zCalibration import ZCalibraition as zCal
+#import utils.z_calibration as zCal
 
 class RobotManipulator:
 
@@ -28,7 +28,7 @@ class RobotManipulator:
 
             self.robot.calibrate_auto()
             print("robot calibrated")
-            #zCal.start()
+            #zCal.start
         except:
             print("robot failed to connect")
             self.robot = None
@@ -36,7 +36,7 @@ class RobotManipulator:
 
         self.boardMap,self.storageMap,self.storageOccupancy=self.init_maps(boardCoords)
 
-    def pickup(self,piece="p"):
+    def pickup(self,piece):
         if self.robot is not None:
             #lower
             pose = self.robot.get_pose()

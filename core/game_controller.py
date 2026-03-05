@@ -28,7 +28,7 @@ class GameController:
 
             #robot execution
             moveQueue = self.robotInterface.translate(move, boardBefore)
-            self.robotInterface.executeMoveQueue(moveQueue)
+            self.robotInterface.executeMoveQueue(moveQueue, boardBefore)
 
             self.board_manager.apply_move(move)
 
@@ -41,9 +41,3 @@ class GameController:
                 self.gui.window.update()
 
         print("Game over:", self.board_manager.get_result())
-
-"""class DualRobotController(GameController):
-    def __init__(self):
-        pass
-
-    def play(self):"""

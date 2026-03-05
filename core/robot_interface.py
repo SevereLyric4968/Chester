@@ -104,7 +104,7 @@ class RobotInterface:
 
         return moveQueue
 
-    def executeMoveQueue(self,moveQueue):
+    def executeMoveQueue(self,moveQueue,board):
 
         if isWhite:
             if self.white_rm is None:
@@ -134,12 +134,14 @@ class RobotInterface:
 
             else:
                 #move to boardMap[move[0]]
+                piece=board.piece_at(chess.parse_square(move[0])).symbol()
+                print(piece)
                 print(f"Moving to square {move[0]} ({rm.boardMap[move[0]]})...")
                 x,y=rm.boardMap[move[0]]
 
             rm.move(x, y)
             print("pickup")
-            rm.pickup()
+            rm.pickup(piece)
 
             #drop
             if len(move[1])==1:
@@ -160,7 +162,7 @@ class RobotInterface:
             #drop
             rm.move(x, y)
             print("drop")
-            rm.place()
+            rm.place(piece)
 
         rm.return_home()
 
