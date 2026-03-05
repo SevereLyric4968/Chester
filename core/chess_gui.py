@@ -1,31 +1,245 @@
 import os
 import tkinter as tk
+from tkinter import ttk
 from PIL import Image, ImageTk
 import chess
+
+
+import os
+import tkinter as tk
+from tkinter import ttk
+from PIL import Image, ImageTk
+import chess
+
 
 class ChessGui:
     def __init__(self, board=None):
         self.window = tk.Tk()
         self.window.title("Chester - Chess GUI")
+        self.window.state("zoomed")
+
+        # ----------------------------
+        # DARK MODE COLORS
+        # ----------------------------
+        dark_bg = "#1e1e1e"
+        panel_bg = "#252526"
+        accent_bg = "#2d2d30"
+        text_color = "#d4d4d4"
+        warn_color = "#ff5555"
+
+        self.window.configure(bg=dark_bg)
+
+        style = ttk.Style()
+        style.theme_use("clam")
+        style.configure("TNotebook", background=dark_bg, borderwidth=0)
+        style.configure("TNotebook.Tab",
+                        background=accent_bg,
+                        foreground=text_color,
+                        padding=6)
+        style.map("TNotebook.Tab",
+                  background=[("selected", panel_bg)])
+
         self.square_size = 60
+        self.highlighted_squares = None
+
+        # ----------------------------
+        # MAIN GRID LAYOUT
+        # ----------------------------
+        self.window.grid_rowconfigure(1, weight=1)
+        self.window.grid_rowconfigure(2, weight=0)
+        self.window.grid_rowconfigure(3, weight=0)
+
+
+        self.window.grid_columnconfigure(0, weight=3)
+        self.window.grid_columnconfigure(1, weight=1)
+
+        # ----------------------------
+        # TOP STATUS BAR
+        # ----------------------------
+        self.status_frame = tk.Frame(self.window, bg=panel_bg)
+        self.status_frame.grid(row=0, column=0, columnspan=2, sticky="ew")
+        self.status_frame.grid_columnconfigure(0, weight=1)
+
+        self.turn_label = tk.Label(self.status_frame, text="Turn: White",
+                                   bg=panel_bg, fg=text_color)
+        self.turn_label.pack(side="left", padx=10, pady=5)
+
+        self.game_status_label = tk.Label(self.status_frame, text="Status: Normal",
+                                          bg=panel_bg, fg=text_color)
+        self.game_status_label.pack(side="left", padx=10)
+
+        self.robot_status_label = tk.Label(self.status_frame,
+                                           text="Robot1: Idle | Robot2: Idle",
+                                           bg=panel_bg, fg=text_color)
+        self.robot_status_label.pack(side="left", padx=10)
+
+        self.estop_button = tk.Button(self.status_frame,
+                                      text="EMERGENCY STOP",
+                                      bg=warn_color,
+                                      fg="white",
+                                      relief="flat")
+        self.estop_button.pack(side="right", padx=10, pady=5)
+
+        # ----------------------------
+        # BOARD FRAME
+        # ----------------------------
+        self.board_frame = tk.Frame(self.window, bg=dark_bg)
+        self.board_frame.grid(row=1, column=0, sticky="nsew")
+
         self.canvas = tk.Canvas(
-            self.window,
+            self.board_frame,
             width=self.square_size * 8,
-            height=self.square_size * 8
+            height=self.square_size * 8,
+            bg=dark_bg,
+            highlightthickness=0
         )
-        self.canvas.pack()
+        self.canvas.pack(padx=20, pady=20, expand=True)
 
-        self.highlighted_squares=None
+        # ----------------------------
+        # GAME LOG PANEL
+        # ----------------------------
+        self.log_frame = tk.Frame(self.window, bg=panel_bg)
+        self.log_frame.grid(row=1, column=1, sticky="nsew")
 
-        # preload piece images
+        self.log_frame.grid_rowconfigure(1, weight=1)
+        self.log_frame.grid_columnconfigure(0, weight=1)
+
+        tk.Label(self.log_frame,
+                 text="Game Log",
+                 bg=panel_bg,
+                 fg=text_color).grid(row=0, column=0, sticky="w", padx=5, pady=5)
+
+        self.game_log = tk.Text(self.log_frame,
+                                bg=dark_bg,
+                                fg=text_color,
+                                insertbackground=text_color,
+                                relief="flat")
+        self.game_log.grid(row=1, column=0, sticky="nsew", padx=5, pady=5)
+
+        # ----------------------------
+        # ROBOT PANEL (TABBED)
+        # ----------------------------
+        self.robot_frame = tk.Frame(self.window, bg=dark_bg)
+        self.robot_frame.grid(row=2, column=0, columnspan=2, sticky="new")
+
+        self.notebook = ttk.Notebook(self.robot_frame)
+        self.notebook.pack(fill="both",expand=True)
+
+        # Robot 1 Tab
+        self.robot1_tab = tk.Frame(self.notebook, bg=panel_bg)
+        self.notebook.add(self.robot1_tab, text="Robot 1")
+
+        tk.Label(self.robot1_tab, text="Status: Idle",
+                 bg=panel_bg, fg=text_color).pack(anchor="w", padx=5, pady=2)
+        tk.Label(self.robot1_tab, text="Connected: Yes",
+                 bg=panel_bg, fg=text_color).pack(anchor="w", padx=5, pady=2)
+        tk.Label(self.robot1_tab, text="Homed: Yes",
+                 bg=panel_bg, fg=text_color).pack(anchor="w", padx=5, pady=2)
+
+        tk.Label(self.robot1_tab, text="Speed",
+                 bg=panel_bg, fg=text_color).pack(anchor="w", padx=5)
+
+        tk.Scale(self.robot1_tab,
+                 from_=0, to=100,
+                 orient="horizontal",
+                 bg=panel_bg,
+                 fg=text_color,
+                 highlightthickness=0,
+                 troughcolor=accent_bg).pack(fill="x", padx=5)
+
+        tk.Button(self.robot1_tab, text="Home",
+                  bg=accent_bg, fg=text_color,
+                  relief="flat").pack(side="left", padx=5, pady=5)
+
+        tk.Button(self.robot1_tab, text="E-Stop",
+                  bg=warn_color, fg="white",
+                  relief="flat").pack(side="left", padx=5, pady=5)
+
+        # Robot 2 Tab
+        self.robot2_tab = tk.Frame(self.notebook, bg=panel_bg)
+        self.notebook.add(self.robot2_tab, text="Robot 2")
+
+        tk.Label(self.robot2_tab, text="Status: Idle",
+                 bg=panel_bg, fg=text_color).pack(anchor="w", padx=5, pady=2)
+        tk.Label(self.robot2_tab, text="Connected: No",
+                 bg=panel_bg, fg=text_color).pack(anchor="w", padx=5, pady=2)
+        tk.Label(self.robot2_tab, text="Homed: No",
+                 bg=panel_bg, fg=text_color).pack(anchor="w", padx=5, pady=2)
+
+        tk.Label(self.robot2_tab, text="Speed",
+                 bg=panel_bg, fg=text_color).pack(anchor="w", padx=5)
+
+        tk.Scale(self.robot2_tab,
+                 from_=0, to=100,
+                 orient="horizontal",
+                 bg=panel_bg,
+                 fg=text_color,
+                 highlightthickness=0,
+                 troughcolor=accent_bg).pack(fill="x", padx=5)
+
+        tk.Button(self.robot2_tab, text="Home",
+                  bg=accent_bg, fg=text_color,
+                  relief="flat").pack(side="left", padx=5, pady=5)
+
+        tk.Button(self.robot2_tab, text="E-Stop",
+                  bg=warn_color, fg="white",
+                  relief="flat").pack(side="left", padx=5, pady=5)
+
+        # Execution Log Tab
+        self.exec_tab = tk.Frame(self.notebook, bg=panel_bg)
+        self.notebook.add(self.exec_tab, text="Execution Log")
+
+        self.exec_log = tk.Text(self.exec_tab,
+                                height=15,
+                                bg=dark_bg,
+                                fg=text_color,
+                                insertbackground=text_color,
+                                relief="flat")
+        self.exec_log.pack(fill="both", expand=True, padx=5, pady=5)
+
+        # Error Tab
+        self.error_tab = tk.Frame(self.notebook, bg=panel_bg)
+        self.notebook.add(self.error_tab, text="Errors")
+
+        self.error_log = tk.Text(self.error_tab,
+                                 height=15,
+                                 bg=dark_bg,
+                                 fg=text_color,
+                                 insertbackground=text_color,
+                                 relief="flat")
+        self.error_log.pack(fill="both", expand=True, padx=5, pady=5)
+
+        tk.Button(self.error_tab,
+                  text="Clear Errors",
+                  bg=accent_bg,
+                  fg=text_color,
+                  relief="flat").pack(pady=5)
+
+        # Bottom Control Buttons
+        self.control_frame = tk.Frame(self.window, bg=panel_bg)
+        self.control_frame.grid(row=3, column=0, columnspan=2, sticky="ew")
+
+        tk.Button(self.control_frame, text="Reset Game",
+                  bg=accent_bg, fg=text_color,
+                  relief="flat").pack(side="left", padx=5, pady=5)
+
+        tk.Button(self.control_frame, text="Undo Move",
+                  bg=accent_bg, fg=text_color,
+                  relief="flat").pack(side="left", padx=5, pady=5)
+
+        tk.Button(self.control_frame, text="Clear Logs",
+                  bg=accent_bg, fg=text_color,
+                  relief="flat").pack(side="left", padx=5, pady=5)
+
+        # ----------------------------
+        # IMAGE LOADING
+        # ----------------------------
         self.images = {}
         self._load_images()
 
-        # draw starting board if provided
         if board is not None:
             self.draw_board(board)
 
-        # just a placeholder for whoever handles clicks
         self.click_handler = None
         self.canvas.bind("<Button-1>", self.on_click)
 
@@ -50,11 +264,9 @@ class ChessGui:
             self.images[symbol] = ImageTk.PhotoImage(pil_img)
 
     def draw_board(self, board):
-        """Redraw board + pieces based on python-chess board."""
         self.board = board
         self.canvas.delete("all")
 
-        # draw squares
         for row in range(8):
             for col in range(8):
                 color = "#EEEED2" if (row + col) % 2 == 0 else "#769656"
@@ -65,7 +277,6 @@ class ChessGui:
         if self.highlighted_squares:
             self.highlight_legal_moves(self.highlighted_squares)
 
-        # draw pieces
         for square, piece in board.piece_map().items():
             row = 7 - (square // 8)
             col = square % 8
@@ -79,7 +290,6 @@ class ChessGui:
             )
 
     def on_click(self, event):
-        """Forward click event to external handler if set."""
         col = event.x // self.square_size
         row = 7 - (event.y // self.square_size)
         square = row * 8 + col
@@ -88,8 +298,13 @@ class ChessGui:
 
     def highlight_legal_moves(self, square):
         self.canvas.delete("highlight")
-        legal_moves = [move.to_square for move in self.board.legal_moves if move.from_square == square]
+        legal_moves = [
+            move.to_square
+            for move in self.board.legal_moves
+            if move.from_square == square
+        ]
         self.highlighted_squares = legal_moves
+
         for moves in legal_moves:
             row = 7 - (moves // 8)
             col = moves % 8
@@ -97,4 +312,10 @@ class ChessGui:
             y1 = row * self.square_size
             x2 = x1 + self.square_size
             y2 = y1 + self.square_size
-            self.canvas.create_rectangle(x1, y1, x2, y2, fill="#FFFF00", outline="",tags="highlight",stipple="gray75")
+            self.canvas.create_rectangle(
+                x1, y1, x2, y2,
+                fill="#FFFF00",
+                outline="",
+                tags="highlight",
+                stipple="gray75"
+            )

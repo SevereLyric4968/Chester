@@ -10,14 +10,16 @@ class RobotInterface:
             "boardOffset": 31,
             "whiteStorageStart": (170, 170),
             "blackStorageStart": (170, -180),
-            "storageOffset": 0
+            "storageOffset": 0,
+            "directionMultiplier": 1
         }
         blackBoardCoords={
             "boardStart": self.translate_position(whiteBoardCoords["boardStart"]),
             "boardOffset": whiteBoardCoords["boardOffset"],
             "whiteStorageStart": self.translate_position(whiteBoardCoords["whiteStorageStart"]),
             "blackStorageStart": self.translate_position(whiteBoardCoords["blackStorageStart"]),
-            "storageOffset": whiteBoardCoords["storageOffset"]
+            "storageOffset": whiteBoardCoords["storageOffset"],
+            "directionMultiplier": whiteBoardCoords["directionMultiplier"]*-1
         }
 
         if robot_white is None and robot_black is not None:

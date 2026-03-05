@@ -72,7 +72,6 @@ class RobotManipulator:
         if self.robot is not None:
             self.robot.move_to_home_pose()
 
-
 #______________________________________________________________________
 
 

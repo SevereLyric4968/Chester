@@ -63,17 +63,6 @@ class GameBuilder():
             raise ValueError("Invalid player_2_type")
 
         # 4. setup control mode
-
-        """if config["controlType"]=="drunk adam":
-            robotInterface = RobotInterface(white_robot, black_robot)
-        elif config["controlType"]=="robot wars":
-            robotInterface = RobotInterface(white_robot, black_robot)
-        elif config["controlType"]=="man vs ned":
-            if config["player_1_type"]=="human":
-                robotInterface = RobotInterface(black_robot)
-            else:
-                robotInterface = RobotInterface(white_robot)"""
-
         if config["control_type"]=="robot wars":
             white_robot=config["white_robot_ip"]
             black_robot=config["black_robot_ip"]
