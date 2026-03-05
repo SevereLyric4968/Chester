@@ -7,6 +7,8 @@
   "white_robot_ip": "10.10.10.10",
   "black_robot_ip": "192.168.42.2",
 
+  "robot_side":"white",
+
   "engine": {
     "path": "C:/Users/Jayda/PycharmProjects/Chester/stockfish-windows-x86-64-avx2/stockfish/stockfish-windows-x86-64-avx2.exe",
     "depth": 15,

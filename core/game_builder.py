@@ -1,3 +1,5 @@
+from operator import truediv
+
 from core.board_manager import BoardManager
 from core.game_controller import GameController
 from core.engine_interface import EngineInterface
@@ -17,6 +19,7 @@ class GameBuilder():
 
     def build(mode):
 
+        board = BoardManager()
         config = load_config()
 
         # 1. create board
@@ -61,22 +64,45 @@ class GameBuilder():
 
         # 4. setup control mode
 
-        if config["control_type"]=="drunk adam":
+        """if config["controlType"]=="drunk adam":
             robotInterface = RobotInterface(white_robot, black_robot)
-        elif config["control_type"]=="robot wars":
+        elif config["controlType"]=="robot wars":
             robotInterface = RobotInterface(white_robot, black_robot)
-        elif config["control_type"]=="man vs ned":
+        elif config["controlType"]=="man vs ned":
             if config["player_1_type"]=="human":
                 robotInterface = RobotInterface(black_robot)
             else:
-                robotInterface = RobotInterface(white_robot)
+                robotInterface = RobotInterface(white_robot)"""
+
+        if config["control_type"]=="robot wars":
+            white_robot=config["white_robot_ip"]
+            black_robot=config["black_robot_ip"]
+        elif config["control_type"]=="drunk adam":
+            if config["robot_side"]=="white":
+                white_robot=config["white_robot_ip"]
+                black_robot=config["white_robot_ip"]
+            else:
+                white_robot=config["black_robot_ip"]
+                black_robot=config["black_robot_ip"]
+        elif config["control_type"]=="man vs ned":
+            if config["robot_side"] == "white":
+                white_robot = config["white_robot_ip"]
+                black_robot = None
+            else:
+                white_robot = None
+                black_robot = config["black_robot_ip"]
+        elif config["control_type"]=="test":
+            white_robot = None
+            black_robot = None
+        else:
+            raise ValueError("Invalid control_type")
 
         controller = GameController(
             board_manager=bm,
             white_player=white,
             black_player=black,
             gui=gui,
-            robotInterface=robotInterface
+            robotInterface=RobotInterface(white_robot, black_robot)
         )
 
         return controller

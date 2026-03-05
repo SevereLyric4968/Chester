@@ -21,12 +21,14 @@ class RobotInterface:
         }
 
         if robot_white is None and robot_black is not None:
+            self.white_rm=None
             self.black_rm=RobotManipulator(robot_black,blackBoardCoords)
         elif robot_white is not None and robot_black is None:
             self.white_rm=RobotManipulator(robot_white,whiteBoardCoords)
+            self.black_rm=None
         else:
             self.white_rm=RobotManipulator(robot_white,whiteBoardCoords)
-            self.black_rm=RobotManipulator(robot_white,whiteBoardCoords)
+            self.black_rm=self.white_rm
 
     def translate(self,move,board):
 
@@ -76,8 +78,7 @@ class RobotInterface:
             moveQueue.append((toSq, pawnSymbol))
 
             #move piece from storage slot to square
-            pieceSymbol = move[4].capitalize() if isWhite else move[4]
-            moveQueue.append((pieceSymbol,toSq))
+            moveQueue.append((move[4],toSq))
 
 
         elif isEnPassant:
@@ -102,7 +103,7 @@ class RobotInterface:
         return moveQueue
 
     def executeMoveQueue(self,moveQueue):
-        #todo pass piece into pick and place
+
         if isWhite:
             if self.white_rm is None:
                 return
