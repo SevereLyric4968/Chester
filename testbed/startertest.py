@@ -4,7 +4,7 @@ robotIpAddress = "192.168.42.1"
 robot2IpAddress = "192.168.42.2" #this for ethernet use a laptop with IP address 192.168.42.100
 print("a")
 
-
+"""
 robot = NiryoRobot(robotIpAddress)
 robot2 = NiryoRobot(robot2IpAddress)
 print("b")
@@ -48,4 +48,4 @@ robot.setup_electromagnet(pin_electromagnet)
 robot.activate_electromagnet(pin_electromagnet)
 robot.deactivate_electromagnet(pin_electromagnet)
 robot.move_pose(pose_home)
-"""
+

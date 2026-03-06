@@ -28,14 +28,14 @@ class GameBuilder():
 
         gui_interface = GuiInterface(gui, bm)
 
-        # 2. setup engine
+        """# 2. setup engine
         engine_cfg = config["engine"]
         engine = EngineInterface(
             path=engine_cfg["path"],
             depth=engine_cfg["depth"],
             threads=engine_cfg["threads"],
             min_time=engine_cfg["min_time"],
-        )
+        )"""
 
         # 3. setup player types
         white_player_type=config["player_1_type"]
