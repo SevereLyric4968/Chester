@@ -222,7 +222,6 @@ class VisualCenteringController:  #Read camera frame - Detect pink centroid (cx,
         new_z = pose.z - drop
 
         # Safety clamp so pre-vision drop can't go dangerously low.
-        # (Tune this for your setup.)
         MIN_SAFE_Z = 0.105
         if new_z < MIN_SAFE_Z:
             new_z = MIN_SAFE_Z
@@ -301,7 +300,6 @@ class VisualCenteringController:  #Read camera frame - Detect pink centroid (cx,
         Ensure we have a Jacobian. Reuse cached J if valid, else calibrate.
         """
         if self._can_reuse_jacobian():
-            # Optional debug:
             # print("Reusing cached Jacobian.")
             return
         self._do_calibrate_jacobian(delta_m=delta_m, settle_s=settle_s)
@@ -538,7 +536,7 @@ class ElectromagnetPiecePicker:
         piece = piece_type.strip().lower()
         drop = self.piece_params.get(piece, PiecePickParams(self.default_pick_drop_m)).pick_drop_m
 
-        approach_z = float(pickup_xy_pose.z)  # <-- key change: use current Z
+        approach_z = float(pickup_xy_pose.z)  
         down_z = approach_z - float(drop)
         if down_z < self.min_safe_z:
             down_z = self.min_safe_z
@@ -562,7 +560,7 @@ class ElectromagnetPiecePicker:
 
     def place_at(self, drop_xy_pose: PoseObject, *, place_drop_m: float | None = None) -> None:
         """
-        Place relative to the Z in drop_xy_pose (whatever you moved to),
+        Place relative to the Z in drop_xy_pose,
         unless you override with place_drop_m.
         """
         self._setup_magnet_once()
