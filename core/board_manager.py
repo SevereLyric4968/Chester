@@ -26,5 +26,27 @@ class BoardManager:
     def get_fen(self):
         return self.board.fen()
 
+    def get_status(self):
+
+        if self.board.is_checkmate():
+            return "checkmate"
+
+        if self.board.is_stalemate():
+            return "stalemate"
+
+        if self.board.is_insufficient_material():
+            return "draw_insufficient_material"
+
+        if self.board.can_claim_threefold_repetition():
+            return "threefold_repetition"
+
+        if self.board.can_claim_fifty_moves():
+            return "fifty_move_rule"
+
+        if self.board.is_check():
+            return "check"
+
+        return "normal"
+
     def __str__(self):
         return str(self.board)
