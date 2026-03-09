@@ -1,6 +1,6 @@
 from pyniryo import *
 
-robotIpAddress = "10.10.10.10"
+robotIpAddress = "192.168.42.1"
 
 robot = NiryoRobot(robotIpAddress)
 robot.calibrate_auto()

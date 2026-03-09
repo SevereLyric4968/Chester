@@ -28,9 +28,12 @@ class RobotInterface:
         elif robot_white is not None and robot_black is None:
             self.white_rm=RobotManipulator(robot_white,whiteBoardCoords)
             self.black_rm=None
-        else:
+        elif robot_white==robot_black:
             self.white_rm=RobotManipulator(robot_white,whiteBoardCoords)
             self.black_rm=self.white_rm
+        else:
+            self.white_rm=RobotManipulator(robot_white,whiteBoardCoords)
+            self.black_rm=RobotManipulator(robot_black,whiteBoardCoords)
 
     def translate(self,move,board):
 

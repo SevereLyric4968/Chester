@@ -26,7 +26,7 @@ def main():
     Square_Poses = {
         "D3": PoseObject(0.205,  0.000, 0.148, 0, 1.5, 0),
         "D6": PoseObject(0.305,  0.000, 0.148, 0, 1.5, 0),
-        "G6": PoseObject(0.305, -0.07, 0.147, 0, 1.5, 0),
+        "G6": PoseObject(0.305, -0.07, 0.148, 0, 1.5, 0),
         "G3": PoseObject(0.205,  -0.07, 0.148, 0, 1.5, 0),
     }
 
@@ -52,7 +52,6 @@ def main():
         picker = ElectromagnetPiecePicker(
             robot,
             pin_electromagnet=pin_electromagnet,
-            pickup_drop_m=0.04,
         )
 
         valid_squares = ", ".join(Square_Poses.keys())
@@ -63,6 +62,7 @@ def main():
             raise ValueError(f"Unknown square '{pick_sq}'. Valid: {valid_squares}")
 
         piece_type = clean_piece(input("Piece type (pawn/rook/bishop/etc): "))
+        cfg.piece_type = piece_type
 
         robot.move_pose(Square_Poses[pick_sq])
 
