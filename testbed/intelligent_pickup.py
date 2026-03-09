@@ -506,7 +506,7 @@ class ElectromagnetPiecePicker:
 
         # Per-piece DOWN distances (edit these)
         self.piece_params = piece_params or {
-            "rook":   PiecePickParams(pick_drop_m=0.033),
+            "rook":   PiecePickParams(pick_drop_m=0.035),
             "bishop": PiecePickParams(pick_drop_m=0.029),
             "pawn":   PiecePickParams(pick_drop_m=0.029),
             "knight": PiecePickParams(pick_drop_m=0.029),
