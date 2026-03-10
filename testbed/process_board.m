@@ -1,7 +1,7 @@
 close all; clear all; clc;
 
 % read in image
-raw_img = imread('images\green pieces\empty.jpg');
+raw_img = imread('C:\Users\kirst\chess-vision\images\green pieces\empty.jpg');
 %rotated back to correct orientation 
 img = imrotate(raw_img,-90);
 % convert to greyscale
