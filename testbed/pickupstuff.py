@@ -87,6 +87,8 @@ def main():
         pickup_xy_pose = PoseObject(p.x, p.y, p.z, p.roll, p.pitch, p.yaw)
         picker.pick_at(piece_type, pickup_xy_pose)
 
+        #add in check force sensor for successful pickup
+
         place_sq = clean_square(input("Place to square (E4/C2/B3/D8): "))
         if place_sq not in Square_Poses:
             raise ValueError(f"Unknown square '{place_sq}'. Valid: {valid_squares}")

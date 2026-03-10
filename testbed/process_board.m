@@ -1,24 +1,28 @@
 close all; clear all; clc;
 
 % read in image
-raw_img = imread('images\green pieces\empty.jpg');
+raw_img = imread("D:\Uni\Master's Project\checkerboard_flat_20260306_163936.png");
+%raw_img = imread("C:\Users\based\Downloads\empty.jpg");
 %rotated back to correct orientation 
 img = imrotate(raw_img,-90);
 % convert to greyscale
 grey_img = rgb2gray(img);
 % gaussian blurring filter
-%usual =  20
-gauss_img = imgaussfilt(grey_img,20);
+%kirsty images =  20
+gauss_img = imgaussfilt(grey_img,5);
 % canny edge detection
 canny_img = edge(gauss_img,'Canny');
 %dialate edges
-se = strel('square', 15); 
+%kirsty images = 15
+se = strel('square', 10);
 dialated_edges = imdilate(canny_img, se);
+figure; imshow(dialated_edges); title('dialate edges');
 % fill holes
 holes_filled = imfill(dialated_edges,"holes");
 %disregard big board
 squares_only = holes_filled & ~dialated_edges;
 double = im2double(canny_img);
+
 %initialise square coords array
 square_coords = [];
 
@@ -26,8 +30,10 @@ square_coords = [];
 %show boundaries labeled in green
 [B,L] = bwboundaries(squares_only,'noholes');
 stats = regionprops(L, 'Centroid', 'Area');
-minArea = 10000;
-maxArea = 1000000000;
+%org value = 10000;
+%org value 1000000000;
+minArea = 500;
+maxArea = 100000000000;
 figure;
 imshow(gauss_img)
 imshow(label2rgb(L, @jet, [.5 .5 .5]));
@@ -49,7 +55,7 @@ end
 % make dictionary to associate 
 letters = {'a','b','c','d','e','f','g', 'h'};
 numbers = {'8','7','6','5','4','3','2', '1'};
-spacing = 180;
+spacing = 80;
 keys = strings(64,1);
 pairs = cell(64,1);
 i=1;
