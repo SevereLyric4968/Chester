@@ -1,8 +1,16 @@
-close all; clear all; clc;
+%close all; clear all; clc;
 
-global fname
+%THINGS TO DO:
+%1. PASS FILE PATH INTO PYTHON VARIABLE
+%2. make the final photo a (2000x2000) pixel grid that the checkerboard
+%proportionally maps to as a better co-ordinate system
+%3. make a function that deletes the oldest photos to declutter the workspace
 
-I = imread("D:\Uni\Masters Project\stereo_captures\photo_0002_20260310_125221.png");
+global fname %global variable that tracks final image
+global img %global variable that tracks camera snapshot
+
+
+I = imread(img);
 [imagePoints, boardSize, imagesUsed] = detectCheckerboardPoints(I);
 
 if isempty(imagePoints)
@@ -71,21 +79,22 @@ else
     h = y2 - y1 + 1;
 
     % Show original with rectangle
-    figure; imshow(I); hold on;
-    rectangle('Position', [x1, y1, w, h], 'EdgeColor', 'g', 'LineWidth', 2);
-    title(sprintf('Detected checkerboard outer bounding box (pad=%d)', pad));
+    %figure; imshow(I); hold on;
+    %rectangle('Position', [x1, y1, w, h], 'EdgeColor', 'g', 'LineWidth', 2);
+    %title(sprintf('Detected checkerboard outer bounding box (pad=%d)', pad));
 
     % Crop using indexing
     im = I(y1:y2, x1:x2, :);
     %figure out rotation: quick fix VVV
     %im = imrotate(cropped,-90);
-    figure; imshow(im); title('Cropped checkerboard (outer corners + padding)');
+    %figure; imshow(im); title('Cropped checkerboard (outer corners + padding)');
 
     %exporting as image
-    fname = sprintf('checkerboard_%s.png', datestr(now,'yyyymmdd_HHMMSS'));
-    exportgraphics(gcf, fullfile(pwd,fname), 'BackgroundColor','none');
+    baseFolder = fullfile("D:\Chester-master\Chester\testbed\image_base_folder\fname"); % base directory
+    fname = sprintf('cropped_%s.png', datestr(now,'yyyymmdd_HHMMSS'));
+    exportgraphics(gcf, fullfile(baseFolder,fname), 'BackgroundColor','none');
     %disp(['Saved: ', fullfile(pwd,fname)]);
 
-    run("process_board.m")
+    %TODO: return filepath into vision_interface.py
 
 end
