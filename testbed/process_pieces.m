@@ -4,7 +4,7 @@ data = load('board_calibration.mat');
 board_dictionary = data.board_dictionary;
 
 % read in image
-raw_img = imread('images\green pieces\starting.jpg');
+raw_img = imread('C:\Users\kirst\chess-vision\images\green pieces\starting.jpg');
 %rotate
 img=imrotate(raw_img,-90);
 %use pink mask

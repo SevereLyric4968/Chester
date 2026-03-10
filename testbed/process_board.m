@@ -4,7 +4,6 @@ global fname
 
 % read in image
 raw_img = imread(fname);
-
 %rotated back to correct orientation 
 img = imrotate(raw_img,-90);
 % convert to greyscale
