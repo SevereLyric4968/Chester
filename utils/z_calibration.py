@@ -20,20 +20,11 @@ def start():
         pose_target_obj = PoseObject(xyArray[i][0], xyArray[i][1], 0.13, 0, np.pi/2, 0) # in meters and radians
         robot.move_pose(pose_target_obj)
         z = 0.054
-        previousZ = 0 #
-        collided = False #
-        while(not collided): #move arm down
+        while(robot.analog_read(forceSensor)<1.9): #move arm down
             pose_target_obj = PoseObject(xyArray[i][0], xyArray[i][1], z, 0, np.pi/2, 0) # in meters and radians
             robot.move_pose(pose_target_obj)
             z = z-0.001
             print(robot.analog_read(forceSensor))
-            if(robot.analog_read(forceSensor)>0.10):
-                collided = True
-            #if(not(previousZ==0) and (previousZ - robot.get_pose().z<0.0005)): #
-            #    collided = True
-            else:
-                print("not touched table")
-            previousZ = robot.get_pose().z #
         pose_target_obj = PoseObject(xyArray[i][0], xyArray[i][1], 0.130, 0, np.pi/2, 0) # in meters and radians
         robot.move_pose(pose_target_obj)
         #robot.clear_collision_detected()
