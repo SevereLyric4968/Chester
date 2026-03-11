@@ -1,5 +1,5 @@
 import chess
-
+import subprocess
 
 class VisionInterface:
     def __init__(self):
@@ -18,7 +18,10 @@ class VisionInterface:
                 print("Invalid or illegal move, try again.")
 
     def take_image(self):
-        image="camera"
+        #pseudo code
+        #run camera.m
+        #returns image file path into VVV
+        image="file path.png"
         return image
 
     def process_image(self,image):

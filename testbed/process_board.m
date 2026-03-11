@@ -1,8 +1,9 @@
-close all; clear all; clc;
+%close all; clear all; clc;
+
+global fname
 
 % read in image
-raw_img = imread("D:\Uni\Master's Project\checkerboard_flat_20260306_163936.png");
-%raw_img = imread("C:\Users\based\Downloads\empty.jpg");
+raw_img = imread(fname);
 %rotated back to correct orientation 
 img = imrotate(raw_img,-90);
 % convert to greyscale
