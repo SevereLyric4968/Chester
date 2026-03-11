@@ -39,6 +39,7 @@ while true
 
     path  = fullfile(baseFolder,  name);
     img = path;
+    disp(img);
 
     % Save files
     imwrite(stereo, path);
@@ -48,9 +49,17 @@ while true
     idx = idx + 1;
 end
 
+% NESSECARY FOR MATLAB INTEGRATION
+function print_image_path()
+    fprintf('%s\n', img);
+end
+
+print_image_path();
+
 % Clean up
 clear cam;
 disp('Camera cleared.');
 
 %cropping time%
-run("centering.m");
+%run("centering.m");
+exit
