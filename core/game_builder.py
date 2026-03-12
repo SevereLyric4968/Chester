@@ -1,11 +1,11 @@
 from core.board_manager import BoardManager
 from controllers.game_controller import GameController
-from players.players import EngineInterface
+from players.engine_interface import EngineInterface
 from players.players import AIPlayer, rcPlayer, HumanPlayer
-from controllers.robot_controller import RobotInterface
+from controllers.robot_controller import RobotController
 from core.chess_gui import ChessGui
 from players.vision_interface import VisionInterface
-from players.players import GuiInterface
+from players.gui_interface import GuiInterface
 from core.data_bus import DataBus
 
 import json
@@ -18,7 +18,6 @@ class GameBuilder():
 
     def build(mode):
 
-        board = BoardManager()
         config = load_config()
 
         # 1. create board
@@ -28,14 +27,14 @@ class GameBuilder():
 
         gui_interface = GuiInterface(gui, bm)
 
-        """# 2. setup engine
+        # 2. setup engine
         engine_cfg = config["engine"]
         engine = EngineInterface(
             path=engine_cfg["path"],
             depth=engine_cfg["depth"],
             threads=engine_cfg["threads"],
             min_time=engine_cfg["min_time"],
-        )"""
+        )
 
         # 3. setup player types
         white_player_type=config["player_1_type"]
@@ -90,9 +89,9 @@ class GameBuilder():
             board_manager=bm,
             white_player=white,
             black_player=black,
+            robot_controller=RobotController(white_robot, black_robot,databus),
             gui=gui,
-            robotInterface=RobotInterface(white_robot, black_robot,databus),
             databus=databus
         )
 
-        return controller
+        return controller,gui

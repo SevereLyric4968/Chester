@@ -20,8 +20,9 @@ class RobotManipulator:
         robot_ip=ip
 
         try:
+            print("trying to connect")
             self.robot = NiryoRobot(robot_ip)
-            print("robot connected connected")
+            print("robot connected")
 
             self.pin_electromagnet = PinID.DO4
             self.robot.setup_electromagnet(self.pin_electromagnet)
@@ -35,12 +36,14 @@ class RobotManipulator:
 
 
         self.boardMap,self.storageMap,self.storageOccupancy=self.init_maps(boardCoords)
+        self.home=PoseObject(0.1343,0,0.1652,0.002,1,0)
+        self.robot.move_pose(self.home)
 
     def pickup(self,piece):
         if self.robot is not None:
             #lower
             pose = self.robot.get_pose()
-            move=PoseObject(pose.x,pose.y,pose.z-(movementHeight-pieceHeights[piece]),0,3.14/2,0)
+            move=PoseObject(pose.x,pose.y,pose.z-(movementHeight-pieceHeights[piece.lower()]),0,3.14/2,0)
             self.robot.move_pose(move)
 
             self.robot.activate_electromagnet(self.pin_electromagnet)
@@ -52,7 +55,7 @@ class RobotManipulator:
         if self.robot is not None:
             # lower
             pose = self.robot.get_pose()
-            move = PoseObject(pose.x, pose.y, pose.z-(movementHeight-pieceHeights[piece]), 0, 3.14 / 2, 0)
+            move = PoseObject(pose.x, pose.y, pose.z-(movementHeight-pieceHeights[piece.lower()]), 0, 3.14 / 2, 0)
             self.robot.move_pose(move)
 
             self.robot.deactivate_electromagnet(self.pin_electromagnet)
@@ -70,7 +73,7 @@ class RobotManipulator:
 
     def return_home(self):
         if self.robot is not None:
-            self.robot.move_to_home_pose()
+            self.robot.move_pose(self.home)
 
 #______________________________________________________________________
 
@@ -94,6 +97,7 @@ class RobotManipulator:
             'q' : [(1,7),(2,6),(2,7)],
             'k' : [(1,6)]
         }
+
         for piece in layout:
             # iterate through piece positions
             # apply offset between grid squares

@@ -3,7 +3,6 @@ class RobotState:
         self.movementStatus = "idle"
         self.connectionStatus = "not connected"
         self.homedStatus = "not homed"
-        self.speed = 100
 
 
 class GameState:
@@ -21,6 +20,8 @@ class DataBus:
         self.gameLog = []
         self.execLog = []
         self.errorLog = []
+
+        self.robotBusy = False
 
     def logGame(self, msg):
         self.gameLog.append(msg)

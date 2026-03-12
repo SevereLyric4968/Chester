@@ -2,10 +2,12 @@ from pyniryo import *
 import numpy as np
 
 global plane1,plane2,midpoint
-
 plane1 = []
 plane2 = []
 midpoint = [0,0]
+
+forceSensor = PinID.AI1
+
 #pass in robot maybe? unsure what's needed to move the arm
 def start():
     global plane1, plane2, midpoint
@@ -18,20 +20,11 @@ def start():
         pose_target_obj = PoseObject(xyArray[i][0], xyArray[i][1], 0.13, 0, np.pi/2, 0) # in meters and radians
         robot.move_pose(pose_target_obj)
         z = 0.054
-        previousZ = 0
-        collided = False
-        while(not collided): #move arm down
+        while(robot.analog_read(forceSensor)<1.9): #move arm down
             pose_target_obj = PoseObject(xyArray[i][0], xyArray[i][1], z, 0, np.pi/2, 0) # in meters and radians
             robot.move_pose(pose_target_obj)
-            z = z-0.002
-            print(previousZ)
-            print(robot.get_pose().z)
-            print(previousZ - robot.get_pose().z)
-            if(not(previousZ==0) and (previousZ - robot.get_pose().z<0.0005)):
-                collided = True
-            else:
-                print("not touched table")
-            previousZ = robot.get_pose().z
+            z = z-0.001
+            print(robot.analog_read(forceSensor))
         pose_target_obj = PoseObject(xyArray[i][0], xyArray[i][1], 0.130, 0, np.pi/2, 0) # in meters and radians
         robot.move_pose(pose_target_obj)
         #robot.clear_collision_detected()

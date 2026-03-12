@@ -9,6 +9,8 @@ class ChessGui:
         self.window.title("Chester - Chess GUI")
         self.window.state("zoomed")
 
+        self.databus = databus
+
         # ----------------------------
         # DARK MODE COLORS
         # ----------------------------
@@ -16,7 +18,6 @@ class ChessGui:
         panel_bg = "#252526"
         accent_bg = "#2d2d30"
         text_color = "#d4d4d4"
-        warn_color = "#ff5555"
 
         self.window.configure(bg=dark_bg)
 
@@ -63,13 +64,6 @@ class ChessGui:
                                            text="Robot1: Idle | Robot2: Idle",
                                            bg=panel_bg, fg=text_color)
         self.robot_status_label.pack(side="left", padx=10)
-
-        self.estop_button = tk.Button(self.status_frame,
-                                      text="EMERGENCY STOP",
-                                      bg=warn_color,
-                                      fg="white",
-                                      relief="flat")
-        self.estop_button.pack(side="right", padx=10, pady=5)
 
         # ----------------------------
         # BOARD FRAME
@@ -120,61 +114,27 @@ class ChessGui:
         self.robot1_tab = tk.Frame(self.notebook, bg=panel_bg)
         self.notebook.add(self.robot1_tab, text="Robot 1")
 
-        tk.Label(self.robot1_tab, text="Status: Idle",
-                 bg=panel_bg, fg=text_color).pack(anchor="w", padx=5, pady=2)
-        tk.Label(self.robot1_tab, text="Connected: Yes",
-                 bg=panel_bg, fg=text_color).pack(anchor="w", padx=5, pady=2)
-        tk.Label(self.robot1_tab, text="Homed: Yes",
-                 bg=panel_bg, fg=text_color).pack(anchor="w", padx=5, pady=2)
+        self.robot1_status_label = tk.Label(self.robot1_tab, text="Status: Idle",bg=panel_bg, fg=text_color)
+        self.robot1_status_label.pack(anchor="w", padx=5, pady=2)
 
-        tk.Label(self.robot1_tab, text="Speed",
-                 bg=panel_bg, fg=text_color).pack(anchor="w", padx=5)
+        self.robot1_connected_label = tk.Label(self.robot1_tab, text="Connected: Yes",bg=panel_bg, fg=text_color)
+        self.robot1_connected_label.pack(anchor="w", padx=5, pady=2)
 
-        tk.Scale(self.robot1_tab,
-                 from_=0, to=100,
-                 orient="horizontal",
-                 bg=panel_bg,
-                 fg=text_color,
-                 highlightthickness=0,
-                 troughcolor=accent_bg).pack(fill="x", padx=5)
-
-        tk.Button(self.robot1_tab, text="Home",
-                  bg=accent_bg, fg=text_color,
-                  relief="flat").pack(side="left", padx=5, pady=5)
-
-        tk.Button(self.robot1_tab, text="E-Stop",
-                  bg=warn_color, fg="white",
-                  relief="flat").pack(side="left", padx=5, pady=5)
+        self.robot1_homed_label = tk.Label(self.robot1_tab, text="Homed: Yes",bg=panel_bg, fg=text_color)
+        self.robot1_homed_label.pack(anchor="w", padx=5, pady=2)
 
         # Robot 2 Tab
         self.robot2_tab = tk.Frame(self.notebook, bg=panel_bg)
         self.notebook.add(self.robot2_tab, text="Robot 2")
 
-        tk.Label(self.robot2_tab, text="Status: Idle",
-                 bg=panel_bg, fg=text_color).pack(anchor="w", padx=5, pady=2)
-        tk.Label(self.robot2_tab, text="Connected: No",
-                 bg=panel_bg, fg=text_color).pack(anchor="w", padx=5, pady=2)
-        tk.Label(self.robot2_tab, text="Homed: No",
-                 bg=panel_bg, fg=text_color).pack(anchor="w", padx=5, pady=2)
+        self.robot2_status_label = tk.Label(self.robot2_tab, text="Status: Idle",bg=panel_bg, fg=text_color)
+        self.robot2_status_label.pack(anchor="w", padx=5, pady=2)
 
-        tk.Label(self.robot2_tab, text="Speed",
-                 bg=panel_bg, fg=text_color).pack(anchor="w", padx=5)
+        self.robot2_connected_label = tk.Label(self.robot2_tab, text="Connected: Yes",bg=panel_bg, fg=text_color)
+        self.robot2_connected_label.pack(anchor="w", padx=5, pady=2)
 
-        tk.Scale(self.robot2_tab,
-                 from_=0, to=100,
-                 orient="horizontal",
-                 bg=panel_bg,
-                 fg=text_color,
-                 highlightthickness=0,
-                 troughcolor=accent_bg).pack(fill="x", padx=5)
-
-        tk.Button(self.robot2_tab, text="Home",
-                  bg=accent_bg, fg=text_color,
-                  relief="flat").pack(side="left", padx=5, pady=5)
-
-        tk.Button(self.robot2_tab, text="E-Stop",
-                  bg=warn_color, fg="white",
-                  relief="flat").pack(side="left", padx=5, pady=5)
+        self.robot2_homed_label = tk.Label(self.robot2_tab, text="Homed: Yes",bg=panel_bg, fg=text_color)
+        self.robot2_homed_label.pack(anchor="w", padx=5, pady=2)
 
         # Execution Log Tab
         self.exec_tab = tk.Frame(self.notebook, bg=panel_bg)
@@ -205,22 +165,6 @@ class ChessGui:
                   bg=accent_bg,
                   fg=text_color,
                   relief="flat").pack(pady=5)
-
-        # Bottom Control Buttons
-        self.control_frame = tk.Frame(self.window, bg=panel_bg)
-        self.control_frame.grid(row=3, column=0, columnspan=2, sticky="ew")
-
-        tk.Button(self.control_frame, text="Reset Game",
-                  bg=accent_bg, fg=text_color,
-                  relief="flat").pack(side="left", padx=5, pady=5)
-
-        tk.Button(self.control_frame, text="Undo Move",
-                  bg=accent_bg, fg=text_color,
-                  relief="flat").pack(side="left", padx=5, pady=5)
-
-        tk.Button(self.control_frame, text="Clear Logs",
-                  bg=accent_bg, fg=text_color,
-                  relief="flat").pack(side="left", padx=5, pady=5)
 
         # ----------------------------
         # IMAGE LOADING
@@ -310,3 +254,61 @@ class ChessGui:
                 tags="highlight",
                 stipple="gray75"
             )
+
+    def start_update_loop(self):
+        self.update_loop()
+
+    def update_loop(self):
+        if hasattr(self, "controller"):
+            self.controller.step()
+
+        self.turn_label.config(text=f"Turn: {self.databus.game.turn}")
+        self.game_status_label.config(text=f"Status: {self.databus.game.status}")
+
+        self.robot_status_label.config(
+            text=f"Robot1: {self.databus.robot1.movementStatus} | Robot2: {self.databus.robot2.movementStatus}"
+        )
+
+        # robot 1 tab
+        self.robot1_status_label.config(
+            text=f"Status: {self.databus.robot1.movementStatus}"
+        )
+        self.robot1_connected_label.config(
+            text=f"Connected: {self.databus.robot1.connectionStatus}"
+        )
+        self.robot1_homed_label.config(
+            text=f"Homed: {self.databus.robot1.homedStatus}"
+        )
+
+        # robot 2 tab
+        self.robot2_status_label.config(
+            text=f"Status: {self.databus.robot2.movementStatus}"
+        )
+        self.robot2_connected_label.config(
+            text=f"Connected: {self.databus.robot2.connectionStatus}"
+        )
+        self.robot2_homed_label.config(
+            text=f"Homed: {self.databus.robot2.homedStatus}"
+        )
+
+        self.update_logs()
+
+
+        self.window.after(100, self.update_loop)
+
+    def update_logs(self):
+
+        self.game_log.delete("1.0", tk.END)
+        for line in self.databus.gameLog:
+            self.game_log.insert(tk.END, line + "\n")
+        self.game_log.see(tk.END)
+
+        self.exec_log.delete("1.0", tk.END)
+        for line in self.databus.execLog:
+            self.exec_log.insert(tk.END, line + "\n")
+        self.exec_log.see(tk.END)
+
+        self.error_log.delete("1.0", tk.END)
+        for line in self.databus.errorLog:
+            self.error_log.insert(tk.END, line + "\n")
+        self.error_log.see(tk.END)
