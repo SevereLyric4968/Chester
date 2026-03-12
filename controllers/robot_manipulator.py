@@ -37,6 +37,7 @@ class RobotManipulator:
 
         self.boardMap,self.storageMap,self.storageOccupancy=self.init_maps(boardCoords)
         self.home=PoseObject(0.1343,0,0.1652,0.002,1,0)
+        self.robot.move_pose(self.home)
 
     def pickup(self,piece):
         if self.robot is not None:
