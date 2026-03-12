@@ -36,4 +36,3 @@ class GuiInterface:
             self.gui.window.update()
 
         return self.pending_move
-
