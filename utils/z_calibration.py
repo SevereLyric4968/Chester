@@ -20,7 +20,7 @@ class ZCalibration:
             "move through the different x,y coordinates and find the z value for each one to create a plane"
             pose_target_obj = PoseObject(xyArray[i][0], xyArray[i][1], 0.13, 0, np.pi/2, 0) # in meters and radians
             robot.move_pose(pose_target_obj)
-            z = 0.054
+            z = 0.05
             while(robot.analog_read(forceSensor)<1.9): #move arm down
                 pose_target_obj = PoseObject(xyArray[i][0], xyArray[i][1], z, 0, np.pi/2, 0) # in meters and radians
                 robot.move_pose(pose_target_obj)
@@ -36,7 +36,7 @@ class ZCalibration:
         self.plane2 = self.createPlane(xyArray[2:], zArray[2:])
         print("plane2: " + str(self.plane2) + " inserted coords: " + str(xyArray[2:]))
 
-    def createPlane(xyPassed, zPassed):
+    def createPlane(self, xyPassed, zPassed):
         xMean = 0
         yMean = 0
         zMean = 0
@@ -56,11 +56,11 @@ class ZCalibration:
         d = -(Vt[2][0]*xMean + Vt[2][1]*yMean + Vt[2][2]*zMean)
         return [Vt[2][0], Vt[2][1], Vt[2][2], d] # stored in the form [a,b,c,d] where ax + by + cz + d = 0 describes a plane
 
-    def getZBaseline(x,y):
+    def getZBaseline(self, x,y):
         "input an x,y coordinate and return the z coordinate from the plane"
-        if(x<midpoint[0]):
-            return ((-plane1[0]*x - plane1[1]*y - plane1[3])/plane1[2])
-        return ((-plane2[0]*x - plane2[1]*y - plane2[3])/plane2[2])
+        if(x<self.midpoint[0]):
+            return ((-self.plane1[0]*x - self.plane1[1]*y - self.plane1[3])/self.plane1[2])
+        return ((-self.plane2[0]*x - self.plane2[1]*y - self.plane2[3])/self.plane2[2])
 
 robotIpAddress = "10.10.10.10"
 robot = NiryoRobot(robotIpAddress)
