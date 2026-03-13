@@ -13,7 +13,8 @@ class RobotManipulator:
         'q': 10/1000,
         'k': 10/1000
     }
-    cruiseHeight = 0.15
+    cruiseHeight = 0.0827
+    boardHeight=0.0527
 
     def __init__(self,ip,boardCoords,databus):
         robot_ip=ip
@@ -30,7 +31,7 @@ class RobotManipulator:
 
             self.robot.calibrate_auto()
             print("robot calibrated")
-            self.robotCalibration = zCal.ZCalibration(self.robot)
+            #self.robotCalibration = zCal.ZCalibration(self.robot)
 
             self.home = PoseObject(0.1343, 0, 0.1652, 0, 1, 0)
             self.robot.move_pose(self.home)
@@ -50,8 +51,8 @@ class RobotManipulator:
             #lower
             self.databus.movementStatus="Moving"
             pose = self.robot.get_pose()
-            print(self.robotCalibration.getZBaseline(pose.x,pose.y))
-            move=PoseObject(pose.x,pose.y,pose.z-self.robotCalibration.getZBaseline(pose.x,pose.y)+pieceHeights[piece.lower()],0,math.pi/2,0)
+            #print(self.robotCalibration.getZBaseline(pose.x,pose.y))
+            move=PoseObject(pose.x,pose.y,boardHeight+pieceHeights[piece.lower()],0,math.pi/2,0)
             self.robot.move_pose(move)
 
             self.robot.activate_electromagnet(self.pin_electromagnet)
@@ -65,7 +66,7 @@ class RobotManipulator:
             # lower
             self.databus.movementStatus = "Moving"
             pose = self.robot.get_pose()
-            move = PoseObject(pose.x, pose.y, pose.z-self.robotCalibration.getZBaseline(pose.x,pose.y)+pieceHeights[piece.lower()], 0, math.pi/2, 0)
+            move = PoseObject(pose.x, pose.y, boardHeight+pieceHeights[piece.lower()], 0, math.pi/2, 0)
             self.robot.move_pose(move)
 
             self.robot.deactivate_electromagnet(self.pin_electromagnet)

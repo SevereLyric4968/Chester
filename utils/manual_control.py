@@ -1,52 +1,107 @@
 import tkinter as tk
 from pyniryo import NiryoRobot, PinID, PoseObject
 
+
 class ControlPanel:
     def __init__(self):
-        robot_ip = ""
-        self.robot=NiryoRobot(robot_ip)
+        robot_ip = "192.168.42.2"
+        self.robot = NiryoRobot(robot_ip)
+        self.robot.calibrate_auto()
+
+        self.homePose = PoseObject(0.1343, 0, 0.1652, 0, 1, 0)
+
         self.window = tk.Tk()
         self.window.title("Control Panel")
 
-        # main panel
         self.panel = tk.Frame(self.window, padx=10, pady=10)
         self.panel.pack()
 
         # -----------------
-        # regular buttons
+        # basic buttons
         # -----------------
 
-        tk.Button(self.panel, text="print Pose", command=self.print_pose).grid(row=0, column=0, pady=5, sticky="ew")
-        tk.Button(self.panel, text="Action 2", command=self.action2).grid(row=1, column=0, pady=5, sticky="ew")
+        tk.Button(self.panel, text="Print Pose", command=self.printPose).grid(row=0, column=0, columnspan=2, sticky="ew")
+        tk.Button(self.panel, text="Home", command=self.home).grid(row=1, column=0, columnspan=2, sticky="ew")
 
         # -----------------
-        # inputs for go button
+        # nudge controls
         # -----------------
 
-        self.inputs = []
+        tk.Button(self.panel, text="X +1mm", command=lambda: self.nudge(0.001,0,0)).grid(row=2, column=0, sticky="ew")
+        tk.Button(self.panel, text="X -1mm", command=lambda: self.nudge(-0.001,0,0)).grid(row=2, column=1, sticky="ew")
 
-        for i in range(6):
+        tk.Button(self.panel, text="Y +1mm", command=lambda: self.nudge(0,0.001,0)).grid(row=3, column=0, sticky="ew")
+        tk.Button(self.panel, text="Y -1mm", command=lambda: self.nudge(0,-0.001,0)).grid(row=3, column=1, sticky="ew")
+
+        tk.Button(self.panel, text="Z +1mm", command=lambda: self.nudge(0,0,0.001)).grid(row=4, column=0, sticky="ew")
+        tk.Button(self.panel, text="Z -1mm", command=lambda: self.nudge(0,0,-0.001)).grid(row=4, column=1, sticky="ew")
+
+        # -----------------
+        # pose inputs
+        # -----------------
+
+        labels = ["X","Y","Z","Yaw","Pitch","Roll"]
+        self.inputs = {}
+
+        for i, name in enumerate(labels):
+            tk.Label(self.panel, text=name).grid(row=5+i, column=0)
             entry = tk.Entry(self.panel, width=10)
-            entry.grid(row=2+i, column=0, pady=2)
-            self.inputs.append(entry)
+            entry.grid(row=5+i, column=1)
+            self.inputs[name] = entry
 
-        tk.Button(self.panel, text="Go", command=self.processInputs).grid(row=8, column=0, pady=10, sticky="ew")
+        tk.Button(self.panel, text="Go To Pose", command=self.gotoPose).grid(row=11, column=0, columnspan=2, pady=10, sticky="ew")
 
         self.window.mainloop()
 
-    def print_pose(self):
-        print("pose")
+    def printPose(self):
+        print(self.robot.get_pose())
 
-    def action2(self):
-        print("action2 called")
+    def home(self):
+        self.robot.move_pose(self.homePose)
 
-    def processInputs(self):
-        values = []
+    def nudge(self, dx, dy, dz):
+        pose = self.robot.get_pose()
 
-        for entry in self.inputs:
-            values.append(entry.get())
+        newPose = PoseObject(
+            pose.x + dx,
+            pose.y + dy,
+            pose.z + dz,
+            pose.roll,
+            pose.pitch,
+            pose.yaw
+        )
 
-        print("values:", values)
+        self.robot.move_pose(newPose)
+
+    def gotoPose(self):
+        currentPose = self.robot.get_pose()
+        try:
+            x = float(self.inputs["X"].get())
+        except:
+            x=currentPose.x
+        try:
+            y = float(self.inputs["Y"].get())
+        except:
+            y=currentPose.y
+        try:
+            z = float(self.inputs["Z"].get())
+        except:
+            z=currentPose.z
+        try:
+            yaw = float(self.inputs["Yaw"].get())
+        except:
+            yaw=currentPose.yaw
+        try:
+            pitch = float(self.inputs["Pitch"].get())
+        except:
+            pitch=currentPose.pitch
+        try:
+            roll = float(self.inputs["Roll"].get())
+        except:
+            roll=currentPose.roll
+
+        pose = PoseObject(x, y, z, roll, pitch, yaw)
+        self.robot.move_pose(pose)
 
 
 if __name__ == "__main__":

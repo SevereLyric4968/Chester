@@ -15,7 +15,7 @@ class ZCalibration:
     def start(self, robot):
         "going to create 2 planes that split the chessboard along the middle and use them to set the baseline for z"
         zArray = []
-        xyArray = [[0.125,-0.114],[0.130,0.134],[0.257,-0.123],[0.257,0.126],[0.416,-0.137],[0.418,0.152]] #coordinates that check the back left, back right, middle left, middle right, front left, front right of the board
+        xyArray = [[0.125,-0.114],[0.130,0.134],[0.257,-0.123],[0.257,0.126],[0.4047, -0.1293],[0.4059, 0.1335]] #coordinates that check the back left, back right, middle left, middle right, front left, front right of the board
         self.midpoint = [(xyArray[2][0]+xyArray[3][0])/2, (xyArray[2][1]+xyArray[3][1])/2] #find the midpoint to use as the point to split the planes
         for i in range(len(xyArray)):
             "move through the different x,y coordinates and find the z value for each one to create a plane"
@@ -30,7 +30,7 @@ class ZCalibration:
             pose_target_obj = PoseObject(xyArray[i][0], xyArray[i][1], 0.130, 0, np.pi/2, 0) # in meters and radians
             robot.move_pose(pose_target_obj)
             #robot.clear_collision_detected()
-            zArray.append(robot.get_pose().z)
+            zArray.append(robot.get_pose().z*1000)
         print("zArray :" + str(zArray))
         self.plane1 = self.createPlane(xyArray[:4], zArray[:4])
         print("plane1: " + str(self.plane1) + " inserted coords: " + str(xyArray[:4]))
@@ -59,9 +59,9 @@ class ZCalibration:
 
     def getZBaseline(self, x,y):
         "input an x,y coordinate and return the z coordinate from the plane"
-        if(x<self.midpoint[0]):
-            return ((-self.plane1[0]*x - self.plane1[1]*y - self.plane1[3])/self.plane1[2])
-        return ((-self.plane2[0]*x - self.plane2[1]*y - self.plane2[3])/self.plane2[2])
+        #if(x<self.midpoint[0]):
+        return ((-self.plane1[0]*x - self.plane1[1]*y - self.plane1[3])/self.plane1[2])
+        #return ((-self.plane2[0]*x - self.plane2[1]*y - self.plane2[3])/self.plane2[2])
 
 """robotIpAddress = "10.10.10.10"
 robot = NiryoRobot(robotIpAddress)
