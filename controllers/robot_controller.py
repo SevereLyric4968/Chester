@@ -28,16 +28,16 @@ class RobotController:
 
         if robot_white is None and robot_black is not None:
             self.white_rm=None
-            self.black_rm=RobotManipulator(robot_black,blackBoardCoords)
+            self.black_rm=RobotManipulator(robot_black,blackBoardCoords,self.databus.robot1)
         elif robot_white is not None and robot_black is None:
-            self.white_rm=RobotManipulator(robot_white,whiteBoardCoords)
+            self.white_rm=RobotManipulator(robot_white,whiteBoardCoords,self.databus.robot1)
             self.black_rm=None
         elif robot_white==robot_black:
-            self.white_rm=RobotManipulator(robot_white,whiteBoardCoords)
+            self.white_rm=RobotManipulator(robot_white,whiteBoardCoords,self.databus.robot1)
             self.black_rm=self.white_rm
         else:
-            self.white_rm=RobotManipulator(robot_white,whiteBoardCoords)
-            self.black_rm=RobotManipulator(robot_black,whiteBoardCoords)
+            self.white_rm=RobotManipulator(robot_white,whiteBoardCoords,self.databus.robot1)
+            self.black_rm=RobotManipulator(robot_black,whiteBoardCoords,self.databus.robot2)
             print("cool")
 
         print(robot_white)
@@ -117,20 +117,21 @@ class RobotController:
     def execute_move_queue(self,moveQueue,board,isWhite):
         print("executing move queue")
         print(isWhite)
-        with self.lock:
+        with (self.lock):
             if isWhite:
                 if self.white_rm is None:
                     return
                 rm=self.white_rm
+                self.databus.execLog.append("White robot:")
             else:
                 if self.black_rm is None:
                     return
                 rm=self.black_rm
-                print("AAAAAAAAAAAAAAAAAAAAAAAAAAAA")
+                self.databus.execLog.append("Black robot:")
 
-            print("Starting move queue:")
+            self.databus.execLog.append("Starting move queue:")
             for i,move in enumerate(moveQueue):
-                print(f"Executing move {i+1} of {len(moveQueue)} : {move}")
+                self.databus.execLog.append(f"Executing move {i+1} of {len(moveQueue)} : {move[0]} to {move[1]}")
                 #pickup
                 if len(move[0])==1:
                     piece=move[0]
@@ -142,18 +143,18 @@ class RobotController:
                             break
 
                     #move to storageMap[piece][targetSlot]
-                    print(f"Moving to slot {piece}{targetSlot} ({rm.storageMap[piece][targetSlot]})...")
+                    self.databus.execLog.append(f"Moving to slot {piece}{targetSlot} ({rm.storageMap[piece][targetSlot]})...")
                     x,y= rm.storageMap[piece][targetSlot]
 
                 else:
                     #move to boardMap[move[0]]
                     piece=board.piece_at(chess.parse_square(move[0])).symbol()
                     print(piece)
-                    print(f"Moving to square {move[0]} ({rm.boardMap[move[0]]})...")
+                    self.databus.execLog.append(f"Moving to square {move[0]} ({rm.boardMap[move[0]]})...")
                     x,y=rm.boardMap[move[0]]
 
                 rm.move(x, y)
-                print("pickup")
+                self.databus.execLog.append("picking up piece")
                 rm.pickup(piece)
 
                 #drop
@@ -166,15 +167,15 @@ class RobotController:
                             rm.storageOccupancy[piece][i] = True
                             break
                     #move to storageMap[piece][targetSlot]
-                    print(f"Moving to slot {piece}{targetSlot} ({rm.storageMap[piece][targetSlot]})...")
+                    self.databus.execLog.append(f"Moving to slot {piece}{targetSlot} ({rm.storageMap[piece][targetSlot]})...")
                     x,y=rm.storageMap[piece][targetSlot]
                 else:
                     #move to boardMap[move[1]]
-                    print(f"Moving to square {move[1]} ({rm.boardMap[move[1]]})...")
+                    self.databus.execLog.append(f"Moving to square {move[1]} ({rm.boardMap[move[1]]})...")
                     x,y=rm.boardMap[move[1]]
                 #drop
                 rm.move(x, y)
-                print("drop")
+                self.databus.execLog.append("dropping piece")
                 rm.place(piece)
 
             rm.return_home()

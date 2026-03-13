@@ -17,23 +17,17 @@ class GameController:
     def step(self):
 
         if self.databus.robotBusy:
-            print('Robot Busy')
             return
 
-        print("Stepping")
-        current_player = (
+        currentPlayer = (
             self.white_player if self.bm.board.turn else self.black_player
         )
-        self.databus.game.turn = current_player.color.capitalize()
+        self.databus.game.turn = currentPlayer.color.capitalize()
         self.databus.game.status = self.bm.get_status()
 
-        print("waiting for move")
-        move = current_player.get_move(self.bm)
-        print("got move")
+        move = currentPlayer.get_move(self.bm)
 
-        self.databus.gameLog.append(move)
-
-        #self.boardList.append(self.bm)
+        self.databus.gameLog.append(f"{currentPlayer.color.capitalize()}: {move}")
 
         beforeBoard=self.bm.board.copy()
 

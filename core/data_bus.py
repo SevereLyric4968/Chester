@@ -1,8 +1,9 @@
 class RobotState:
     def __init__(self):
-        self.movementStatus = "idle"
+        self.movementStatus = "N/a"
         self.connectionStatus = "not connected"
-        self.homedStatus = "not homed"
+        self.homedStatus = "N/a"
+        self.magnetStatus="N/a"
 
 
 class GameState:
