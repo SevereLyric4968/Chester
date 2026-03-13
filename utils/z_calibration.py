@@ -27,10 +27,11 @@ class ZCalibration:
                 robot.move_pose(pose_target_obj)
                 z = z-0.001
                 #print(robot.analog_read(forceSensor))
+            print(robot.get_pose())
+            zArray.append(robot.get_pose().z)
             pose_target_obj = PoseObject(xyArray[i][0], xyArray[i][1], 0.130, 0, np.pi/2, 0) # in meters and radians
             robot.move_pose(pose_target_obj)
             #robot.clear_collision_detected()
-            zArray.append(robot.get_pose().z*1000)
         print("zArray :" + str(zArray))
         self.plane1 = self.createPlane(xyArray[:4], zArray[:4])
         print("plane1: " + str(self.plane1) + " inserted coords: " + str(xyArray[:4]))
@@ -63,8 +64,9 @@ class ZCalibration:
         return ((-self.plane1[0]*x - self.plane1[1]*y - self.plane1[3])/self.plane1[2])
         #return ((-self.plane2[0]*x - self.plane2[1]*y - self.plane2[3])/self.plane2[2])
 
-"""robotIpAddress = "10.10.10.10"
-robot = NiryoRobot(robotIpAddress)
-robot.calibrate_auto()
-robotCalibration = ZCalibration(robot)
-print("z position 0f 0.400,0 :" + str(robotCalibration.getZBaseline(0.400, 0)))"""
+if __name__ == "__main__":
+    robotIpAddress = "192.168.42.2"
+    robot = NiryoRobot(robotIpAddress)
+    robot.calibrate_auto()
+    robotCalibration = ZCalibration(robot)
+    print("z position 0f 0.400,0 :" + str(robotCalibration.getZBaseline(0.400, 0)))
