@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Optional, Tuple, Dict
+from typing import Optional, Tuple, Dict, Literal
 
 import time
 import cv2
@@ -14,11 +14,11 @@ from pyniryo.vision.image_functions import uncompress_image
 
 @dataclass(frozen=True)
 class PinkThresholdHSV:
-    h_min: int = 120
-    h_max: int = 179
-    s_min: int = 20
+    h_min: int = 145
+    h_max: int = 170
+    s_min: int = 50
     s_max: int = 255
-    v_min: int = 10
+    v_min: int = 80
     v_max: int = 255
 
     def __call__(self) -> Tuple[np.ndarray, np.ndarray]:
@@ -26,6 +26,27 @@ class PinkThresholdHSV:
         upper = np.array([self.h_max, self.s_max, self.v_max], dtype=np.uint8)
         return lower, upper
 
+@dataclass(frozen=True)
+class GreenThresholdHSV:
+    h_min: int = 40
+    h_max: int = 80
+    s_min: int = 70
+    s_max: int = 255
+    v_min: int = 70
+    v_max: int = 255
+
+    def __call__(self) -> Tuple[np.ndarray, np.ndarray]:
+        lower = np.array([self.h_min, self.s_min, self.v_min], dtype=np.uint8)
+        upper = np.array([self.h_max, self.s_max, self.v_max], dtype=np.uint8)
+        return lower, upper
+
+def sticker_from_piece_colour(piece_colour: str) -> str:
+    piece_colour = piece_colour.strip().lower()
+    if piece_colour == "black":
+        return "pink"
+    if piece_colour == "white":
+        return "green"
+    raise ValueError("Piece colour must be 'black' or 'white'")
 
 def _clip_roi(x: int, y: int, w: int, h: int, img_w: int, img_h: int) -> Tuple[int, int, int, int]:
     x = max(0, min(x, img_w - 1))
@@ -36,35 +57,39 @@ def _clip_roi(x: int, y: int, w: int, h: int, img_w: int, img_h: int) -> Tuple[i
 
 
 def crop_roi(img: np.ndarray, roi: Tuple[int, int, int, int]) -> Tuple[np.ndarray, Tuple[int, int]]:
-    """roi=(x,y,w,h). Returns (cropped_img, (offset_x, offset_y))."""
     H, W = img.shape[:2]
     x, y, w, h = _clip_roi(*roi, W, H)
     return img[y:y + h, x:x + w], (x, y)
 
 
 @dataclass
-class PinkCentroidDetector:
-    hsv_cfg: PinkThresholdHSV
-    min_area_px: int = 400      #ignore blobs smaller than this area
-    show: bool = True           #showing debug windows
-    morph_kernel_size: int = 5  #size of morphology kernel
-
+class MultiColorCentroidDetector:
+    pink_hsv_cfg: PinkThresholdHSV
+    green_hsv_cfg: GreenThresholdHSV
+    min_area_px: int = 400
+    show: bool = True
+    morph_kernel_size: int = 5
     roi: Optional[Tuple[int, int, int, int]] = None
+    draw_roi: bool = True
 
-    draw_roi: bool = True  #draw ROI box
+    def _get_bounds(self, sticker_color: Literal["pink", "green"]) -> Tuple[np.ndarray, np.ndarray]:
+        if sticker_color == "pink":
+            return self.pink_hsv_cfg()
+        if sticker_color == "green":
+            return self.green_hsv_cfg()
+        raise ValueError(f"Unsupported sticker_color: {sticker_color}")
 
     def __call__(
         self,
         bgr_img: np.ndarray,
         *,
+        sticker_color: Literal["pink", "green"],
         target_px: Optional[Tuple[int, int]] = None,
         use_roi: bool = True,
     ) -> Optional[Tuple[int, int]]:
 
-        H, W = bgr_img.shape[:2]  #get image dimensions
+        H, W = bgr_img.shape[:2]
 
-        # If caller didn't provide a target, default to image center
-        # (Keeping this is important; otherwise drawMarker() can crash on None.)
         if target_px is None:
             target_px = (W // 2, H // 2)
 
@@ -72,16 +97,14 @@ class PinkCentroidDetector:
         offset = (0, 0)
         roi_used = None
 
-        if use_roi and self.roi is not None:    #crop image to ROI
+        if use_roi and self.roi is not None:
             roi_used = self.roi
             img_for_detect, offset = crop_roi(bgr_img, self.roi)
 
-        #convert BGR image to HSV
         hsv_img = cv2.cvtColor(img_for_detect, cv2.COLOR_BGR2HSV)
-        lower, upper = self.hsv_cfg()  #get HSV bounds
-        mask = cv2.inRange(hsv_img, lower, upper)  #create binary mask where pink pixels are white
+        lower, upper = self._get_bounds(sticker_color)
+        mask = cv2.inRange(hsv_img, lower, upper)
 
-        #morpholigical filter to clean noise
         k = self.morph_kernel_size
         kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (k, k))
         mask = cv2.morphologyEx(mask, cv2.MORPH_OPEN, kernel, iterations=1)
@@ -89,10 +112,10 @@ class PinkCentroidDetector:
 
         centroid_roi: Optional[Tuple[int, int]] = None
 
-        contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)  #find blobs in mask
+        contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
         if contours:
-            largest = max(contours, key=cv2.contourArea)  #choose largest blob
-            if cv2.contourArea(largest) >= self.min_area_px:  #only accept if blob large enough
+            largest = max(contours, key=cv2.contourArea)
+            if cv2.contourArea(largest) >= self.min_area_px:
                 m = cv2.moments(largest)
                 if abs(m["m00"]) > 1e-6:
                     cx = int(m["m10"] / m["m00"])
@@ -100,8 +123,7 @@ class PinkCentroidDetector:
                     centroid_roi = (cx, cy)
 
         centroid_full: Optional[Tuple[int, int]] = None
-
-        if centroid_roi is not None:  #if detection done in ROI convert back to full image coords
+        if centroid_roi is not None:
             cx_roi, cy_roi = centroid_roi
             ox, oy = offset
             centroid_full = (cx_roi + ox, cy_roi + oy)
@@ -109,33 +131,35 @@ class PinkCentroidDetector:
         if self.show:
             vis = bgr_img.copy()
 
-            cv2.drawMarker(  #draw crosshair
+            cv2.drawMarker(
                 vis, target_px, (0, 255, 255),
                 markerType=cv2.MARKER_CROSS, markerSize=20, thickness=2
             )
 
-            if self.draw_roi and roi_used is not None:  #draw ROI rectangle
+            if self.draw_roi and roi_used is not None:
                 x, y, w, h = roi_used
                 x, y, w, h = _clip_roi(x, y, w, h, W, H)
                 cv2.rectangle(vis, (x, y), (x + w, y + h), (255, 255, 0), 2)
 
+            label_color = (255, 0, 255) if sticker_color == "pink" else (0, 255, 0)
+
             if centroid_full is not None:
                 cx, cy = centroid_full
-                dx, dy = cx - target_px[0], cy - target_px[1]  #pixel error to target
-                cv2.circle(vis, (cx, cy), 8, (0, 255, 0), -1)  #draw centroid dot
-                cv2.line(vis, target_px, (cx, cy), (0, 255, 0), 2)  #line from target to center
+                dx, dy = cx - target_px[0], cy - target_px[1]
+                cv2.circle(vis, (cx, cy), 8, label_color, -1)
+                cv2.line(vis, target_px, (cx, cy), label_color, 2)
                 cv2.putText(
-                    vis, f"Pink FOUND :) err_px=({dx},{dy})",
-                    (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 0), 2
+                    vis, f"{sticker_color.upper()} FOUND err_px=({dx},{dy})",
+                    (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.7, label_color, 2
                 )
             else:
                 cv2.putText(
-                    vis, "Pink NOT found :(",
+                    vis, f"{sticker_color.upper()} NOT found",
                     (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 0, 255), 2
                 )
 
-            cv2.imshow("Niryo Camera (vis)", vis)  #debug windows
-            cv2.imshow("Pink Mask (ROI)" if roi_used is not None else "Pink Mask", mask)
+            cv2.imshow("Niryo Camera (vis)", vis)
+            cv2.imshow(f"{sticker_color.capitalize()} Mask", mask)
 
         return centroid_full
 
@@ -154,6 +178,7 @@ class CenteringConfig:
     fixed_roi: Optional[Tuple[int, int, int, int]] = None  #ROI for detection restriction
     use_tracking_roi: bool = True  #dynamic ROI on detected centroid
     tracking_roi_size: Tuple[int, int] = (220, 220)  # (w,h) window around last centroid
+    sticker_color: str = "pink"
 
     # Used by pre-vision Z lowering
     piece_type: Optional[str] = None
@@ -182,14 +207,15 @@ class VisualCenteringController:  #Read camera frame - Detect pink centroid (cx,
     def __init__(
         self,
         robot: NiryoRobot,
-        detector: PinkCentroidDetector,
-        cfg: CenteringConfig = CenteringConfig(),
+        detector: MultiColorCentroidDetector,
+        cfg: Optional[CenteringConfig] = None,
     ):
         self.robot = robot
         self.detector = detector
-        self.cfg = cfg
+        self.cfg = CenteringConfig() if cfg is None else cfg
         self._J_calib_pose: Optional[PoseObject] = None
         self._J_calib_time: Optional[float] = None
+        self._pre_vision_done = False
 
         if self.cfg.fixed_roi is not None:
             self.detector.roi = self.cfg.fixed_roi
@@ -198,7 +224,7 @@ class VisualCenteringController:  #Read camera frame - Detect pink centroid (cx,
         self.J: Optional[np.ndarray] = None  #jacobian will be filled by calibrate_jacobian()
 
     def _apply_pre_vision_drop_once(self):
-        if hasattr(self, "_pre_vision_done") and self._pre_vision_done:
+        if self._pre_vision_done:
             return
 
         if self.cfg.piece_type is None:
@@ -208,7 +234,7 @@ class VisualCenteringController:  #Read camera frame - Detect pink centroid (cx,
         drop_table = {
             "pawn": 0.010,
             "bishop": 0.010,
-            "rook": 0.010,
+            "rook": 0.060,
             "knight": 0.010,
             "queen": 0.010,
             "king": 0.010,
@@ -317,9 +343,15 @@ class VisualCenteringController:  #Read camera frame - Detect pink centroid (cx,
             target = self._make_target(img)
             use_roi = self._choose_roi_mode()
 
-            c = self.detector(img, target_px=target, use_roi=use_roi)
+            c = self.detector(
+                img,
+                sticker_color=self.cfg.sticker_color,
+                target_px=target,
+                use_roi=use_roi
+            )
+            
             if c is None:
-                raise RuntimeError("Pink not detected during Jacobian calibration.")
+                raise RuntimeError(f"{self.cfg.sticker_color.capitalize()} sticker not detected during Jacobian calibration.")
             return c
 
         c0 = get_centroid_for_calib()
@@ -366,13 +398,7 @@ class VisualCenteringController:  #Read camera frame - Detect pink centroid (cx,
         print(self.J)
 
     def calibrate_jacobian(self, delta_m: float = 0.015, settle_s: float = 0.4):
-        """
-        Public method (keeps your main code unchanged):
-        - Reuse cached J if valid
-        - Otherwise calibrate
-
-        IMPORTANT: pre-vision drop must happen BEFORE calibration so J matches the centering height.
-        """
+        """ Reuse cached J if valid Otherwise calibrate """
         self._apply_pre_vision_drop_once()
         self.ensure_jacobian(delta_m=delta_m, settle_s=settle_s)
 
@@ -397,7 +423,13 @@ class VisualCenteringController:  #Read camera frame - Detect pink centroid (cx,
 
             use_roi = self._choose_roi_mode()  #check for ROI cropping
 
-            centroid = self.detector(img, target_px=target, use_roi=use_roi)  #detect centroid
+            centroid = self.detector(
+                img,
+                sticker_color=self.cfg.sticker_color,
+                target_px=target,
+                use_roi=use_roi
+            )#detect centroid
+ 
             last_centroid = centroid
             cv2.waitKey(1)  #OpenCV windows refresh
 
@@ -450,7 +482,12 @@ class VisualCenteringController:  #Read camera frame - Detect pink centroid (cx,
                 # Recompute ROI mode
                 use_roi2 = self._choose_roi_mode()
 
-                c2 = self.detector(img2, target_px=target2, use_roi=use_roi2)
+                c2 = self.detector(
+                    img2,
+                    sticker_color=self.cfg.sticker_color,
+                    target_px=target2,
+                    use_roi=use_roi2
+                )
                 if c2 is None:
                     return None
                 e2 = self._err_vec(c2, target2)
@@ -486,7 +523,9 @@ class VisualCenteringController:  #Read camera frame - Detect pink centroid (cx,
 
 @dataclass(frozen=True)
 class PiecePickParams:
-    pick_drop_m: float  # how far to go DOWN from current Z to contact the piece
+    vision_drop_m: float
+    pick_drop_m: float
+    place_drop_m: float  # how far to go DOWN from current Z to contact the piece
 
 
 class ElectromagnetPiecePicker:
@@ -506,12 +545,12 @@ class ElectromagnetPiecePicker:
 
         # Per-piece DOWN distances (edit these)
         self.piece_params = piece_params or {
-            "rook":   PiecePickParams(pick_drop_m=0.035),
-            "bishop": PiecePickParams(pick_drop_m=0.029),
-            "pawn":   PiecePickParams(pick_drop_m=0.029),
-            "knight": PiecePickParams(pick_drop_m=0.029),
-            "king":   PiecePickParams(pick_drop_m=0.029),
-            "queen":  PiecePickParams(pick_drop_m=0.029),
+            "rook":   PiecePickParams(vision_drop_m=0.060, pick_drop_m=0.055, place_drop_m=0.054),
+            "bishop": PiecePickParams(vision_drop_m=0.010, pick_drop_m=0.029, place_drop_m=0.029),
+            "pawn":   PiecePickParams(vision_drop_m=0.010, pick_drop_m=0.029, place_drop_m=0.029),
+            "knight": PiecePickParams(vision_drop_m=0.010, pick_drop_m=0.029, place_drop_m=0.029),
+            "king":   PiecePickParams(vision_drop_m=0.010, pick_drop_m=0.029, place_drop_m=0.029),
+            "queen":  PiecePickParams(vision_drop_m=0.010, pick_drop_m=0.029, place_drop_m=0.029),
         }
 
         self._magnet_setup = False
@@ -526,59 +565,82 @@ class ElectromagnetPiecePicker:
         return PoseObject(pose.x, pose.y, z, pose.roll, pose.pitch, pose.yaw)
 
     def pick_at(self, piece_type: str, pickup_xy_pose: PoseObject) -> None:
-        """
-        Pick relative to the CURRENT (already dropped) Z in pickup_xy_pose.
-        - Approach = current Z
-        - Down     = current Z - piece-dependent drop
-        """
         self._setup_magnet_once()
 
         piece = piece_type.strip().lower()
-        drop = self.piece_params.get(piece, PiecePickParams(self.default_pick_drop_m)).pick_drop_m
+        params = self.piece_params.get(
+            piece,
+            PiecePickParams(
+                vision_drop_m=0.010,
+                pick_drop_m=self.default_pick_drop_m,
+                place_drop_m=self.default_pick_drop_m,
+            )
+        )
 
-        approach_z = float(pickup_xy_pose.z)  
-        down_z = approach_z - float(drop)
+        approach_z = float(pickup_xy_pose.z)
+        down_z = approach_z - float(params.pick_drop_m)
         if down_z < self.min_safe_z:
             down_z = self.min_safe_z
 
         approach = self._with_z(pickup_xy_pose, approach_z)
         down = self._with_z(pickup_xy_pose, down_z)
 
-        self.robot.move_pose(approach)
-        
-        print("Approach Z:", approach.z)
-        print("Down target Z:", down.z)
+        print(f"[PICK] approach_z={approach_z:.3f}, down_z={down_z:.3f}")
 
+        self.robot.move_pose(approach)
         self.robot.move_pose(down)
 
         pose_after = self.robot.get_pose()
-        print("After move_pose(down), actual Z:", pose_after.z)
-        print("Z shortfall (m):", down.z - pose_after.z)
+        print(f"[PICK] actual_z={pose_after.z:.3f}")
 
         self.robot.activate_electromagnet(self.pin)
         self.robot.move_pose(approach)
 
-    def place_at(self, drop_xy_pose: PoseObject, *, place_drop_m: float | None = None) -> None:
-        """
-        Place relative to the Z in drop_xy_pose,
-        unless you override with place_drop_m.
-        """
+    def place_at(
+        self,
+        piece_type: str,
+        drop_xy_pose: PoseObject,
+        *,
+        place_drop_m: float | None = None,
+    ) -> None:
         self._setup_magnet_once()
 
-        approach_z = float(drop_xy_pose.z)
-        drop_m = self.default_pick_drop_m if place_drop_m is None else float(place_drop_m)
+        piece = piece_type.strip().lower()
+        params = self.piece_params.get(
+            piece,
+            PiecePickParams(
+                vision_drop_m=0.010,
+                pick_drop_m=self.default_pick_drop_m,
+                place_drop_m=self.default_pick_drop_m,
+            )
+        )
 
-        down_z = approach_z - drop_m
-        if down_z < self.min_safe_z:
-            down_z = self.min_safe_z
+        original_z = float(drop_xy_pose.z)
 
-        approach = self._with_z(drop_xy_pose, approach_z)
-        down = self._with_z(drop_xy_pose, down_z)
+        vision_z = original_z - float(params.vision_drop_m)
+        if vision_z < self.min_safe_z:
+            vision_z = self.min_safe_z
 
-        self.robot.move_pose(approach)
-        self.robot.move_pose(down)
+        final_drop = params.place_drop_m if place_drop_m is None else float(place_drop_m)
+        final_z = vision_z - final_drop
+        if final_z < self.min_safe_z:
+            final_z = self.min_safe_z
+
+        original_pose = self._with_z(drop_xy_pose, original_z)
+        vision_pose = self._with_z(drop_xy_pose, vision_z)
+        final_pose = self._with_z(drop_xy_pose, final_z)
+
+        print(f"[PLACE] original_z={original_z:.3f}, vision_z={vision_z:.3f}, final_z={final_z:.3f}")
+
+        self.robot.move_pose(original_pose)
+        self.robot.move_pose(vision_pose)
+        self.robot.move_pose(final_pose)
+
+        pose_after = self.robot.get_pose()
+        print(f"[PLACE] actual_z={pose_after.z:.3f}")
+
         self.robot.deactivate_electromagnet(self.pin)
-        self.robot.move_pose(approach)
+        self.robot.move_pose(original_pose)
 
     def __call__(
         self,
@@ -589,4 +651,113 @@ class ElectromagnetPiecePicker:
         place_drop_m: float | None = None,
     ) -> None:
         self.pick_at(piece_type, pickup_xy_pose)
-        self.place_at(drop_xy_pose, place_drop_m=place_drop_m)
+        self.place_at(piece_type, drop_xy_pose, place_drop_m=place_drop_m)
+
+@dataclass
+class IntelligentPickupSystem:
+    robot: NiryoRobot
+    centerer: VisualCenteringController
+    picker: ElectromagnetPiecePicker
+    cfg: CenteringConfig
+
+    @classmethod
+    def create(
+        cls,
+        robot: NiryoRobot,
+        *,
+        pin_electromagnet: PinID = PinID.DO4,
+        cfg: Optional[CenteringConfig] = None,
+        pink_hsv: Optional[PinkThresholdHSV] = None,
+        green_hsv: Optional[GreenThresholdHSV] = None,
+        detector_show: bool = True,
+        detector_min_area_px: int = 400,
+    ) -> "IntelligentPickupSystem":
+        if cfg is None:
+            cfg = CenteringConfig()
+
+        if pink_hsv is None:
+            pink_hsv = PinkThresholdHSV()
+
+        if green_hsv is None:
+            green_hsv = GreenThresholdHSV()
+
+        detector = MultiColorCentroidDetector(
+            pink_hsv_cfg=pink_hsv,
+            green_hsv_cfg=green_hsv,
+            min_area_px=detector_min_area_px,
+            show=detector_show,
+        )
+
+        centerer = VisualCenteringController(
+            robot=robot,
+            detector=detector,
+            cfg=cfg,
+        )
+
+        picker = ElectromagnetPiecePicker(
+            robot,
+            pin_electromagnet=pin_electromagnet,
+        )
+
+        return cls(
+            robot=robot,
+            centerer=centerer,
+            picker=picker,
+            cfg=cfg,
+        )
+
+    def move_piece(
+        self,
+        *,
+        piece_colour: str,
+        piece_type: str,
+        pickup_pose: PoseObject,
+        drop_pose: PoseObject,
+        calibrate_delta_m: float = 0.015,
+    ) -> CenteringResult:
+        self.cfg.sticker_color = sticker_from_piece_colour(piece_colour)
+        self.cfg.piece_type = piece_type.strip().lower()
+
+        self.centerer._tracking_roi = None
+        self.centerer._pre_vision_done = False
+        self.centerer.detector.roi = self.cfg.fixed_roi
+
+        self.robot.move_pose(pickup_pose)
+
+        self.centerer.calibrate_jacobian(delta_m=calibrate_delta_m)
+        result = self.centerer()
+
+        if not result.success:
+            return result
+
+        p = self.robot.get_pose()
+        pickup_xy_pose = PoseObject(p.x, p.y, p.z, p.roll, p.pitch, p.yaw)
+        self.picker.pick_at(self.cfg.piece_type, pickup_xy_pose)
+
+        self.robot.move_pose(drop_pose)
+        self.picker.place_at(self.cfg.piece_type, drop_pose)
+
+        return result
+
+    def show_debug_camera_until_quit(self):
+        detector = self.centerer.detector
+
+        print("Press Q or ESC to quit windows.")
+        while True:
+            img = uncompress_image(self.robot.get_img_compressed())
+            img = cv2.flip(img, 0)
+
+            h, w = img.shape[:2]
+            ox, oy = self.cfg.target_offset_px
+            target = (w // 2 + int(ox), h // 2 + int(oy))
+
+            detector(
+                img,
+                sticker_color=self.cfg.sticker_color,
+                target_px=target,
+                use_roi=(detector.roi is not None),
+            )
+
+            key = cv2.waitKey(10) & 0xFF
+            if key in (ord("q"), ord("Q"), 27):
+                break

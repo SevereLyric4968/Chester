@@ -1,9 +1,9 @@
 class RobotState:
     def __init__(self):
-        self.movementStatus = "idle"
+        self.movementStatus = "N/a"
         self.connectionStatus = "not connected"
-        self.homedStatus = "not homed"
-        self.speed = 100
+        self.homedStatus = "N/a"
+        self.magnetStatus="N/a"
 
 
 class GameState:
@@ -21,6 +21,8 @@ class DataBus:
         self.gameLog = []
         self.execLog = []
         self.errorLog = []
+
+        self.robotBusy = False
 
     def logGame(self, msg):
         self.gameLog.append(msg)

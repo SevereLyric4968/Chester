@@ -6,7 +6,9 @@ if __name__ == "__main__":
     builder=GameBuilder()
 
     #build game
-    game = builder.build()
+    controller,gui = builder.build()
 
-    #run game
-    game.play()
+    gui.controller = controller
+    #start
+    gui.start_update_loop()
+    gui.window.mainloop()

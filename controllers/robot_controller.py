@@ -1,9 +1,13 @@
+import threading
 import chess
-from core.robot_manipulator import RobotManipulator
+from controllers.robot_manipulator import RobotManipulator
 
-class RobotInterface:
+class RobotController:
 
     def __init__(self ,robot_white=None,robot_black=None,databus=None):
+
+        self.lock=threading.Lock()
+        self.databus=databus
 
         whiteBoardCoords={
             "boardStart": (369,-110.5),
@@ -24,18 +28,22 @@ class RobotInterface:
 
         if robot_white is None and robot_black is not None:
             self.white_rm=None
-            self.black_rm=RobotManipulator(robot_black,blackBoardCoords)
+            self.black_rm=RobotManipulator(robot_black,blackBoardCoords,self.databus.robot1)
         elif robot_white is not None and robot_black is None:
-            self.white_rm=RobotManipulator(robot_white,whiteBoardCoords)
+            self.white_rm=RobotManipulator(robot_white,whiteBoardCoords,self.databus.robot1)
             self.black_rm=None
         elif robot_white==robot_black:
-            self.white_rm=RobotManipulator(robot_white,whiteBoardCoords)
+            self.white_rm=RobotManipulator(robot_white,whiteBoardCoords,self.databus.robot1)
             self.black_rm=self.white_rm
         else:
-            self.white_rm=RobotManipulator(robot_white,whiteBoardCoords)
-            self.black_rm=RobotManipulator(robot_black,whiteBoardCoords)
+            self.white_rm=RobotManipulator(robot_white,whiteBoardCoords,self.databus.robot1)
+            self.black_rm=RobotManipulator(robot_black,whiteBoardCoords,self.databus.robot2)
+            print("cool")
 
-    def translate(self,move,board):
+        print(robot_white)
+        print(robot_black)
+
+    def uci_to_move_queue(self,move,board):
 
         moveQueue=[] #list of target destination tuples
         fromSq=move[:2]
@@ -47,7 +55,6 @@ class RobotInterface:
         isCastling = piece.piece_type==chess.KING and fromSq[0]=="e" and toSq[0] in {"g","c"}
         isPromotion=len(move)==5
 
-        global isWhite
         isWhite=piece.color==chess.WHITE
 
         homeRank=1 if isWhite else 8
@@ -105,70 +112,76 @@ class RobotInterface:
             #move piece to square
             moveQueue.append((fromSq,toSq))
 
-        return moveQueue
+        return (moveQueue,isWhite)
 
-    def executeMoveQueue(self,moveQueue,board):
-
-        if isWhite:
-            if self.white_rm is None:
-                return
-            rm=self.white_rm
-        else:
-            if self.black_rm is None:
-                return
-            rm=self.black_rm
-
-        print("Starting move queue:")
-        for i,move in enumerate(moveQueue):
-            print(f"Executing move {i+1} of {len(moveQueue)} : {move}")
-            #pickup
-            if len(move[0])==1:
-                piece=move[0]
-                #find highest index occupied storage slot
-                for i in reversed(range(len(rm.storageOccupancy[piece]))):
-                    if rm.storageOccupancy[piece][i]:
-                        targetSlot = i
-                        rm.storageOccupancy[piece][i] = False
-                        break
-
-                #move to storageMap[piece][targetSlot]
-                print(f"Moving to slot {piece}{targetSlot} ({rm.storageMap[piece][targetSlot]})...")
-                x,y= rm.storageMap[piece][targetSlot]
-
+    def execute_move_queue(self,moveQueue,board,isWhite):
+        print("executing move queue")
+        print(isWhite)
+        with (self.lock):
+            if isWhite:
+                if self.white_rm is None:
+                    return
+                rm=self.white_rm
+                self.databus.execLog.append("White robot:")
             else:
-                #move to boardMap[move[0]]
-                piece=board.piece_at(chess.parse_square(move[0])).symbol()
-                print(piece)
-                print(f"Moving to square {move[0]} ({rm.boardMap[move[0]]})...")
-                x,y=rm.boardMap[move[0]]
+                if self.black_rm is None:
+                    return
+                rm=self.black_rm
+                self.databus.execLog.append("Black robot:")
 
-            rm.move(x, y)
-            print("pickup")
-            rm.pickup(piece)
+            self.databus.execLog.append("Starting move queue:")
+            for i,move in enumerate(moveQueue):
+                self.databus.execLog.append(f"Executing move {i+1} of {len(moveQueue)} : {move[0]} to {move[1]}")
+                #pickup
+                if len(move[0])==1:
+                    piece=move[0]
+                    #find highest index occupied storage slot
+                    for i in reversed(range(len(rm.storageOccupancy[piece]))):
+                        if rm.storageOccupancy[piece][i]:
+                            targetSlot = i
+                            rm.storageOccupancy[piece][i] = False
+                            break
 
-            #drop
-            if len(move[1])==1:
-                piece=move[1]
-                #find lowest index unoccupied storage slot
-                for i in range(len(rm.storageOccupancy[piece])):
-                    if not rm.storageOccupancy[piece][i]:
-                        targetSlot = i
-                        rm.storageOccupancy[piece][i] = True
-                        break
-                #move to storageMap[piece][targetSlot]
-                print(f"Moving to slot {piece}{targetSlot} ({rm.storageMap[piece][targetSlot]})...")
-                x,y=rm.storageMap[piece][targetSlot]
-            else:
-                #move to boardMap[move[1]]
-                print(f"Moving to square {move[1]} ({rm.boardMap[move[1]]})...")
-                x,y=rm.boardMap[move[1]]
-            #drop
-            rm.move(x, y)
-            print("drop")
-            rm.place(piece)
+                    #move to storageMap[piece][targetSlot]
+                    self.databus.execLog.append(f"Moving to slot {piece}{targetSlot} ({rm.storageMap[piece][targetSlot]})...")
+                    x,y= rm.storageMap[piece][targetSlot]
 
-        rm.return_home()
+                else:
+                    #move to boardMap[move[0]]
+                    piece=board.piece_at(chess.parse_square(move[0])).symbol()
+                    print(piece)
+                    self.databus.execLog.append(f"Moving to square {move[0]} ({rm.boardMap[move[0]]})...")
+                    x,y=rm.boardMap[move[0]]
+
+                rm.move(x, y)
+                self.databus.execLog.append("picking up piece")
+                rm.pickup(piece)
+
+                #drop
+                if len(move[1])==1:
+                    piece=move[1]
+                    #find lowest index unoccupied storage slot
+                    for i in range(len(rm.storageOccupancy[piece])):
+                        if not rm.storageOccupancy[piece][i]:
+                            targetSlot = i
+                            rm.storageOccupancy[piece][i] = True
+                            break
+                    #move to storageMap[piece][targetSlot]
+                    self.databus.execLog.append(f"Moving to slot {piece}{targetSlot} ({rm.storageMap[piece][targetSlot]})...")
+                    x,y=rm.storageMap[piece][targetSlot]
+                else:
+                    #move to boardMap[move[1]]
+                    self.databus.execLog.append(f"Moving to square {move[1]} ({rm.boardMap[move[1]]})...")
+                    x,y=rm.boardMap[move[1]]
+                #drop
+                rm.move(x, y)
+                self.databus.execLog.append("dropping piece")
+                rm.place(piece)
+
+            rm.return_home()
+            self.databus.robotBusy = False
 
     def translate_position(self,position,x_translation=400):
         x=-position[0]+x_translation
         y=-position[1]
+        return x,y

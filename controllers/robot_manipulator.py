@@ -1,10 +1,10 @@
 from pyniryo import NiryoRobot, PinID, PoseObject
 #import utils.z_calibration as zCal
 
+import math
 class RobotManipulator:
 
-    global pieceHeights, movementHeight
-
+    global pieceHeights, cruiseHeight, boardHeight
     pieceHeights = {
         'p': 100,
         'r': 100,
@@ -13,15 +13,19 @@ class RobotManipulator:
         'q': 100,
         'k': 100
     }
-    movementHeight=100
+    cruiseHeight = 100
+    boardHeight = 100
 
-    def __init__(self,ip,boardCoords):
-
+    def __init__(self,ip,boardCoords,databus):
         robot_ip=ip
+        self.databus=databus
+
 
         try:
+            print("trying to connect")
             self.robot = NiryoRobot(robot_ip)
-            print("robot connected connected")
+            self.databus.connectionStatus="connected"
+            print("robot connected")
 
             self.pin_electromagnet = PinID.DO4
             self.robot.setup_electromagnet(self.pin_electromagnet)
@@ -29,6 +33,13 @@ class RobotManipulator:
             self.robot.calibrate_auto()
             print("robot calibrated")
             #zCal.start
+
+            self.home = PoseObject(0.1343, 0, 0.1652, 0, 1, 0)
+            self.robot.move_pose(self.home)
+            self.databus.homedStatus="Homed"
+            self.databus.magnetStatus = "Off"
+            self.databus.movementStatus = "Idle"
+
         except:
             print("robot failed to connect")
             self.robot = None
@@ -39,11 +50,14 @@ class RobotManipulator:
     def pickup(self,piece):
         if self.robot is not None:
             #lower
+            self.databus.homedStatus="Not Homed"
+            self.databus.movementStatus="Moving"
             pose = self.robot.get_pose()
-            move=PoseObject(pose.x,pose.y,pose.z-(movementHeight-pieceHeights[piece]),0,3.14/2,0)
+            move=PoseObject(pose.x,pose.y,pose.z-boardHeight+pieceHeights[piece.lower()],0,math.pi/2,0)
             self.robot.move_pose(move)
 
             self.robot.activate_electromagnet(self.pin_electromagnet)
+            self.databus.magnetStatus="On"
 
             #raise
             self.robot.move_pose(pose)
@@ -51,26 +65,31 @@ class RobotManipulator:
     def place(self,piece="p"):
         if self.robot is not None:
             # lower
+            self.databus.homedStatus = "Not Homed"
+            self.databus.movementStatus = "Moving"
             pose = self.robot.get_pose()
-            move = PoseObject(pose.x, pose.y, pose.z-(movementHeight-pieceHeights[piece]), 0, 3.14 / 2, 0)
+            move = PoseObject(pose.x, pose.y, pose.z-boardHeight+pieceHeights[piece.lower()], 0, math.pi/2, 0)
             self.robot.move_pose(move)
 
             self.robot.deactivate_electromagnet(self.pin_electromagnet)
+            self.databus.magnetStatus = "Off"
 
             # raise
             self.robot.move_pose(pose)
 
-    def move(self,x,y,z=0.2):
+    def move(self, x, y, z=cruiseHeight):
         if self.robot is not None:
+            self.databus.movementStatus = "Moving"
             x=x/1000
             y=y/1000
-            print("moving")
-            move=PoseObject(x, y, z, 0, 3.14/2, 0)
+            move=PoseObject(x, y, z, 0, math.pi/2, 0)
             self.robot.move_pose(move)
 
     def return_home(self):
         if self.robot is not None:
-            self.robot.move_to_home_pose()
+            self.robot.move_pose(self.home)
+            self.databus.movementStatus = "Idle"
+            self.databus.homedStatus = "Homed"
 
 #______________________________________________________________________
 
@@ -94,6 +113,7 @@ class RobotManipulator:
             'q' : [(1,7),(2,6),(2,7)],
             'k' : [(1,6)]
         }
+
         for piece in layout:
             # iterate through piece positions
             # apply offset between grid squares
