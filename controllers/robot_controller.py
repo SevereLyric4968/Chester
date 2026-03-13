@@ -38,10 +38,6 @@ class RobotController:
         else:
             self.white_rm=RobotManipulator(robot_white,whiteBoardCoords,self.databus.robot1)
             self.black_rm=RobotManipulator(robot_black,whiteBoardCoords,self.databus.robot2)
-            print("cool")
-
-        print(robot_white)
-        print(robot_black)
 
     def uci_to_move_queue(self,move,board):
 
@@ -115,8 +111,6 @@ class RobotController:
         return (moveQueue,isWhite)
 
     def execute_move_queue(self,moveQueue,board,isWhite):
-        print("executing move queue")
-        print(isWhite)
         with (self.lock):
             if isWhite:
                 if self.white_rm is None:
@@ -149,7 +143,6 @@ class RobotController:
                 else:
                     #move to boardMap[move[0]]
                     piece=board.piece_at(chess.parse_square(move[0])).symbol()
-                    print(piece)
                     self.databus.execLog.append(f"Moving to square {move[0]} ({rm.boardMap[move[0]]})...")
                     x,y=rm.boardMap[move[0]]
 

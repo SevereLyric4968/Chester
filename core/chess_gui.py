@@ -110,36 +110,55 @@ class ChessGui:
         self.notebook = ttk.Notebook(self.robot_frame)
         self.notebook.pack(fill="both",expand=True)
 
-        # Robot 1 Tab
-        self.robot1_tab = tk.Frame(self.notebook, bg=panel_bg)
-        self.notebook.add(self.robot1_tab, text="Robot 1")
+        # Robots Tab
+        self.robot_tab = tk.Frame(self.notebook, bg=panel_bg)
+        self.notebook.add(self.robot_tab, text="Robots")
 
-        self.robot1_connected_label = tk.Label(self.robot1_tab, bg=panel_bg, fg=text_color)
+        self.robot_tab.grid_columnconfigure(0, weight=1)
+        self.robot_tab.grid_columnconfigure(1, weight=1)
+
+        self.robot1_box = tk.LabelFrame(
+            self.robot_tab,
+            text="Robot 1",
+            bg=panel_bg,
+            fg=text_color,
+            bd=1,
+            relief="solid"
+        )
+        self.robot1_box.grid(row=0, column=0, sticky="nsew", padx=10, pady=10)
+
+        self.robot1_connected_label = tk.Label(self.robot1_box, bg=panel_bg, fg=text_color)
         self.robot1_connected_label.pack(anchor="w", padx=5, pady=2)
 
-        self.robot1_status_label = tk.Label(self.robot1_tab, bg=panel_bg, fg=text_color)
+        self.robot1_status_label = tk.Label(self.robot1_box, bg=panel_bg, fg=text_color)
         self.robot1_status_label.pack(anchor="w", padx=5, pady=2)
 
-        self.robot1_homed_label = tk.Label(self.robot1_tab, bg=panel_bg, fg=text_color)
+        self.robot1_homed_label = tk.Label(self.robot1_box, bg=panel_bg, fg=text_color)
         self.robot1_homed_label.pack(anchor="w", padx=5, pady=2)
 
-        self.robot1_magnet_label = tk.Label(self.robot1_tab, bg=panel_bg, fg=text_color)
+        self.robot1_magnet_label = tk.Label(self.robot1_box, bg=panel_bg, fg=text_color)
         self.robot1_magnet_label.pack(anchor="w", padx=5, pady=2)
 
-        # Robot 2 Tab
-        self.robot2_tab = tk.Frame(self.notebook, bg=panel_bg)
-        self.notebook.add(self.robot2_tab, text="Robot 2")
+        self.robot2_box = tk.LabelFrame(
+            self.robot_tab,
+            text="Robot 2",
+            bg=panel_bg,
+            fg=text_color,
+            bd=1,
+            relief="solid"
+        )
+        self.robot2_box.grid(row=0, column=1, sticky="nsew", padx=10, pady=10)
 
-        self.robot2_connected_label = tk.Label(self.robot2_tab, bg=panel_bg, fg=text_color)
+        self.robot2_connected_label = tk.Label(self.robot2_box, bg=panel_bg, fg=text_color)
         self.robot2_connected_label.pack(anchor="w", padx=5, pady=2)
 
-        self.robot2_status_label = tk.Label(self.robot2_tab, bg=panel_bg, fg=text_color)
+        self.robot2_status_label = tk.Label(self.robot2_box, bg=panel_bg, fg=text_color)
         self.robot2_status_label.pack(anchor="w", padx=5, pady=2)
 
-        self.robot2_homed_label = tk.Label(self.robot2_tab, bg=panel_bg, fg=text_color)
+        self.robot2_homed_label = tk.Label(self.robot2_box, bg=panel_bg, fg=text_color)
         self.robot2_homed_label.pack(anchor="w", padx=5, pady=2)
 
-        self.robot2_magnet_label = tk.Label(self.robot2_tab, bg=panel_bg, fg=text_color)
+        self.robot2_magnet_label = tk.Label(self.robot2_box, bg=panel_bg, fg=text_color)
         self.robot2_magnet_label.pack(anchor="w", padx=5, pady=2)
 
         # Execution Log Tab
@@ -170,6 +189,7 @@ class ChessGui:
                   text="Clear Errors",
                   bg=accent_bg,
                   fg=text_color,
+                  command=databus.errorLog.clear,
                   relief="flat").pack(pady=5)
 
         # ----------------------------
@@ -302,7 +322,6 @@ class ChessGui:
         self.robot2_magnet_label.config(
             text=f"Magnet: {self.databus.robot2.magnetStatus}"
         )
-
         self.update_logs()
 
 
