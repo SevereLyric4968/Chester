@@ -9,7 +9,6 @@ class ZCalibration:
         self.plane2 = []
         self.midpoint = [0,0]
         self.start(robot)
-        robot.deactivate_electromagnet(forceSensor)
 
     #pass in robot maybe? unsure what's needed to move the arm
     def start(self, robot):
