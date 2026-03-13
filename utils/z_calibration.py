@@ -9,6 +9,7 @@ class ZCalibration:
         self.plane2 = []
         self.midpoint = [0,0]
         self.start(robot)
+        robot.deactivate_electromagnet(forceSensor)
 
     #pass in robot maybe? unsure what's needed to move the arm
     def start(self, robot):
@@ -20,12 +21,12 @@ class ZCalibration:
             "move through the different x,y coordinates and find the z value for each one to create a plane"
             pose_target_obj = PoseObject(xyArray[i][0], xyArray[i][1], 0.13, 0, np.pi/2, 0) # in meters and radians
             robot.move_pose(pose_target_obj)
-            z = 0.05
+            z = 0.054
             while(robot.analog_read(forceSensor)<1.9): #move arm down
                 pose_target_obj = PoseObject(xyArray[i][0], xyArray[i][1], z, 0, np.pi/2, 0) # in meters and radians
                 robot.move_pose(pose_target_obj)
                 z = z-0.001
-                print(robot.analog_read(forceSensor))
+                #print(robot.analog_read(forceSensor))
             pose_target_obj = PoseObject(xyArray[i][0], xyArray[i][1], 0.130, 0, np.pi/2, 0) # in meters and radians
             robot.move_pose(pose_target_obj)
             #robot.clear_collision_detected()
@@ -62,8 +63,8 @@ class ZCalibration:
             return ((-self.plane1[0]*x - self.plane1[1]*y - self.plane1[3])/self.plane1[2])
         return ((-self.plane2[0]*x - self.plane2[1]*y - self.plane2[3])/self.plane2[2])
 
-robotIpAddress = "10.10.10.10"
+"""robotIpAddress = "10.10.10.10"
 robot = NiryoRobot(robotIpAddress)
 robot.calibrate_auto()
 robotCalibration = ZCalibration(robot)
-print("z position 0f 0.400,0 :" + str(robotCalibration.getZBaseline(0.400, 0)))
+print("z position 0f 0.400,0 :" + str(robotCalibration.getZBaseline(0.400, 0)))"""
