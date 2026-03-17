@@ -44,20 +44,20 @@ class GameBuilder():
             white = HumanPlayer("white",VisionInterface)
         elif white_player_type=="ai":
             white = AIPlayer("white", engine)
-            white_robot=config["white_robot_ip"]
+            #white_robot=config["white_robot_ip"]
         elif white_player_type=="rc":
             white = rcPlayer("white", gui_interface)
-            white_robot = config["white_robot_ip"]
+            #white_robot = config["white_robot_ip"]
         else:
             raise ValueError("Invalid player_1_type")
         if black_player_type=="human":
             black = HumanPlayer("black",VisionInterface)
         elif black_player_type=="ai":
             black = AIPlayer("black", engine)
-            black_robot = config["black_robot_ip"]
+            #black_robot = config["black_robot_ip"]
         elif black_player_type=="rc":
             black = rcPlayer("black", gui_interface)
-            black_robot = config["black_robot_ip"]
+            #black_robot = config["black_robot_ip"]
         else:
             raise ValueError("Invalid player_2_type")
 
