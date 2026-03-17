@@ -18,7 +18,7 @@ def main():
         "G3": PoseObject(0.190,  0.07, 0.208, 0, 1.5, 0),
     }
 
-    home_pose = PoseObject(0.14, 0, 0.2, 0, 1.5, 0)  # <-- replace with your real home pose
+    home_pose = PoseObject(0.14, 0, 0.2, 0, 1.5, 0) 
 
     cfg = CenteringConfig(
         deadband_px=15,
