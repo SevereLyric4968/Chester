@@ -26,7 +26,7 @@ def main():
         dt_s=0.15,
         max_iters=600,
         timeout_s=59.0,
-        target_offset_px=(0, -80),
+        target_offset_px=(0, -90),
         use_tracking_roi=True,
         tracking_roi_size=(260, 260),
     )
