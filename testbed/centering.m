@@ -1,10 +1,9 @@
 %close all; clear all; clc;
 
 %THINGS TO DO:
-%1. PASS FILE PATH INTO PYTHON VARIABLE
-%2. make the final photo a (2000x2000) pixel grid that the checkerboard
+%1. make the final photo a (2000x2000) pixel grid that the checkerboard
 %proportionally maps to as a better co-ordinate system
-%3. make a function that deletes the oldest photos to declutter the workspace
+%2. make a function that deletes the oldest photos to declutter the workspace
 
 global fname %global variable that tracks final image
 global img %global variable that tracks camera snapshot
