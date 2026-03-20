@@ -4,7 +4,7 @@ class RobotState:
         self.connectionStatus = "not connected"
         self.homedStatus = "N/a"
         self.magnetStatus="N/a"
-
+        self.pose="N/a"
 
 class GameState:
     def __init__(self):

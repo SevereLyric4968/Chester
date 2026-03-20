@@ -2,7 +2,7 @@ from pyniryo import *
 import numpy as np
 
 forceSensor = PinID.AI1
-robotIpAddress = "10.10.10.10"
+robotIpAddress = "192.168.42.2"
 robot = NiryoRobot(robotIpAddress)
 robot.calibrate_auto()
 
