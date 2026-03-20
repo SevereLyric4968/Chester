@@ -1,117 +1,103 @@
 import cv2
 
 from pyniryo import NiryoRobot, PoseObject, PinID
-from pyniryo.vision.image_functions import uncompress_image
 
 from intelligent_pickup import (
-    PinkThresholdHSV, PinkCentroidDetector,
-    CenteringConfig, VisualCenteringController,
-    ElectromagnetPiecePicker,
+    CenteringConfig,
+    IntelligentPickupSystem,
 )
 
 
-def clean_square(s: str) -> str:
-    return s.strip().upper()
-
-
-def clean_piece(s: str) -> str:
-    return s.strip().lower()
-
-
 def main():
-    robot_ip = "192.168.42.1"
-    robot = NiryoRobot(robot_ip)
-    pin_electromagnet = PinID.DO4
+    robot = NiryoRobot("192.168.42.1")
 
-    Square_Poses = {
-        "D3": PoseObject(0.205,  0.000, 0.148, 0, 1.5, 0),
-        "D6": PoseObject(0.305,  0.000, 0.148, 0, 1.5, 0),
-        "G6": PoseObject(0.305, -0.07, 0.148, 0, 1.5, 0),
-        "G3": PoseObject(0.205,  -0.07, 0.148, 0, 1.5, 0),
+    square_poses = {
+        "B2": PoseObject(0.155,  -0.08, 0.208, 0, 1.5, 0),
+        "C4": PoseObject(0.215,  -0.05, 0.208, 0, 1.5, 0),
+        "F2": PoseObject(0.155,  0.04, 0.208, 0, 1.5, 0),
+        "G3": PoseObject(0.190,  0.07, 0.208, 0, 1.5, 0),
     }
 
-    # Vision centering config 
+    home_pose = PoseObject(0.14, 0, 0.2, 0, 1.5, 0) 
+
     cfg = CenteringConfig(
         deadband_px=15,
         max_step_m=0.004,
         dt_s=0.15,
         max_iters=600,
         timeout_s=59.0,
-        target_offset_px=(-6, 112),   
+        target_offset_px=(0, -90),
         use_tracking_roi=True,
         tracking_roi_size=(260, 260),
     )
 
     try:
-        #robot.calibrate_auto()
-
-        hsv = PinkThresholdHSV()
-        detector = PinkCentroidDetector(hsv_cfg=hsv, min_area_px=400, show=True)
-        centerer = VisualCenteringController(robot=robot, detector=detector, cfg=cfg)
-
-        picker = ElectromagnetPiecePicker(
+        system = IntelligentPickupSystem.create(
             robot,
-            pin_electromagnet=pin_electromagnet,
+            pin_electromagnet=PinID.DO4,
+            cfg=cfg,
+            detector_show=True,
+            detector_min_area_px=400,
         )
 
-        valid_squares = ", ".join(Square_Poses.keys())
-        print(f"Valid squares: {valid_squares}")
+        valid_squares = ", ".join(square_poses.keys())
 
-        pick_sq = clean_square(input("Pick from square (D3/D6/G3/G6): "))
-        if pick_sq not in Square_Poses:
-            raise ValueError(f"Unknown square '{pick_sq}'. Valid: {valid_squares}")
-
-        piece_type = clean_piece(input("Piece type (pawn/rook/bishop/etc): "))
-        cfg.piece_type = piece_type
-
-        robot.move_pose(Square_Poses[pick_sq])
-
-        centerer.calibrate_jacobian(delta_m=0.015)
-
-        print(f"Centering over {pick_sq} ...")
-        result = centerer()
-
-        if not result.success:
-            print(
-                f"Failed to center at {pick_sq}. iters={result.iters}, "
-                f"last error px={result.last_error_px}, centroid={result.last_centroid_px}"
-            )
-            return
-
-        print(
-            f"Centered at {pick_sq} in {result.iters} iters. "
-            f"Final error px={result.last_error_px}"
-        )
-
-        p = robot.get_pose()
-        pickup_xy_pose = PoseObject(p.x, p.y, p.z, p.roll, p.pitch, p.yaw)
-        picker.pick_at(piece_type, pickup_xy_pose)
-
-        #add in check force sensor for successful pickup
-
-        place_sq = clean_square(input("Place to square (E4/C2/B3/D8): "))
-        if place_sq not in Square_Poses:
-            raise ValueError(f"Unknown square '{place_sq}'. Valid: {valid_squares}")
-
-        robot.move_pose(Square_Poses[place_sq])
-        picker.place_at(Square_Poses[place_sq])
-
-        print(f"Done: moved {piece_type} from {pick_sq} to {place_sq}.")
-
-        print("Press Q or ESC to quit windows.")
         while True:
-            img = uncompress_image(robot.get_img_compressed())
-            img = cv2.flip(img, 0)
+            print(f"\nValid squares: {valid_squares}")
+            print("Type Q at any prompt to quit.")
 
-            h, w = img.shape[:2]
-            ox, oy = cfg.target_offset_px
-            target = (w // 2 + int(ox), h // 2 + int(oy))
-
-            detector(img, target_px=target, use_roi=(detector.roi is not None))
-
-            key = cv2.waitKey(10) & 0xFF
-            if key in (ord("q"), ord("Q"), 27):
+            pick_sq = input("Pick from square (B2/C4/F2/G3): ").strip().upper()
+            if pick_sq in ("Q", "QUIT", "EXIT"):
                 break
+            if pick_sq not in square_poses:
+                print(f"Unknown square '{pick_sq}'. Valid: {valid_squares}")
+                continue
+
+            place_sq = input("Place to square (B2/C4/F2/G3): ").strip().upper()
+            if place_sq in ("Q", "QUIT", "EXIT"):
+                break
+            if place_sq not in square_poses:
+                print(f"Unknown square '{place_sq}'. Valid: {valid_squares}")
+                continue
+
+            piece_colour = input("Piece colour (black/white): ").strip()
+            if piece_colour.upper() in ("Q", "QUIT", "EXIT"):
+                break
+
+            piece_type = input("Piece type (pawn/rook/bishop/etc): ").strip()
+            if piece_type.upper() in ("Q", "QUIT", "EXIT"):
+                break
+
+            try:
+                result = system.move_piece(
+                    piece_colour=piece_colour,
+                    piece_type=piece_type,
+                    pickup_pose=square_poses[pick_sq],
+                    drop_pose=square_poses[place_sq],
+                )
+
+                if not result.success:
+                    print(
+                        f"Failed to center at {pick_sq}. iters={result.iters}, "
+                        f"last error px={result.last_error_px}, centroid={result.last_centroid_px}"
+                    )
+                else:
+                    print(
+                        f"Done: moved {piece_type} ({piece_colour}) from {pick_sq} to {place_sq}. "
+                        f"Centering final error px={result.last_error_px}"
+                    )
+
+            except Exception as e:
+                print(f"Move failed: {e}")
+
+            # Always return home after each attempt
+            try:
+                robot.move_pose(home_pose)
+                print("Returned to home pose.")
+            except Exception as e:
+                print(f"Failed to move to home pose: {e}")
+
+        print("Exiting.")
 
     finally:
         cv2.destroyAllWindows()
@@ -120,4 +106,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-

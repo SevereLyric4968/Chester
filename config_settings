@@ -1,0 +1,15 @@
+control_type:
+"drunk adam" - 1 robot plays both sides against itself
+"robot wars" - 2 robots, 1 playing each side
+"man vs ned" - 1 robot playing 1 side, other side free for human
+
+player types:
+"rc" - program gets move through clicks on the gui
+"ai" - program gets move from stockfish
+"human" - program gets move from images of board
+
+robot_side:
+"white" or "black" - the side of the board the robot is on when in "drunk adam" mode and controlled in "man vs ned" mode
+
+engine paths:
+Jay-"C:/Users/Jayda/PycharmProjects/Chester/stockfish-windows-x86-64-avx2/stockfish/stockfish-windows-x86-64-avx2.exe"

@@ -8,7 +8,7 @@ class Player(ABC):
 
     @abstractmethod
     def get_move(self, board_manager):
-        """Return a move in UCI format (e.g., 'e2e4')."""
+        """Return a move in UCI format (e.g., 'e2e4')"""
         pass
 
 class rcPlayer(Player):

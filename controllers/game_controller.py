@@ -9,41 +9,36 @@ class GameController:
         self.rc=robot_controller
         self.databus=databus
 
-    def play(self):
-        #Run the game loop until it's over.
-        print("Starting game...")
-        print(self.bm)
+        self.robotBusy=False
 
+    def start_game(self):
+        pass
+
+    def step(self):
+
+        if self.databus.robotBusy:
+            return
+
+        currentPlayer = (
+            self.white_player if self.bm.board.turn else self.black_player
+        )
+        self.databus.game.turn = currentPlayer.color.capitalize()
+        self.databus.game.status = self.bm.get_status()
+
+        move = currentPlayer.get_move(self.bm)
+
+        self.databus.gameLog.append(f"{currentPlayer.color.capitalize()}: {move}")
+
+        beforeBoard=self.bm.board.copy()
+
+        # robot execution
+        self.databus.robotBusy = True
+        moveQueue,isWhite = self.rc.uci_to_move_queue(move, beforeBoard)
+        threading.Thread(
+            target=self.rc.execute_move_queue,
+            args=(moveQueue, beforeBoard , isWhite),
+            daemon=True
+        ).start()
+
+        self.bm.apply_move(move)
         self.gui.draw_board(self.bm.board)
-        self.gui.window.update_idletasks()
-        self.gui.window.update()
-
-        while not self.bm.is_game_over():
-            current_player = (
-                self.white_player if self.bm.board.turn else self.black_player
-            )
-
-            self.databus.game.turn=current_player.color.capitalize()
-            self.databus.game.status= self.bm.get_status()
-
-            boardBefore = self.bm.board.copy()
-
-            move = current_player.get_move(self.bm)
-            self.databus.gameLog.append(move.uci())
-
-            #robot execution
-            #threading.Thread()
-            moveQueue = self.rc.translate(move, boardBefore)
-            self.rc.executeMoveQueue(moveQueue, boardBefore)
-
-            self.bm.apply_move(move)
-
-            #print(self.bm)
-
-            # update gui
-            if self.gui:
-                self.gui.draw_board(self.bm.board)
-                self.gui.window.update_idletasks()
-                self.gui.window.update()
-
-        print("Game over:", self.bm.get_result())
