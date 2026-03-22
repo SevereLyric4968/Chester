@@ -18,14 +18,14 @@ class ZCalibration:
         self.midpoint = [(xyArray[2][0]+xyArray[3][0])/2, (xyArray[2][1]+xyArray[3][1])/2] #find the midpoint to use as the point to split the planes
         for i in range(len(xyArray)):
             "move through the different x,y coordinates and find the z value for each one to create a plane"
-            pose_target_obj = PoseObject(xyArray[i][0], xyArray[i][1], 0.13, 0, np.pi/2, 0) # in meters and radians
+            pose_target_obj = PoseObject(xyArray[i][0], xyArray[i][1], 0.17, 0, np.pi/2, 0) # in meters and radians
             robot.move_pose(pose_target_obj)
             z = 0.054
-            while(robot.analog_read(forceSensor)<1.9): #move arm down
+            while(robot.analog_read(forceSensor)<2.7): #move arm down
                 pose_target_obj = PoseObject(xyArray[i][0], xyArray[i][1], z, 0, np.pi/2, 0) # in meters and radians
                 robot.move_pose(pose_target_obj)
                 z = z-0.001
-                #print(robot.analog_read(forceSensor))
+                print(robot.analog_read(forceSensor))
             print(robot.get_pose())
             zArray.append(robot.get_pose().z)
             pose_target_obj = PoseObject(xyArray[i][0], xyArray[i][1], 0.130, 0, np.pi/2, 0) # in meters and radians
@@ -64,7 +64,7 @@ class ZCalibration:
         #return ((-self.plane2[0]*x - self.plane2[1]*y - self.plane2[3])/self.plane2[2])
 
 if __name__ == "__main__":
-    robotIpAddress = "192.168.42.2"
+    robotIpAddress = "10.10.10.10"
     robot = NiryoRobot(robotIpAddress)
     robot.calibrate_auto()
     robotCalibration = ZCalibration(robot)
