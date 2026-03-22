@@ -14,11 +14,11 @@ from pyniryo.vision.image_functions import uncompress_image
 
 @dataclass(frozen=True)
 class PinkThresholdHSV:
-    h_min: int = 145
-    h_max: int = 170
+    h_min: int = 160
+    h_max: int = 180
     s_min: int = 50
     s_max: int = 255
-    v_min: int = 80
+    v_min: int = 50
     v_max: int = 255
 
     def __call__(self) -> Tuple[np.ndarray, np.ndarray]:
@@ -28,11 +28,11 @@ class PinkThresholdHSV:
 
 @dataclass(frozen=True)
 class GreenThresholdHSV:
-    h_min: int = 40
-    h_max: int = 80
-    s_min: int = 70
+    h_min: int = 75
+    h_max: int = 90
+    s_min: int = 50
     s_max: int = 255
-    v_min: int = 70
+    v_min: int = 50
     v_max: int = 255
 
     def __call__(self) -> Tuple[np.ndarray, np.ndarray]:
@@ -234,7 +234,7 @@ class VisualCenteringController:  #Read camera frame - Detect pink centroid (cx,
         drop_table = {
             "pawn": 0.010,
             "bishop": 0.010,
-            "rook": 0.060,
+            "rook": 0.065,
             "knight": 0.010,
             "queen": 0.010,
             "king": 0.010,
@@ -545,7 +545,7 @@ class ElectromagnetPiecePicker:
 
         # Per-piece DOWN distances (edit these)
         self.piece_params = piece_params or {
-            "rook":   PiecePickParams(vision_drop_m=0.060, pick_drop_m=0.055, place_drop_m=0.054),
+            "rook":   PiecePickParams(vision_drop_m=0.065, pick_drop_m=0.052, place_drop_m=0.050),
             "bishop": PiecePickParams(vision_drop_m=0.010, pick_drop_m=0.029, place_drop_m=0.029),
             "pawn":   PiecePickParams(vision_drop_m=0.010, pick_drop_m=0.029, place_drop_m=0.029),
             "knight": PiecePickParams(vision_drop_m=0.010, pick_drop_m=0.029, place_drop_m=0.029),
