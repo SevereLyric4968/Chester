@@ -4,14 +4,14 @@ data = load('board_calibration.mat');
 board_dictionary = data.board_dictionary;
 
 % read in image
-raw_img = imread('C:\Users\kirst\chess-vision\images\green pieces\starting.jpg');
+raw_img = imread('C:\Users\kirst\chester\testbed\image_base_folder\week10\3.png');
 %rotate
-img=imrotate(raw_img,-90);
+img=imrotate(raw_img,90);
 %use pink mask
 pink_masked_img = pink_mask_function(img);
 
 %radius of sticker
-radius = 170;
+radius = 30;
 
 white_piece_centre_coords = [];
 
