@@ -1,7 +1,7 @@
 import cv2
 
 from pyniryo import NiryoRobot, PoseObject, PinID
-
+import math
 from intelligent_pickup import (
     CenteringConfig,
     IntelligentPickupSystem,
@@ -12,13 +12,13 @@ def main():
     robot = NiryoRobot("192.168.42.1")
 
     square_poses = {
-        "B2": PoseObject(0.155,  -0.08, 0.208, 0, 1.5, 0),
-        "C4": PoseObject(0.215,  -0.05, 0.208, 0, 1.5, 0),
-        "F2": PoseObject(0.155,  0.04, 0.208, 0, 1.5, 0),
-        "G3": PoseObject(0.190,  0.07, 0.208, 0, 1.5, 0),
+        "B2": PoseObject(0.155,  -0.08, 0.208, 0, math.pi/2, 0),
+        "C4": PoseObject(0.225,  -0.05, 0.208, 0, math.pi/2, 0),
+        "F2": PoseObject(0.155,  0.042, 0.208, 0, math.pi/2, 0),
+        "G3": PoseObject(0.190,  0.07, 0.208, 0, math.pi/2, 0),
     }
 
-    home_pose = PoseObject(0.14, 0, 0.2, 0, 1.5, 0) 
+    home_pose = PoseObject(0.14, 0, 0.2, 0, 1.5, 0)
 
     cfg = CenteringConfig(
         deadband_px=15,
