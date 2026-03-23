@@ -276,8 +276,9 @@ def draw_detection(
 def main():
     robot_ip = "192.168.42.1"
 
-    pink_mask_file = "pinkMask.m"
-    green_mask_file = "greenMask.m"
+    BASE_DIR = Path(__file__).resolve().parent
+    pink_mask_file = BASE_DIR / "pinkMask.m"
+    green_mask_file = BASE_DIR / "greenMask.m"
 
     fixed_roi: Optional[Tuple[int, int, int, int]] = None
     # Example:
