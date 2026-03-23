@@ -1,5 +1,6 @@
 from pyniryo import *
 import numpy as np
+import math
 
 robotIpAddress = "192.168.42.1"
 #robot2IpAddress = "192.168.42.2" #this for ethernet use a laptop with IP address 192.168.42.100
@@ -10,6 +11,7 @@ robot = NiryoRobot(robotIpAddress)
 #robot2 = NiryoRobot(robot2IpAddress)
 print("b")
 
+""" 
 robot.calibrate_auto()
 #robot2.calibrate_auto()
 
@@ -23,7 +25,7 @@ print("e")
 pose_target_obj2 = PoseObject(0.2, 0, 0.2, 0, 0.75, 0) # in meters and radians
 #robot2.move_pose(pose_target_obj2)
 
-pose_home = PoseObject(0.14, 0, 0.2, 0, 1.5, 0)
+pose_home = PoseObject(0.14, 0, 0.2, 0, math.pi/2, 0)
 robot.move_pose(pose_home)
 #robot2.move_pose(pose_home)
 """
@@ -41,12 +43,11 @@ robot.calibrate_auto()
 #test both at 0.038 for calibration start
 
 pickup_location = PoseObject(0.430,  0.15, 0.208, 0, np.pi/2, 0) # in meters and radians 0.038
-pickup2_location = PoseObject(0.205,  -0.07, 0.148, 0, 1.5, 0) # in meters and radians 0.038
-pose_home = PoseObject(0.14, 0, 0.2, 0, 1.5, 0)
+pickup2_location = PoseObject(0.155,  0.042, 0.208, 0, math.pi/2, 0) # in meters and radians 0.038
+pose_home = PoseObject(0.115, 0.0, 0.215, 0, 1.5, 0)
 
-robot.move_pose(pickup_location)
+#robot.move_pose(pickup2_location)
 robot.setup_electromagnet(pin_electromagnet)
-#robot.activate_electromagnet(pin_electromagnet)
+robot.activate_electromagnet(pin_electromagnet)
 robot.deactivate_electromagnet(pin_electromagnet)
-#robot.move_pose(pose_home)
-"""
+robot.move_pose(pose_home)
