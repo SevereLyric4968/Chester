@@ -8,7 +8,7 @@ import numpy as np
     def __init__(self, robot): #the desired end effector position in meters and radians
         self.robot = robot
 """
-def calculateIK(robot, x, y, z, roll, pitch, yaw):
+def calculateIK(robot, x, y, z):
     heightOfEndEffector = 0.116 #need to check this value
     z = z - heightOfEndEffector #add the height of the end effector to get the position of the tip of the end effector (able to make this assumion because the end effector is always pointed down)
     x -= 0.0456
@@ -41,7 +41,7 @@ if __name__ == "__main__":
     robot = NiryoRobot(robotIpAddress)
     robot.calibrate_auto()
     #robot.move_joints(0.3,0,0,0,0,0)
-    calculateIK(robot, 0.2832, 0.0393, 0.210, 0, np.pi/2, 0)
+    calculateIK(robot, 0.2832, 0.0393, 0.140)
 
     #x = 0.3543, y = 0.0524, z = 0.1354 roll = -2.161, pitch = 1.569, yaw = -2.204
     #x = 0.2098, y = 0.0433, z = 0.1357 roll = 3.054, pitch = 1.569, yaw = 2.889
