@@ -1,4 +1,4 @@
-fname = 'D:\Chester-master\Chester\testbed\image_base_folder\photo_0001_20260320_124838.png';
+fname = "D:\Chester-master\Chester\testbed\image_base_folder\photo_0008_20260320_125023.png"
 
 imgRGB = imread(fname);
 
@@ -55,21 +55,123 @@ h_clip = y2 - y1 + 1;   % actual height after clipping
 % If mask is logical and imgRGB is uint8:
 imwrite(imgRGB, 'extractedOrange.png');   % PNG keeps colors/lossless
 
-%visualise boundary box
-%imshow(imgRGB); hold on;
-%rectangle('Position',[x1,y1,x2-x1+1,y2-y1+1],'EdgeColor','g','LineWidth',2);
-%title('Axis-Aligned Square');
-%hold off;
 
-%crop around that boundary box
-cropped = imgRGB(y1:y2, x1:x2,:); 
+%make a new image that is cropped to the board
 
-title = 'cropped.png';
-fname = fullfile('D:\Chester-master\Chester\testbed\image_base_folder', title);
-imwrite(cropped, fname);
-%see the cropped image
-imshow(cropped);
+%selects image rows, image columns, and all colour channels
+%indexing is 1-based and inclusive
+cropped = imgRGB(y1:y2, x1:x2,:);
+J = cropped;  % pos in data units
+sJ = size(J);
+fname = 'cropped.png'
+img = fullfile('D:\Uni\Masters Project\photos',fname);
+exportgraphics(gcf, img, 'BackgroundColor','none');
+disp(img);
 
-%uncomment if you want to run process_board immediately
-%make sure global fname can be read by process_board
-%run("process_board.m");
+%now: save snapshot co-ordinates to a variable placeholder.
+currentPoints = [x1 y1; x2 y2];
+
+fn = "previousPoints.mat";
+thresh = 0; % pixels
+
+if isfile(fn)
+    S = load(fn, "previousPoints");
+    if isfield(S, "previousPoints")
+        previousPoints = S.previousPoints;
+    else
+        previousPoints = [];
+    end
+    
+    if isempty(previousPoints)         % fallback if file existed but var missing
+        previousPoints = currentPoints;
+        save(fn, "previousPoints");
+        fprintf("Saved initial coordinates.\n");
+    else
+        %per-point Euclidean distance
+        currentPoints = ensurePointsForm(currentPoints);
+        previousPoints = ensurePointsForm(previousPoints);
+        dists = sqrt(sum((currentPoints - previousPoints).^2, 2)); % 2x1
+        %compare the co-ordinates to the ones previous
+        %if mis-aligned by more than 5 pixels, compute the difference and save the
+        %new co-ordinates.
+        if any(dists > thresh)
+            delta = currentPoints - previousPoints;
+            previousPoints = currentPoints;
+            save(fn, "previousPoints");
+            fprintf("Alignment changed. Delta = [%g %g; %g %g]\n", delta.');
+        else
+            fprintf("Alignment within %d pixels; no change.\n", thresh);
+        end
+    end
+else
+    %save on first run
+    previousPoints = currentPoints;
+    save(fn, "previousPoints");
+    fprintf("Saved initial coordinates: [%g %g; %g %g]\n", previousPoints.');
+end
+
+%ensures that previousPoints is stored as a 2x2 matrix
+function pts = ensurePointsForm(pts)
+    pts = squeeze(pts);
+    if isvector(pts) && numel(pts) == 4
+        pts = reshape(pts, 2, 2)';
+    elseif isequal(size(pts), [2,2])
+        % already correct
+        disp("already 2x2");
+    else
+        error('Points must be 1x4 or 2x2 (rows = [x y]).');
+    end
+end
+
+run("process_board.m");
+
+% Co-ordinate mapping
+S = load('board_calibration.mat');
+vars = fieldnames(S);
+if isempty(vars)
+    error('No variables found in the MAT file.');
+end
+
+raw = S.(vars{1});
+
+coords = [];
+
+v_all = values(raw);
+
+for k = 1:numel(v_all)
+    v = v_all{k};
+    if iscell(v)
+        vv = v{1};
+        if isnumeric(vv) && size(vv, 2) == 2
+            coords = [coords; vv];
+        end
+    elseif isnumeric(v) && size(v, 2) == 2
+        coords = [coords; v];
+    end
+end
+
+if isempty(coords)
+    error('Could not extract coordinates from file.');
+end
+
+%map to image space
+isNormalized = all(coords(:) >= 0 & coords(:) <= 1);
+if isNormalized
+    disp("normalised");
+    gx = x1 + coords(:,1)*(side-1);
+    gy = y1 + coords(:,2)*(side-1);
+else
+    disp("coords");
+    gx = x1 + coords(:,1) - 1;
+    gy = y1 + coords(:,2) - 1;
+end
+
+%keep points inside the rectangle bounds
+inside = gx >= x1 & gx <= x1+side-1 & gy >= y1 & gy <= y1+side-1;
+gx = gx(inside);
+gy = gy(inside);
+
+%co-ordinate updating HERE VV
+%For some reason i am having a lot of trouble
+%writing the co-ordinates back to board_calibration.mat...
+%giving up for now, will try again tomorrow.

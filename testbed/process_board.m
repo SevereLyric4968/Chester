@@ -2,17 +2,17 @@
 
 global fname
 
-fname = 'C:\Users\kirst\chess-vision\images\week9_3\empty.png';
+fname = 'C:\Users\kirst\chester\testbed\image_base_folder\cropped.png';
 
 % read in image
 raw_img = imread(fname);
 %rotated back to correct orientation 
-img = imrotate(raw_img,-180);
+img = imrotate(raw_img,90);
 % convert to greyscale
 grey_img = rgb2gray(img);
 % gaussian blurring filter
 %kirsty images =  20
-gauss_img = imgaussfilt(grey_img,6);
+gauss_img = imgaussfilt(grey_img,5);
 % canny edge detection
 canny_img = edge(gauss_img,'Canny');
 %dialate edges
