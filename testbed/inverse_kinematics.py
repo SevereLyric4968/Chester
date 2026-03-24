@@ -8,6 +8,9 @@ import numpy as np
     def __init__(self, robot): #the desired end effector position in meters and radians
         self.robot = robot
 """
+def calculateIK(robot, x, y, z, roll, pitch, yaw):
+    calculateIK(robot, x, y, z) #roll pitch yaw are not needed 
+
 def calculateIK(robot, x, y, z):
     heightOfEndEffector = 0.116 #need to check this value
     z = z - heightOfEndEffector #add the height of the end effector to get the position of the tip of the end effector (able to make this assumion because the end effector is always pointed down)
