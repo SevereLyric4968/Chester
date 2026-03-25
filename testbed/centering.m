@@ -2,13 +2,13 @@
 % Author: Kov Ciuchta
 % Keep the board co-ordinates in same position as irl board
 global cropped;
+global imgRGB;
+global fname;
+
+%imgRGB = imread("D:\Chester-master\Chester\testbed\image_base_folder\img\photo_0011_20260325_164923.png");
 
 %calibration or off
-mode = "calibration";
-
-fname = "D:\Chester-master\Chester\testbed\image_base_folder\img\photo_0004_20260325_122339.png";
-
-imgRGB = imread(fname);
+mode = "off";
 
 %Detect the orange corners and apply a bounding box
 % run hsv mask on image

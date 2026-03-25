@@ -1,12 +1,12 @@
-close all; clear all; clc;
+%close all; clear all; clc;
 
-data = load('board_calibration.mat');
+data = load('board_adjusted.mat');
 board_dictionary = data.board_dictionary;
 
 % read in image
-raw_img = imread('C:\Users\kirst\chester\testbed\image_base_folder\week10\3.png');
+raw_img = imgRGB;
 %rotate
-img=imrotate(raw_img,90);
+img=imrotate(raw_img,0);
 %use pink mask
 pink_masked_img = pink_mask_function(img);
 

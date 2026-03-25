@@ -10,6 +10,7 @@ class VisionInterface:
         while True:
             if "button pressed":
                 image=self.take_image()
+                print(image)
                 newBoard=self.process_image(image)
                 move = self.parse_move(board_manager.board,newBoard)
 
@@ -36,7 +37,7 @@ class VisionInterface:
         text=True
         )
         image = result.stdout.strip()   
-        return image  
+        return image
 
     def process_image(self,image):
         occupiedSpaces="kirsty shit HSV"

@@ -2,9 +2,11 @@
 % Author: Kov Ciuchta
 % Take one snapshot from a webcam
 
+global imgRGB;
+
 % Variables to look for
 baseFolder = fullfile("D:\Chester-master\Chester\testbed\image_base_folder\img"); % change as needed
-cameraName = 'DroidCam Video';                    % set to your camera name or leave empty to use first
+cameraName = 'DroidCam Video';              % set to your camera name or leave empty to use first
 
 % Ensure output folder exists
 if ~isfolder(baseFolder)
