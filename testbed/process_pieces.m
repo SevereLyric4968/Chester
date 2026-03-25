@@ -1,17 +1,16 @@
-close all; clear all; clc;
+%close all; clear all; clc;
 
-data = load('board_calibration.mat');
+data = load('board_adjusted.mat');
 board_dictionary = data.board_dictionary;
 
 % read in image
-raw_img = imread('C:\Users\kirst\chess-vision\images\green pieces\starting.jpg');
+img = imgRGB;
 %rotate
-img=imrotate(raw_img,-90);
 %use pink mask
 pink_masked_img = pink_mask_function(img);
 
 %radius of sticker
-radius = 170;
+radius = 25;
 
 white_piece_centre_coords = [];
 

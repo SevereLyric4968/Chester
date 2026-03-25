@@ -1,46 +1,53 @@
 import chess
 import subprocess
 
+#make function calibrate runs process_b
+#make funciton that runs process_p
+#make function subprocess that takes variable of matlab file.
+
 class VisionInterface:
     def __init__(self):
-        #connect camera
-        pass
+        self.take_image()
+        self.calibrate()
 
     def get_move(self,board_manager):
         while True:
             if "button pressed":
                 image=self.take_image()
-                newBoard=self.process_image(image)
+                #print(image)
+                newBoard=self.process_pieces(image)
                 move = self.parse_move(board_manager.board,newBoard)
 
                 if move in board_manager.get_legal_moves():
                     return move
                 print("Invalid or illegal move, try again.")
-
-    def take_image(self):
-        # Here's my proposed solution to Matlab Integration and passing variables to Python
-        # result() launches the matlab script for taking pictures
-        # (for now i am not changing it to a python script unless serious delays occur from this process).
-        # stdout.strip() is a function that reads whatever prints into the console and cleans it up.
-        # within camera.m there is a method that prints the filepath of the taken image
-        # into the console for stdout.strip() to read and write to image.
-        # feel free to copy this method for process_image.
-        #if i have time i'll look into how to pass this filepath back to matlab to speed up kirsty's bit
+         
+    
+    #runs matlabfilepath, insert variable(s) you want you spit back out
+    # THIS REQUIRES THE VARIABLE YOU WANT TO READ TO BE PRINTED IN THE MATLAB CONSOLE FIRST
+    # MAKE SURE YOU DISP(VARIABLE)
+    def run_subprocess(filepath: str, *variables: str) -> list[str]:
+        disp_calls = "; disp('---'); ".join(f"disp({v})" for v in variables)
         result = subprocess.run(
-        [
-            "matlab",
-            "-batch",
-            "run('D:/Chester-master/Chester/testbed/camera.m')"
-        ],
-        capture_output=True,
-        text=True
+            ["matlab", "-batch", f"run('{filepath}'); {disp_calls}"],
+            capture_output=True,
+            text=True
         )
-        image = result.stdout.strip()   
-        return image  
+        parts = result.stdout.strip().split('---\n')
+        return [p.strip() for p in parts]
 
-    def process_image(self,image):
-        occupiedSpaces="kirsty shit HSV"
-        return occupiedSpaces
+    #all of this needs tested VVV
+    def take_image(self):
+        image = self.run_subprocess("D:\Chester-master\Chester\testbed\centering.m", "imgRGB")
+        return image
+
+    def process_pieces(self,image):
+        black_occupancy_grid, white_occupancy_grid = self.run_subprocess("D:\Chester-master\Chester\testbed\centering.m", "black_occupancy_grid", "white_occupancy_grid")
+        return black_occupancy_grid, white_occupancy_grid
+    
+    def calibrate(self):
+        calibration_file = self.run_subprocess("D:\Chester-master\Chester\testbed\process_board.m", "board_calibration.mat")
+        return calibration_file
 
     def parse_move(self, board, whiteOccupancyMap,blackOccupancyMap):
         beforeMoveMap=[[0 for _ in range(8)] for _ in range(8)]

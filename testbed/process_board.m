@@ -2,22 +2,19 @@
 
 global fname
 
-fname = 'C:\Users\kirst\chess-vision\images\week9_3\empty.png';
-
 % read in image
-raw_img = imread(fname);
+img = imread(fname);
 %rotated back to correct orientation 
-img = imrotate(raw_img,-180);
 % convert to greyscale
 grey_img = rgb2gray(img);
 % gaussian blurring filter
 %kirsty images =  20
-gauss_img = imgaussfilt(grey_img,6);
+gauss_img = imgaussfilt(grey_img,1);
 % canny edge detection
 canny_img = edge(gauss_img,'Canny');
 %dialate edges
 %kirsty images = 15
-se = strel('square', 9);
+se = strel('square', 6);
 dialated_edges = imdilate(canny_img, se);
 %imshow(dialated_edges);
 % fill holes
@@ -59,7 +56,6 @@ end
 yellow_mask = yellow_mask_function(img);
 
 biggest_yellow = bwpropfilt(logical(yellow_mask), 'Area', 1);
-imshow(biggest_yellow); title('biggest yellow');
 
 %find centroid of yellow sticket
 yellow_centroid = regionprops(biggest_yellow, 'Centroid');
@@ -72,7 +68,7 @@ topleft_y = yellow_centroid(1).Centroid(2);
 % make dictionary to associate 
 letters = {'a','b','c','d','e','f','g', 'h'};
 numbers = {'8','7','6','5','4','3','2', '1'};
-spacing = 38;
+spacing = 29;
 keys = strings(64,1);
 pairs = cell(64,1);
 i=1;

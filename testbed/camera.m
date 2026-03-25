@@ -1,9 +1,12 @@
-% take_one_photo.m
-% Take one snapshot from a webcam and save it to disk.
+% Camera.m
+% Author: Kov Ciuchta
+% Take one snapshot from a webcam
 
-% Configuration
+global imgRGB;
+
+% Variables to look for
 baseFolder = fullfile("D:\Chester-master\Chester\testbed\image_base_folder\img"); % change as needed
-cameraName = 'DroidCam Video';                    % set to your camera name or leave empty to use first
+cameraName = 'DroidCam Video';              % set to your camera name or leave empty to use first
 
 % Ensure output folder exists
 if ~isfolder(baseFolder)
@@ -26,16 +29,20 @@ if ~isempty(photoFiles)
 end
 idx = startIdx;
 
-% Acquire one snapshot and save
+% Take one snapshot with defined camera, make sure the camera is clear after
 cam = webcam(cameraName);
-cleanupObj = onCleanup(@() clear('cam')); % ensure camera cleared on exit
+cleanupObj = onCleanup(@() clear('cam'));
 
-imgRGB = snapshot(cam); % single capture
-
+imgRGB = snapshot(cam);
 tstamp = datestr(now, 'yyyymmdd_HHMMSS');
 fname  = sprintf('photo_%04d_%s.png', idx, tstamp);
 path   = fullfile(baseFolder, fname);
 
+% Python Integration variable (Double check).
 img = path;
+imgRGB = imrotate(imgRGB,90);
+% Save snapshot, which is a
 imwrite(imgRGB, path);
 fprintf('Saved snapshot #%d -> %s\n', idx, fname);
+
+run("centering.m");
