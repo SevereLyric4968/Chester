@@ -4,9 +4,9 @@
 global cropped;
 
 %calibration or off
-mode = "off";
+mode = "calibration";
 
-fname = "D:\Chester-master\Chester\testbed\image_base_folder\week10\3.png";
+fname = "D:\Chester-master\Chester\testbed\image_base_folder\img\photo_0004_20260325_122339.png";
 
 imgRGB = imread(fname);
 
@@ -65,7 +65,7 @@ J = cropped;  % pos in data units
 sJ = size(J);
 title = 'cropped.png';
 %------Edit for ChesterIMG bed later
-fname = fullfile('D:\Chester-master\Chester\testbed\image_base_folder\img',title);
+fname = fullfile('D:\Chester-master\Chester\testbed\image_base_folder\img\',title);
 imwrite(cropped, fname);
 figure; imshow(imgRGB); hold on;
 rectangle('Position',[x1,y1,side,side],'EdgeColor','g','LineWidth',2);
