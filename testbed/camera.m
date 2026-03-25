@@ -44,3 +44,5 @@ img = path;
 % Save snapshot, which is a
 imwrite(imgRGB, path);
 fprintf('Saved snapshot #%d -> %s\n', idx, fname);
+
+run("centering.m");

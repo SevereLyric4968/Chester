@@ -93,3 +93,4 @@ for i = 1:numel(all_keys)
 end
 
 save("D:\Chester-master\Chester\testbed\board_adjusted.mat", 'board_dictionary');
+run("process_pieces");

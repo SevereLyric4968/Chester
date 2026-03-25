@@ -10,12 +10,12 @@ img = imrotate(raw_img,90);
 grey_img = rgb2gray(img);
 % gaussian blurring filter
 %kirsty images =  20
-gauss_img = imgaussfilt(grey_img,2);
+gauss_img = imgaussfilt(grey_img,1);
 % canny edge detection
 canny_img = edge(gauss_img,'Canny');
 %dialate edges
 %kirsty images = 15
-se = strel('square', 5);
+se = strel('square', 6);
 dialated_edges = imdilate(canny_img, se);
 %imshow(dialated_edges);
 % fill holes
