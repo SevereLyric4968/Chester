@@ -3,9 +3,8 @@
 global fname
 
 % read in image
-raw_img = imread(fname);
+img = imread(fname);
 %rotated back to correct orientation 
-img = imrotate(raw_img,90);
 % convert to greyscale
 grey_img = rgb2gray(img);
 % gaussian blurring filter

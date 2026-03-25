@@ -40,7 +40,7 @@ path   = fullfile(baseFolder, fname);
 
 % Python Integration variable (Double check).
 img = path;
-
+imgRGB = imrotate(imgRGB,90);
 % Save snapshot, which is a
 imwrite(imgRGB, path);
 fprintf('Saved snapshot #%d -> %s\n', idx, fname);

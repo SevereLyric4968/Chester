@@ -4,14 +4,13 @@ data = load('board_adjusted.mat');
 board_dictionary = data.board_dictionary;
 
 % read in image
-raw_img = imgRGB;
+img = imgRGB;
 %rotate
-img=imrotate(raw_img,0);
 %use pink mask
 pink_masked_img = pink_mask_function(img);
 
 %radius of sticker
-radius = 30;
+radius = 25;
 
 white_piece_centre_coords = [];
 

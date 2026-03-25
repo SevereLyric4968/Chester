@@ -1,16 +1,60 @@
-% Camera.m
+% Centering.m
 % Author: Kov Ciuchta
-% Keep the board co-ordinates in same position as irl board
-global cropped;
+% Full camera control (expand later)
 global imgRGB;
+%and process_pieces
 global fname;
 
-%imgRGB = imread("D:\Chester-master\Chester\testbed\image_base_folder\img\photo_0011_20260325_164923.png");
 
 %calibration or off
-mode = "off";
+%mode = "off";
+
+%Take Photo
+
+% Variables to look for
+baseFolder = fullfile("D:\Chester-master\Chester\testbed\image_base_folder\img"); % change as needed
+cameraName = 'DroidCam Video';              % set to your camera name or leave empty to use first
+
+% Ensure output folder exists
+if ~isfolder(baseFolder)
+    mkdir(baseFolder);
+end
+
+% Determine next index from existing files
+photoFiles = dir(fullfile(baseFolder, 'photo_*.png'));
+startIdx = 1;
+if ~isempty(photoFiles)
+    names = {photoFiles.name}';
+    idxNums = zeros(size(names));
+    for k = 1:numel(names)
+        tok = regexp(names{k}, '^photo_(\d{4})_', 'tokens', 'once');
+        if ~isempty(tok)
+            idxNums(k) = str2double(tok{1});
+        end
+    end
+    startIdx = max([idxNums; 0]) + 1;
+end
+idx = startIdx;
+
+% Take one snapshot with defined camera, make sure the camera is clear after
+cam = webcam(cameraName);
+cleanupObj = onCleanup(@() clear('cam'));
+
+imgRGB = snapshot(cam);
+tstamp = datestr(now, 'yyyymmdd_HHMMSS');
+fname  = sprintf('photo_%04d_%s.png', idx, tstamp);
+path   = fullfile(baseFolder, fname);
+
+% Python Integration variable (Double check).
+img = path;
+imgRGB = imrotate(imgRGB,90);
+% Save snapshot, which is a
+imwrite(imgRGB, path);
+fprintf('Saved snapshot #%d -> %s\n', idx, fname);
+
 
 %Detect the orange corners and apply a bounding box
+
 % run hsv mask on image
 orange = create_orange_mask(imgRGB);
 
@@ -71,10 +115,12 @@ figure; imshow(imgRGB); hold on;
 rectangle('Position',[x1,y1,side,side],'EdgeColor','g','LineWidth',2);
 
 %if running for the first time, make sure to get base co-ordinates.
-if mode == "calibration"
-    run("process_board.m");
-end
+%if mode == "calibration"
+%    run("process_board.m");
+%end
 
+%make if ~ no board_cal
+%       end.
 %update the image co-ordinates to board_adjusted (new file)
 S = load("board_calibration.mat");
 board_dictionary = S.board_dictionary;
