@@ -13,6 +13,41 @@ import numpy.linalg as LA
 from pyniryo import NiryoRobot, PoseObject, PinID
 from pyniryo.vision.image_functions import uncompress_image
 
+#needs edited to use Sams calculateIK stuff instead of move_pose
+
+PIECE_Z_HEIGHTS: Dict[str, Dict[str, float]] = { #all moves are currently starting at z = 0.208
+    "pawn": {
+        "vision_drop_m": 0.010,
+        "pick_drop_m": 0.029,
+        "place_drop_m": 0.029,
+    },
+    "bishop": {
+        "vision_drop_m": 0.010,
+        "pick_drop_m": 0.029,
+        "place_drop_m": 0.029,
+    },
+    "rook": {
+        "vision_drop_m": 0.065,
+        "pick_drop_m": 0.052,
+        "place_drop_m": 0.050,
+    },
+    "knight": {
+        "vision_drop_m": 0.010,
+        "pick_drop_m": 0.029,
+        "place_drop_m": 0.029,
+    },
+    "queen": {
+        "vision_drop_m": 0.010,
+        "pick_drop_m": 0.029,
+        "place_drop_m": 0.029,
+    },
+    "king": {
+        "vision_drop_m": 0.010,
+        "pick_drop_m": 0.029,
+        "place_drop_m": 0.029,
+    },
+}
+
 
 @dataclass(frozen=True)
 class PinkThresholdHSV:
@@ -333,19 +368,21 @@ class VisualCenteringController:  #Read camera frame - Detect pink centroid (cx,
         if self.cfg.piece_type is None:
             return
 
-        # drop amounts per piece
+        # Pulled from the top-level tuning table so all real-board Z values
+        # can be adjusted in one place.
         drop_table = {
-            "pawn": 0.010,
-            "bishop": 0.010,
-            "rook": 0.065,
-            "knight": 0.010,
-            "queen": 0.010,
-            "king": 0.010,
+            piece: values["vision_drop_m"]
+            for piece, values in PIECE_Z_HEIGHTS.items()
         }
 
         # normalize piece type just in case caller passed "Rook", " rook ", etc.
         piece = self.cfg.piece_type.strip().lower()
-        drop = drop_table.get(piece, 0.010)
+        if piece not in drop_table:
+            raise ValueError(
+                f"Unsupported piece_type '{self.cfg.piece_type}'. "
+                f"Add it to PIECE_Z_HEIGHTS at the top of the file."
+            )
+        drop = drop_table[piece]
 
         pose = self.robot.get_pose()
         new_z = pose.z - drop
@@ -638,22 +675,20 @@ class ElectromagnetPiecePicker:
         *,
         pin_electromagnet: PinID = PinID.DO4,
         piece_params: Dict[str, PiecePickParams] | None = None,
-        default_pick_drop_m: float = 0.04,
         min_safe_z: float = 0.090,  # safety clamp: never go below this
     ):
         self.robot = robot
         self.pin = pin_electromagnet
-        self.default_pick_drop_m = float(default_pick_drop_m)
         self.min_safe_z = float(min_safe_z)
 
-        # Per-piece DOWN distances (edit these)
+        # These now come from the top-level PIECE_Z_HEIGHTS tuning table.
         self.piece_params = piece_params or {
-            "rook":   PiecePickParams(vision_drop_m=0.065, pick_drop_m=0.052, place_drop_m=0.050),
-            "bishop": PiecePickParams(vision_drop_m=0.010, pick_drop_m=0.029, place_drop_m=0.029),
-            "pawn":   PiecePickParams(vision_drop_m=0.010, pick_drop_m=0.029, place_drop_m=0.029),
-            "knight": PiecePickParams(vision_drop_m=0.010, pick_drop_m=0.029, place_drop_m=0.029),
-            "king":   PiecePickParams(vision_drop_m=0.010, pick_drop_m=0.029, place_drop_m=0.029),
-            "queen":  PiecePickParams(vision_drop_m=0.010, pick_drop_m=0.029, place_drop_m=0.029),
+            piece: PiecePickParams(
+                vision_drop_m=values["vision_drop_m"],
+                pick_drop_m=values["pick_drop_m"],
+                place_drop_m=values["place_drop_m"],
+            )
+            for piece, values in PIECE_Z_HEIGHTS.items()
         }
 
         self._magnet_setup = False
@@ -666,19 +701,21 @@ class ElectromagnetPiecePicker:
     @staticmethod
     def _with_z(pose: PoseObject, z: float) -> PoseObject:
         return PoseObject(pose.x, pose.y, z, pose.roll, pose.pitch, pose.yaw)
+    
+    def _get_piece_params(self, piece_type: str) -> PiecePickParams:
+        piece = piece_type.strip().lower()
+        params = self.piece_params.get(piece)
+        if params is None:
+            raise ValueError(
+                f"Unsupported piece_type '{piece_type}'. "
+                f"Add it to PIECE_Z_HEIGHTS at the top of the file."
+            )
+        return params    
 
     def pick_at(self, piece_type: str, pickup_xy_pose: PoseObject) -> None:
         self._setup_magnet_once()
 
-        piece = piece_type.strip().lower()
-        params = self.piece_params.get(
-            piece,
-            PiecePickParams(
-                vision_drop_m=0.010,
-                pick_drop_m=self.default_pick_drop_m,
-                place_drop_m=self.default_pick_drop_m,
-            )
-        )
+        params = self._get_piece_params(piece_type)
 
         approach_z = float(pickup_xy_pose.z)
         down_z = approach_z - float(params.pick_drop_m)
@@ -708,15 +745,7 @@ class ElectromagnetPiecePicker:
     ) -> None:
         self._setup_magnet_once()
 
-        piece = piece_type.strip().lower()
-        params = self.piece_params.get(
-            piece,
-            PiecePickParams(
-                vision_drop_m=0.010,
-                pick_drop_m=self.default_pick_drop_m,
-                place_drop_m=self.default_pick_drop_m,
-            )
-        )
+        params = self._get_piece_params(piece_type)
 
         original_z = float(drop_xy_pose.z)
 
