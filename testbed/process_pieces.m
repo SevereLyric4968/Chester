@@ -1,17 +1,16 @@
-close all; clear all; clc;
+%close all; clear all; clc;
 
-data = load('board_calibration.mat');
+data = load('board_adjusted.mat');
 board_dictionary = data.board_dictionary;
 
 % read in image
-raw_img = imread('C:\Users\kirst\chester\testbed\image_base_folder\week10\3.png');
+img = imgRGB;
 %rotate
-img=imrotate(raw_img,90);
 %use pink mask
 pink_masked_img = pink_mask_function(img);
 
 %radius of sticker
-radius = 30;
+radius = 25;
 
 white_piece_centre_coords = [];
 

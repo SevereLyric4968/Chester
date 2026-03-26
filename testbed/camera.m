@@ -2,9 +2,11 @@
 % Author: Kov Ciuchta
 % Take one snapshot from a webcam
 
+global imgRGB;
+
 % Variables to look for
 baseFolder = fullfile("D:\Chester-master\Chester\testbed\image_base_folder\img"); % change as needed
-cameraName = 'DroidCam Video';                    % set to your camera name or leave empty to use first
+cameraName = 'DroidCam Video';              % set to your camera name or leave empty to use first
 
 % Ensure output folder exists
 if ~isfolder(baseFolder)
@@ -38,7 +40,9 @@ path   = fullfile(baseFolder, fname);
 
 % Python Integration variable (Double check).
 img = path;
-
+imgRGB = imrotate(imgRGB,90);
 % Save snapshot, which is a
 imwrite(imgRGB, path);
 fprintf('Saved snapshot #%d -> %s\n', idx, fname);
+
+run("centering.m");
