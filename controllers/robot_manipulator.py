@@ -1,5 +1,6 @@
 from pyniryo import NiryoRobot, PinID, PoseObject
 import utils.z_calibration as zCal
+import utils.inverse_kinematics as ik
 
 import math
 class RobotManipulator:
@@ -36,8 +37,8 @@ class RobotManipulator:
             if zCalibrate:
                 self.robotCalibration = zCal.ZCalibration(self.robot)
 
-            self.home = PoseObject(0.1343, 0, 0.1652, 0, 1, 0)
-            self.robot.move_pose(self.home)
+            self.home = [0.1343, 0, 0.1652, 0, 1, 0]
+            ik.calculateIK(self.robot, self.home)
             self.databus.homedStatus="Homed"
             self.databus.magnetStatus = "Off"
             self.databus.movementStatus = "Idle"
@@ -54,15 +55,16 @@ class RobotManipulator:
             #lower
             self.databus.movementStatus="Moving"
             pose = self.robot.get_pose()
+            #print(self.robotCalibration.getZBaseline(pose.x,pose.y))
             z=self.robotCalibration.getZBaseline(pose.x,pose.y) if zCalibrate==True else boardHeight
-            move=PoseObject(pose.x,pose.y,z+pieceHeights[piece.lower()],0,math.pi/2,0)
-            self.robot.move_pose(move)
+            move=[pose.x,pose.y,z+pieceHeights[piece.lower()],0,math.pi/2,0]
+            ik.calculateIK(self.robot, move)
 
             self.robot.activate_electromagnet(self.pin_electromagnet)
             self.databus.magnetStatus="On"
 
             #raise
-            self.robot.move_pose(pose)
+            ik.calculateIK(self.robot, pose)
 
     def place(self,piece="p"):
         if self.robot is not None:
@@ -70,14 +72,14 @@ class RobotManipulator:
             self.databus.movementStatus = "Moving"
             pose = self.robot.get_pose()
             z = self.robotCalibration.getZBaseline(pose.x, pose.y) if zCalibrate == True else boardHeight
-            move = PoseObject(pose.x, pose.y, z + pieceHeights[piece.lower()], 0, math.pi / 2, 0)
-            self.robot.move_pose(move)
+            move = [pose.x, pose.y, z+pieceHeights[piece.lower()], 0, math.pi/2, 0]
+            ik.calculateIK(self.robot, move)
 
             self.robot.deactivate_electromagnet(self.pin_electromagnet)
             self.databus.magnetStatus = "Off"
 
             # raise
-            self.robot.move_pose(pose)
+            ik.calculateIK(self.robot, pose)
 
     def move(self, x, y, z=cruiseHeight):
         if self.robot is not None:
@@ -85,12 +87,12 @@ class RobotManipulator:
             self.databus.movementStatus = "Moving"
             x=x/1000
             y=y/1000
-            move=PoseObject(x, y, z, 0, math.pi/2, 0)
-            self.robot.move_pose(move)
+            move=[x, y, z, 0, math.pi/2, 0]
+            ik.calculateIK(self.robot, move)
 
     def return_home(self):
         if self.robot is not None:
-            self.robot.move_pose(self.home)
+            ik.calculateIK(self.robot, self.home)
             self.databus.movementStatus = "Idle"
             self.databus.homedStatus = "Homed"
 
