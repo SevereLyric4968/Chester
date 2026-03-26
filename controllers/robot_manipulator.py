@@ -72,8 +72,8 @@ class RobotManipulator:
             self.databus.movementStatus = "Moving"
             pose = self.robot.get_pose()
             z = self.robotCalibration.getZBaseline(pose.x, pose.y) if zCalibrate == True else boardHeight
-            move = PoseObject(pose.x, pose.y, z+pieceHeights[piece.lower()], 0, math.pi/2, 0)
-            self.robot.move_pose(move)
+            move = [pose.x, pose.y, z+pieceHeights[piece.lower()], 0, math.pi/2, 0]
+            ik.calculateIK(self.robot, move)
 
             self.robot.deactivate_electromagnet(self.pin_electromagnet)
             self.databus.magnetStatus = "Off"
@@ -92,7 +92,7 @@ class RobotManipulator:
 
     def return_home(self):
         if self.robot is not None:
-            self.robot.move_pose(self.home)
+            ik.calculateIK(self.robot, self.home)
             self.databus.movementStatus = "Idle"
             self.databus.homedStatus = "Homed"
 
