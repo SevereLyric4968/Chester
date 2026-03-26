@@ -11,9 +11,6 @@ class GameController:
 
         self.robotBusy=False
 
-    def start_game(self):
-        pass
-
     def step(self):
 
         if self.databus.robotBusy:

@@ -10,8 +10,9 @@ class RobotController:
         self.databus=databus
 
         whiteBoardCoords={
-            "boardStart": (380.4,-109.5),
-            "boardOffset": 27.58,
+            "boardStart": (398.9,-114,0),
+            "xOffset": 32.33,
+            "yOffset":29.37,
             "whiteStorageStart": (170, 170),
             "blackStorageStart": (170, -180),
             "storageOffset": 0,
@@ -19,7 +20,7 @@ class RobotController:
         }
         blackBoardCoords={
             "boardStart": self.translate_position(whiteBoardCoords["boardStart"]),
-            "boardOffset": whiteBoardCoords["boardOffset"],
+            "boardOffset": whiteBoardCoords["xOffset"],
             "whiteStorageStart": self.translate_position(whiteBoardCoords["whiteStorageStart"]),
             "blackStorageStart": self.translate_position(whiteBoardCoords["blackStorageStart"]),
             "storageOffset": whiteBoardCoords["storageOffset"],
