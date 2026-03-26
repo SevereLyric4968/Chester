@@ -7,7 +7,7 @@ global fname;
 
 
 %calibration or off
-%mode = "off";
+%mode = "";
 
 %Take Photo
 
@@ -38,7 +38,6 @@ idx = startIdx;
 
 % Take one snapshot with defined camera, make sure the camera is clear after
 cam = webcam(cameraName);
-cleanupObj = onCleanup(@() clear('cam'));
 
 imgRGB = snapshot(cam);
 tstamp = datestr(now, 'yyyymmdd_HHMMSS');
@@ -52,6 +51,7 @@ imgRGB = imrotate(imgRGB,90);
 imwrite(imgRGB, path);
 fprintf('Saved snapshot #%d -> %s\n', idx, fname);
 
+cleanupObj = onCleanup(@() clear('cam'));
 
 %Detect the orange corners and apply a bounding box
 
@@ -139,4 +139,5 @@ for i = 1:numel(all_keys)
 end
 
 save("D:\Chester-master\Chester\testbed\board_adjusted.mat", 'board_dictionary');
-run("process_pieces");
+test = 123;
+disp(test);
