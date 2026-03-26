@@ -3,21 +3,20 @@
 global fname
 
 % read in image
-raw_img = imread(fname);
+img = imread(fname);
 %rotated back to correct orientation 
-img = imrotate(raw_img,-90);
 % convert to greyscale
 grey_img = rgb2gray(img);
 % gaussian blurring filter
 %kirsty images =  20
-gauss_img = imgaussfilt(grey_img,5);
+gauss_img = imgaussfilt(grey_img,1);
 % canny edge detection
 canny_img = edge(gauss_img,'Canny');
 %dialate edges
 %kirsty images = 15
-se = strel('square', 10);
+se = strel('square', 6);
 dialated_edges = imdilate(canny_img, se);
-figure; imshow(dialated_edges); title('dialate edges');
+%imshow(dialated_edges);
 % fill holes
 holes_filled = imfill(dialated_edges,"holes");
 %disregard big board
@@ -33,8 +32,8 @@ square_coords = [];
 stats = regionprops(L, 'Centroid', 'Area');
 %org value = 10000;
 %org value 1000000000;
-minArea = 500;
-maxArea = 100000000000;
+minArea = 300;
+maxArea = 5000;
 figure;
 imshow(gauss_img)
 imshow(label2rgb(L, @jet, [.5 .5 .5]));
@@ -50,13 +49,26 @@ for k = 1:length(B)
       square_coords = [square_coords; centroid];
    end
 end
-[ginput_x, ginput_y] = ginput(1);
+
+%[ginput_x, ginput_y] = ginput(1);
+
+%apply yellow mask to detect sticker
+yellow_mask = yellow_mask_function(img);
+
+biggest_yellow = bwpropfilt(logical(yellow_mask), 'Area', 1);
+
+%find centroid of yellow sticket
+yellow_centroid = regionprops(biggest_yellow, 'Centroid');
+%extract x and y vals of the centroid
+topleft_x = yellow_centroid(1).Centroid(1);
+topleft_y = yellow_centroid(1).Centroid(2);
+
 
 
 % make dictionary to associate 
 letters = {'a','b','c','d','e','f','g', 'h'};
 numbers = {'8','7','6','5','4','3','2', '1'};
-spacing = 80;
+spacing = 29;
 keys = strings(64,1);
 pairs = cell(64,1);
 i=1;
@@ -64,24 +76,29 @@ i=1;
 for num = 1:8
     for let = 1:8
         %calculate projection from that square
-        x = ginput_x + ((let-1) * spacing);
-        y = ginput_y + ((num-1) * spacing);
+        x = topleft_x + ((let-1) * spacing);
+        y = topleft_y + ((num-1) * spacing);
         plot(x, y, 'yo', 'MarkerSize', 5);
 
         %create the key for that square
         keys(i) = string([letters{let}, numbers{num}]);
 
-        %find which centroid coord is closest
-        dists = sqrt((square_coords(:,1) - x).^2 + (square_coords(:,2) - y).^2);
-        [min_dist,idx]=min(dists);
+        if num == 1 && let == 1
+            pairs{i} = [topleft_x, topleft_y];
 
-        %if the closest centroid is less than half a square away (with tolerance built into spacing val)
-        if min_dist<spacing/2
-            %detect this as the next square
-            pairs{i} = square_coords(idx, :);
         else
-            error('Calibration failed');
 
+            %find which centroid coord is closest
+            dists = sqrt((square_coords(:,1) - x).^2 + (square_coords(:,2) - y).^2);
+            [min_dist,idx]=min(dists);
+
+            %if the closest centroid is less than half a square away (with tolerance built into spacing val)
+            if min_dist<spacing/2
+                %detect this as the next square
+                pairs{i} = square_coords(idx, :);
+            else
+                error('Calibration failed');
+            end
         end
 
         %increment i

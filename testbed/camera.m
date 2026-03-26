@@ -1,65 +1,48 @@
+% Camera.m
+% Author: Kov Ciuchta
+% Take one snapshot from a webcam
 
-close all; clear all; clc;
-global fname %global variable that tracks final image
-global img %global variable that tracks camera snapshot
+global imgRGB;
 
-% debugging purposes: list available cameras
-disp('Available webcams:');
-camNames = webcamlist;
-disp(camNames);
+% Variables to look for
+baseFolder = fullfile("D:\Chester-master\Chester\testbed\image_base_folder\img"); % change as needed
+cameraName = 'DroidCam Video';              % set to your camera name or leave empty to use first
 
-% Create webcam object
-cam = webcam('DroidCam Video');
+% Ensure output folder exists
+if ~isfolder(baseFolder)
+    mkdir(baseFolder);
+end
 
-% Output folders (change paths if needed)
-baseFolder = fullfile("D:\Chester-master\Chester\testbed\image_base_folder\img"); % base directory
-
-% Initialize counters (scan existing files to continue numbering)
-photoFiles = dir(fullfile(baseFolder, '*.png'));
-startIdx = max([numel(photoFiles)]) + 1;
+% Determine next index from existing files
+photoFiles = dir(fullfile(baseFolder, 'photo_*.png'));
+startIdx = 1;
+if ~isempty(photoFiles)
+    names = {photoFiles.name}';
+    idxNums = zeros(size(names));
+    for k = 1:numel(names)
+        tok = regexp(names{k}, '^photo_(\d{4})_', 'tokens', 'once');
+        if ~isempty(tok)
+            idxNums(k) = str2double(tok{1});
+        end
+    end
+    startIdx = max([idxNums; 0]) + 1;
+end
 idx = startIdx;
 
-fprintf('Ready. Press Enter to take a snapshot, type q and press Enter to quit.\n');
+% Take one snapshot with defined camera, make sure the camera is clear after
+cam = webcam(cameraName);
+cleanupObj = onCleanup(@() clear('cam'));
 
-while true
-    userIn = input('> ', 's'); % waits for Enter (returns ''), or typed text
-    if strcmpi(userIn, 'q')
-        disp('Quitting.');
-        break;
-    end
+imgRGB = snapshot(cam);
+tstamp = datestr(now, 'yyyymmdd_HHMMSS');
+fname  = sprintf('photo_%04d_%s.png', idx, tstamp);
+path   = fullfile(baseFolder, fname);
 
-    % Capture snapshot
-    stereo = snapshot(cam); % RGB image
+% Python Integration variable (Double check).
+img = path;
+imgRGB = imrotate(imgRGB,90);
+% Save snapshot, which is a
+imwrite(imgRGB, path);
+fprintf('Saved snapshot #%d -> %s\n', idx, fname);
 
-
-
-    % Create filenames with index and timestamp
-    tstamp = datestr(now, 'yyyymmdd_HHMMSS');
-    name  = sprintf('photo_%04d_%s.png',  idx, tstamp);
-
-    path  = fullfile(baseFolder,  name);
-    img = path;
-    disp(img);
-
-    % Save files
-    imwrite(stereo, path);
-
-    fprintf('Saved #%d -> %s and %s\n', idx, name);
-
-    idx = idx + 1;
-end
-
-% NESSECARY FOR MATLAB INTEGRATION
-function print_image_path()
-    fprintf('%s\n', img);
-end
-
-print_image_path();
-
-% Clean up
-clear cam;
-disp('Camera cleared.');
-
-%cropping time%
-%run("centering.m");
-exit
+run("centering.m");

@@ -2,6 +2,8 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from typing import Optional, Tuple, Dict, Literal
+from pathlib import Path
+import re
 
 import time
 import cv2
@@ -11,34 +13,156 @@ import numpy.linalg as LA
 from pyniryo import NiryoRobot, PoseObject, PinID
 from pyniryo.vision.image_functions import uncompress_image
 
+#needs edited to use Sams calculateIK stuff instead of move_pose
+
+PIECE_Z_HEIGHTS: Dict[str, Dict[str, float]] = { #all moves are currently starting at z = 0.208
+    "pawn": {
+        "vision_drop_m": 0.010,
+        "pick_drop_m": 0.029,
+        "place_drop_m": 0.029,
+    },
+    "bishop": {
+        "vision_drop_m": 0.010,
+        "pick_drop_m": 0.029,
+        "place_drop_m": 0.029,
+    },
+    "rook": {
+        "vision_drop_m": 0.065,
+        "pick_drop_m": 0.052,
+        "place_drop_m": 0.050,
+    },
+    "knight": {
+        "vision_drop_m": 0.010,
+        "pick_drop_m": 0.029,
+        "place_drop_m": 0.029,
+    },
+    "queen": {
+        "vision_drop_m": 0.010,
+        "pick_drop_m": 0.029,
+        "place_drop_m": 0.029,
+    },
+    "king": {
+        "vision_drop_m": 0.010,
+        "pick_drop_m": 0.029,
+        "place_drop_m": 0.029,
+    },
+}
+
 
 @dataclass(frozen=True)
 class PinkThresholdHSV:
-    h_min: int = 145
-    h_max: int = 170
-    s_min: int = 50
-    s_max: int = 255
-    v_min: int = 80
-    v_max: int = 255
+    h_min: Optional[int] = None
+    h_max: Optional[int] = None
+    s_min: Optional[int] = None
+    s_max: Optional[int] = None
+    v_min: Optional[int] = None
+    v_max: Optional[int] = None
 
     def __call__(self) -> Tuple[np.ndarray, np.ndarray]:
+        if None in (self.h_min, self.h_max, self.s_min, self.s_max, self.v_min, self.v_max):
+            raise ValueError("HSV thresholds not initialised. Load from MATLAB file first.")
+
         lower = np.array([self.h_min, self.s_min, self.v_min], dtype=np.uint8)
         upper = np.array([self.h_max, self.s_max, self.v_max], dtype=np.uint8)
         return lower, upper
+
 
 @dataclass(frozen=True)
 class GreenThresholdHSV:
-    h_min: int = 40
-    h_max: int = 80
-    s_min: int = 70
-    s_max: int = 255
-    v_min: int = 70
-    v_max: int = 255
+    h_min: Optional[int] = None
+    h_max: Optional[int] = None
+    s_min: Optional[int] = None
+    s_max: Optional[int] = None
+    v_min: Optional[int] = None
+    v_max: Optional[int] = None
 
     def __call__(self) -> Tuple[np.ndarray, np.ndarray]:
+        if None in (self.h_min, self.h_max, self.s_min, self.s_max, self.v_min, self.v_max):
+            raise ValueError("HSV thresholds not initialised. Load from MATLAB file first.")
+
         lower = np.array([self.h_min, self.s_min, self.v_min], dtype=np.uint8)
         upper = np.array([self.h_max, self.s_max, self.v_max], dtype=np.uint8)
         return lower, upper
+
+
+@dataclass(frozen=True)
+class MatlabHSVSpec:
+    h_min: float
+    h_max: float
+    s_min: float
+    s_max: float
+    v_min: float
+    v_max: float
+    hue_wrap: bool
+
+
+def _extract_matlab_scalar(text: str, name: str) -> float:
+    pattern = rf"{name}\s*=\s*([0-9]*\.?[0-9]+)\s*;"
+    m = re.search(pattern, text)
+    if not m:
+        raise ValueError(f"Could not find '{name}' in MATLAB mask file.")
+    return float(m.group(1))
+
+
+def load_matlab_hsv_mask_file(path: str | Path) -> MatlabHSVSpec:
+    path = Path(path)
+    text = path.read_text(encoding="utf-8")
+
+    h_min = _extract_matlab_scalar(text, "channel1Min")
+    h_max = _extract_matlab_scalar(text, "channel1Max")
+    s_min = _extract_matlab_scalar(text, "channel2Min")
+    s_max = _extract_matlab_scalar(text, "channel2Max")
+    v_min = _extract_matlab_scalar(text, "channel3Min")
+    v_max = _extract_matlab_scalar(text, "channel3Max")
+
+    hue_wrap = "|" in text and "channel1Min" in text and "channel1Max" in text
+
+    return MatlabHSVSpec(
+        h_min=h_min,
+        h_max=h_max,
+        s_min=s_min,
+        s_max=s_max,
+        v_min=v_min,
+        v_max=v_max,
+        hue_wrap=hue_wrap,
+    )
+
+
+def _matlab_h_to_cv(h: float) -> int:
+    return int(round(np.clip(h, 0.0, 1.0) * 179.0))
+
+
+def _matlab_sv_to_cv(x: float) -> int:
+    return int(round(np.clip(x, 0.0, 1.0) * 255.0))
+
+
+def pink_threshold_from_matlab_file(path: str | Path) -> PinkThresholdHSV:
+    spec = load_matlab_hsv_mask_file(path)
+    return PinkThresholdHSV(
+        h_min=_matlab_h_to_cv(spec.h_min),
+        h_max=_matlab_h_to_cv(spec.h_max),
+        s_min=_matlab_sv_to_cv(spec.s_min),
+        s_max=_matlab_sv_to_cv(spec.s_max),
+        v_min=_matlab_sv_to_cv(spec.v_min),
+        v_max=_matlab_sv_to_cv(spec.v_max),
+    )
+
+
+def green_threshold_from_matlab_file(path: str | Path) -> GreenThresholdHSV:
+    spec = load_matlab_hsv_mask_file(path)
+    return GreenThresholdHSV(
+        h_min=_matlab_h_to_cv(spec.h_min),
+        h_max=_matlab_h_to_cv(spec.h_max),
+        s_min=_matlab_sv_to_cv(spec.s_min),
+        s_max=_matlab_sv_to_cv(spec.s_max),
+        v_min=_matlab_sv_to_cv(spec.v_min),
+        v_max=_matlab_sv_to_cv(spec.v_max),
+    )
+
+
+def pink_mask_uses_hue_wrap(path: str | Path) -> bool:
+    return load_matlab_hsv_mask_file(path).hue_wrap
+
 
 def sticker_from_piece_colour(piece_colour: str) -> str:
     piece_colour = piece_colour.strip().lower()
@@ -47,6 +171,7 @@ def sticker_from_piece_colour(piece_colour: str) -> str:
     if piece_colour == "white":
         return "green"
     raise ValueError("Piece colour must be 'black' or 'white'")
+
 
 def _clip_roi(x: int, y: int, w: int, h: int, img_w: int, img_h: int) -> Tuple[int, int, int, int]:
     x = max(0, min(x, img_w - 1))
@@ -71,6 +196,7 @@ class MultiColorCentroidDetector:
     morph_kernel_size: int = 5
     roi: Optional[Tuple[int, int, int, int]] = None
     draw_roi: bool = True
+    pink_wrap_hue: bool = False
 
     def _get_bounds(self, sticker_color: Literal["pink", "green"]) -> Tuple[np.ndarray, np.ndarray]:
         if sticker_color == "pink":
@@ -103,7 +229,19 @@ class MultiColorCentroidDetector:
 
         hsv_img = cv2.cvtColor(img_for_detect, cv2.COLOR_BGR2HSV)
         lower, upper = self._get_bounds(sticker_color)
-        mask = cv2.inRange(hsv_img, lower, upper)
+
+        if sticker_color == "pink" and self.pink_wrap_hue and lower[0] > upper[0]:
+            lower1 = np.array([lower[0], lower[1], lower[2]], dtype=np.uint8)
+            upper1 = np.array([179, upper[1], upper[2]], dtype=np.uint8)
+
+            lower2 = np.array([0, lower[1], lower[2]], dtype=np.uint8)
+            upper2 = np.array([upper[0], upper[1], upper[2]], dtype=np.uint8)
+
+            mask1 = cv2.inRange(hsv_img, lower1, upper1)
+            mask2 = cv2.inRange(hsv_img, lower2, upper2)
+            mask = cv2.bitwise_or(mask1, mask2)
+        else:
+            mask = cv2.inRange(hsv_img, lower, upper)
 
         k = self.morph_kernel_size
         kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (k, k))
@@ -230,19 +368,21 @@ class VisualCenteringController:  #Read camera frame - Detect pink centroid (cx,
         if self.cfg.piece_type is None:
             return
 
-        # drop amounts per piece
+        # Pulled from the top-level tuning table so all real-board Z values
+        # can be adjusted in one place.
         drop_table = {
-            "pawn": 0.010,
-            "bishop": 0.010,
-            "rook": 0.060,
-            "knight": 0.010,
-            "queen": 0.010,
-            "king": 0.010,
+            piece: values["vision_drop_m"]
+            for piece, values in PIECE_Z_HEIGHTS.items()
         }
 
         # normalize piece type just in case caller passed "Rook", " rook ", etc.
         piece = self.cfg.piece_type.strip().lower()
-        drop = drop_table.get(piece, 0.010)
+        if piece not in drop_table:
+            raise ValueError(
+                f"Unsupported piece_type '{self.cfg.piece_type}'. "
+                f"Add it to PIECE_Z_HEIGHTS at the top of the file."
+            )
+        drop = drop_table[piece]
 
         pose = self.robot.get_pose()
         new_z = pose.z - drop
@@ -535,22 +675,20 @@ class ElectromagnetPiecePicker:
         *,
         pin_electromagnet: PinID = PinID.DO4,
         piece_params: Dict[str, PiecePickParams] | None = None,
-        default_pick_drop_m: float = 0.04,
         min_safe_z: float = 0.090,  # safety clamp: never go below this
     ):
         self.robot = robot
         self.pin = pin_electromagnet
-        self.default_pick_drop_m = float(default_pick_drop_m)
         self.min_safe_z = float(min_safe_z)
 
-        # Per-piece DOWN distances (edit these)
+        # These now come from the top-level PIECE_Z_HEIGHTS tuning table.
         self.piece_params = piece_params or {
-            "rook":   PiecePickParams(vision_drop_m=0.060, pick_drop_m=0.055, place_drop_m=0.054),
-            "bishop": PiecePickParams(vision_drop_m=0.010, pick_drop_m=0.029, place_drop_m=0.029),
-            "pawn":   PiecePickParams(vision_drop_m=0.010, pick_drop_m=0.029, place_drop_m=0.029),
-            "knight": PiecePickParams(vision_drop_m=0.010, pick_drop_m=0.029, place_drop_m=0.029),
-            "king":   PiecePickParams(vision_drop_m=0.010, pick_drop_m=0.029, place_drop_m=0.029),
-            "queen":  PiecePickParams(vision_drop_m=0.010, pick_drop_m=0.029, place_drop_m=0.029),
+            piece: PiecePickParams(
+                vision_drop_m=values["vision_drop_m"],
+                pick_drop_m=values["pick_drop_m"],
+                place_drop_m=values["place_drop_m"],
+            )
+            for piece, values in PIECE_Z_HEIGHTS.items()
         }
 
         self._magnet_setup = False
@@ -563,19 +701,21 @@ class ElectromagnetPiecePicker:
     @staticmethod
     def _with_z(pose: PoseObject, z: float) -> PoseObject:
         return PoseObject(pose.x, pose.y, z, pose.roll, pose.pitch, pose.yaw)
+    
+    def _get_piece_params(self, piece_type: str) -> PiecePickParams:
+        piece = piece_type.strip().lower()
+        params = self.piece_params.get(piece)
+        if params is None:
+            raise ValueError(
+                f"Unsupported piece_type '{piece_type}'. "
+                f"Add it to PIECE_Z_HEIGHTS at the top of the file."
+            )
+        return params    
 
     def pick_at(self, piece_type: str, pickup_xy_pose: PoseObject) -> None:
         self._setup_magnet_once()
 
-        piece = piece_type.strip().lower()
-        params = self.piece_params.get(
-            piece,
-            PiecePickParams(
-                vision_drop_m=0.010,
-                pick_drop_m=self.default_pick_drop_m,
-                place_drop_m=self.default_pick_drop_m,
-            )
-        )
+        params = self._get_piece_params(piece_type)
 
         approach_z = float(pickup_xy_pose.z)
         down_z = approach_z - float(params.pick_drop_m)
@@ -605,15 +745,7 @@ class ElectromagnetPiecePicker:
     ) -> None:
         self._setup_magnet_once()
 
-        piece = piece_type.strip().lower()
-        params = self.piece_params.get(
-            piece,
-            PiecePickParams(
-                vision_drop_m=0.010,
-                pick_drop_m=self.default_pick_drop_m,
-                place_drop_m=self.default_pick_drop_m,
-            )
-        )
+        params = self._get_piece_params(piece_type)
 
         original_z = float(drop_xy_pose.z)
 
@@ -669,23 +801,46 @@ class IntelligentPickupSystem:
         cfg: Optional[CenteringConfig] = None,
         pink_hsv: Optional[PinkThresholdHSV] = None,
         green_hsv: Optional[GreenThresholdHSV] = None,
+        pink_mask_file: str | Path | None = None,
+        green_mask_file: str | Path | None = None,
         detector_show: bool = True,
         detector_min_area_px: int = 400,
     ) -> "IntelligentPickupSystem":
         if cfg is None:
             cfg = CenteringConfig()
 
+        base_dir = Path(__file__).resolve().parent
+
+        if pink_mask_file is None:
+            pink_mask_file = base_dir / "pinkMask.m"
+        else:
+            pink_mask_file = Path(pink_mask_file)
+
+        if green_mask_file is None:
+            green_mask_file = base_dir / "greenMask.m"
+        else:
+            green_mask_file = Path(green_mask_file)
+
+        pink_wrap_hue = False
+
         if pink_hsv is None:
-            pink_hsv = PinkThresholdHSV()
+            pink_hsv = pink_threshold_from_matlab_file(pink_mask_file)
+            pink_wrap_hue = pink_mask_uses_hue_wrap(pink_mask_file)
 
         if green_hsv is None:
-            green_hsv = GreenThresholdHSV()
+            green_hsv = green_threshold_from_matlab_file(green_mask_file)
+
+        print("Loaded HSV from MATLAB:")
+        print("  Pink :", pink_hsv)
+        print("  Green:", green_hsv)
+        print("  Pink hue wrap:", pink_wrap_hue)
 
         detector = MultiColorCentroidDetector(
             pink_hsv_cfg=pink_hsv,
             green_hsv_cfg=green_hsv,
             min_area_px=detector_min_area_px,
             show=detector_show,
+            pink_wrap_hue=pink_wrap_hue,
         )
 
         centerer = VisualCenteringController(
