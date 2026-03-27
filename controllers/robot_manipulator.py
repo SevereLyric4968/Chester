@@ -7,15 +7,15 @@ class RobotManipulator:
 
     global pieceHeights, cruiseHeight, boardHeight, zCalibrate
     pieceHeights = {
-        'p': 2/1000,
-        'r': 2/1000,
-        'n': 2/1000,
-        'b': 2/1000,
-        'q': 2/1000,
-        'k': 2/1000
+        'p': 60/1000,
+        'r': 64.5/1000,
+        'n': 69/1000,
+        'b': 73.5/1000,
+        'q': 78/1000,
+        'k': 82.5/1000
     }
-    cruiseHeight = 0.06
-    boardHeight = 0.0532
+    cruiseHeight = 0.2
+    boardHeight = 0.0632
 
     zCalibrate=False
 
