@@ -11,7 +11,7 @@ robot = NiryoRobot(robotIpAddress)
 #robot2 = NiryoRobot(robot2IpAddress)
 print("b")
 
-""" 
+
 robot.calibrate_auto()
 #robot2.calibrate_auto()
 
@@ -29,7 +29,6 @@ pose_home = PoseObject(0.14, 0, 0.2, 0, math.pi/2, 0)
 robot.move_pose(pose_home)
 #robot2.move_pose(pose_home)
 """
-
 pin_electromagnet = PinID.DO4
 
 robot = NiryoRobot(robotIpAddress)
@@ -51,3 +50,4 @@ robot.setup_electromagnet(pin_electromagnet)
 robot.activate_electromagnet(pin_electromagnet)
 robot.deactivate_electromagnet(pin_electromagnet)
 robot.move_pose(pose_home)
+"""

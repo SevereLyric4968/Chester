@@ -22,7 +22,7 @@ def build():
     bm = BoardManager()
     databus = DataBus()
     gui = ChessGui(bm.board,databus)
-
+    
     gui_interface = GuiInterface(gui, bm)
 
     # 2. setup engine
@@ -38,8 +38,11 @@ def build():
     white_player_type=config["player_1_type"]
     black_player_type=config["player_2_type"]
 
+    if white_player_type=="human" or black_player_type=="human":
+        vision_interface=VisionInterface()
+
     if white_player_type=="human":
-        white = HumanPlayer("white",VisionInterface)
+        white = HumanPlayer("white",vision_interface)
     elif white_player_type=="ai":
         white = AIPlayer("white", engine)
         #white_robot=config["white_robot_ip"]
@@ -49,7 +52,7 @@ def build():
     else:
         raise ValueError("Invalid player_1_type")
     if black_player_type=="human":
-        black = HumanPlayer("black",VisionInterface)
+        black = HumanPlayer("black",vision_interface)
     elif black_player_type=="ai":
         black = AIPlayer("black", engine)
         #black_robot = config["black_robot_ip"]
