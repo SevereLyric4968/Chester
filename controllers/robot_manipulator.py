@@ -15,13 +15,14 @@ class RobotManipulator:
         'k': 82.5/1000
     }
     cruiseHeight = 0.2
-    boardHeight = 0.0632
+    boardHeight = 0.0530
 
     zCalibrate=False
 
     def __init__(self,ip,boardCoords,databus):
         robot_ip=ip
         self.databus=databus
+        print("MAKING MANIPULATOR")
 
         try:
             print("trying to connect")
@@ -36,9 +37,10 @@ class RobotManipulator:
             print("robot calibrated")
             if zCalibrate:
                 self.robotCalibration = zCal.ZCalibration(self.robot)
-
             self.home = [0.1343, 0, 0.1652, 0, 1, 0]
+            print("trying ik")
             ik.calculateIK(self.robot, *self.home)
+            print("robot calculated")
             self.databus.homedStatus="Homed"
             self.databus.magnetStatus = "Off"
             self.databus.movementStatus = "Idle"
@@ -58,7 +60,7 @@ class RobotManipulator:
             #print(self.robotCalibration.getZBaseline(pose.x,pose.y))
             z=self.robotCalibration.getZBaseline(pose.x,pose.y) if zCalibrate==True else boardHeight
             move=[pose.x,pose.y,z+pieceHeights[piece.lower()],0,math.pi/2,0]
-            ik.calculateIK(self.robot, *move)
+            ik.calculateIK(self.robot,*move)
 
             self.robot.activate_electromagnet(self.pin_electromagnet)
             self.databus.magnetStatus="On"
@@ -73,7 +75,7 @@ class RobotManipulator:
             pose = self.robot.get_pose()
             z = self.robotCalibration.getZBaseline(pose.x, pose.y) if zCalibrate == True else boardHeight
             move = [pose.x, pose.y, z+pieceHeights[piece.lower()], 0, math.pi/2, 0]
-            ik.calculateIK(self.robot, *move)
+            ik.calculateIK(self.robot,*move)
 
             self.robot.deactivate_electromagnet(self.pin_electromagnet)
             self.databus.magnetStatus = "Off"
@@ -88,11 +90,13 @@ class RobotManipulator:
             x=x/1000
             y=y/1000
             move=[x, y, z, 0, math.pi/2, 0]
-            ik.calculateIK(self.robot, *move)
+            ik.calculateIK(self.robot,*move)
 
     def return_home(self):
         if self.robot is not None:
-            ik.calculateIK(self.robot, *self.home)
+            print("trying")
+            ik.calculateIK(self.robot, self.home[0], self.home[1], self.home[2])
+            print("great success")
             self.databus.movementStatus = "Idle"
             self.databus.homedStatus = "Homed"
 
