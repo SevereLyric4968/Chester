@@ -1,10 +1,11 @@
 from pyniryo import NiryoRobot, PinID, PoseObject
 import utils.z_calibration as zCal
+import utils.inverse_kinematics as ik
 
 import math
 class RobotManipulator:
 
-    global pieceHeights, cruiseHeight, boardHeight
+    global pieceHeights, cruiseHeight, boardHeight, zCalibrate
     pieceHeights = {
         'p': 2/1000,
         'r': 2/1000,
@@ -13,7 +14,10 @@ class RobotManipulator:
         'q': 2/1000,
         'k': 2/1000
     }
-    cruiseHeight = 0.0827
+    cruiseHeight = 0.06
+    boardHeight = 0.0532
+
+    zCalibrate=False
 
     def __init__(self,ip,boardCoords,databus):
         robot_ip=ip
@@ -30,10 +34,11 @@ class RobotManipulator:
 
             self.robot.calibrate_auto()
             print("robot calibrated")
-            self.robotCalibration = zCal.ZCalibration(self.robot)
+            if zCalibrate:
+                self.robotCalibration = zCal.ZCalibration(self.robot)
 
-            self.home = PoseObject(0.1343, 0, 0.1652, 0, 1, 0)
-            self.robot.move_pose(self.home)
+            self.home = [0.1343, 0, 0.1652, 0, 1, 0]
+            ik.calculateIK(self.robot, self.home)
             self.databus.homedStatus="Homed"
             self.databus.magnetStatus = "Off"
             self.databus.movementStatus = "Idle"
@@ -51,28 +56,30 @@ class RobotManipulator:
             self.databus.movementStatus="Moving"
             pose = self.robot.get_pose()
             #print(self.robotCalibration.getZBaseline(pose.x,pose.y))
-            move=PoseObject(pose.x,pose.y,self.robotCalibration.getZBaseline(pose.x,pose.y)+pieceHeights[piece.lower()],0,math.pi/2,0)
-            self.robot.move_pose(move)
+            z=self.robotCalibration.getZBaseline(pose.x,pose.y) if zCalibrate==True else boardHeight
+            move=[pose.x,pose.y,z+pieceHeights[piece.lower()],0,math.pi/2,0]
+            ik.calculateIK(self.robot, move)
 
             self.robot.activate_electromagnet(self.pin_electromagnet)
             self.databus.magnetStatus="On"
 
             #raise
-            self.robot.move_pose(pose)
+            ik.calculateIK(self.robot, pose)
 
     def place(self,piece="p"):
         if self.robot is not None:
             # lower
             self.databus.movementStatus = "Moving"
             pose = self.robot.get_pose()
-            move = PoseObject(pose.x, pose.y, self.robotCalibration.getZBaseline(pose.x,pose.y)+pieceHeights[piece.lower()], 0, math.pi/2, 0)
-            self.robot.move_pose(move)
+            z = self.robotCalibration.getZBaseline(pose.x, pose.y) if zCalibrate == True else boardHeight
+            move = [pose.x, pose.y, z+pieceHeights[piece.lower()], 0, math.pi/2, 0]
+            ik.calculateIK(self.robot, move)
 
             self.robot.deactivate_electromagnet(self.pin_electromagnet)
             self.databus.magnetStatus = "Off"
 
             # raise
-            self.robot.move_pose(pose)
+            ik.calculateIK(self.robot, pose)
 
     def move(self, x, y, z=cruiseHeight):
         if self.robot is not None:
@@ -80,24 +87,24 @@ class RobotManipulator:
             self.databus.movementStatus = "Moving"
             x=x/1000
             y=y/1000
-            move=PoseObject(x, y, z, 0, math.pi/2, 0)
-            self.robot.move_pose(move)
+            move=[x, y, z, 0, math.pi/2, 0]
+            ik.calculateIK(self.robot, move)
 
     def return_home(self):
         if self.robot is not None:
-            self.robot.move_pose(self.home)
+            ik.calculateIK(self.robot, self.home)
             self.databus.movementStatus = "Idle"
             self.databus.homedStatus = "Homed"
 
 #______________________________________________________________________
 
 
-    def init_board_map(self,startPos,offset):
+    def init_board_map(self,startPos,offsetX,offsetY):
         boardMap={}
         for rank in range(8):
             for file in range(8):
                 square=chr(ord("a")+file)+str(rank+1)
-                boardMap[square]=(startPos[0]-offset*rank,startPos[1]+offset*file)
+                boardMap[square]=(startPos[0]-offsetX*rank,startPos[1]+offsetY*file)
 
         return boardMap
 
@@ -159,7 +166,7 @@ class RobotManipulator:
         return storageOccupancy
 
     def init_maps(self,boardCoords):
-        board_map=self.init_board_map(boardCoords["boardStart"],boardCoords["boardOffset"])
+        board_map=self.init_board_map(boardCoords["boardStart"],boardCoords["xOffset"],boardCoords["yOffset"])
         storage_map=self.init_storage_map(boardCoords["whiteStorageStart"],boardCoords["blackStorageStart"],boardCoords["storageOffset"])
         storageOccupancy=self.init_storage_occupancy(storage_map)
 

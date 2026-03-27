@@ -11,6 +11,8 @@ class VisionInterface:
         self.calibrate()
 
     def get_move(self,board_manager):
+        self.take_image()
+        self.process_pieces()
         while True:
             if "button pressed":
                 image=self.take_image()
@@ -42,8 +44,8 @@ class VisionInterface:
         return image
 
     def process_pieces(self,image):
-        black_occupancy_grid, white_occupancy_grid = self.run_subprocess("D:\Chester-master\Chester\testbed\centering.m", "black_occupancy_grid", "white_occupancy_grid")
-        return black_occupancy_grid, white_occupancy_grid
+        white_occupancy_grid, black_occupancy_grid = self.run_subprocess("D:\Chester-master\Chester\testbed\centering.m", "black_occupancy_grid", "white_occupancy_grid")
+        return white_occupancy_grid, black_occupancy_grid
     
     def calibrate(self):
         calibration_file = self.run_subprocess("D:\Chester-master\Chester\testbed\process_board.m", "board_calibration.mat")

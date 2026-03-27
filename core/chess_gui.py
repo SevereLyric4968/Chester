@@ -295,7 +295,7 @@ class ChessGui:
             text=f"Robot1: {self.databus.robot1.movementStatus} | Robot2: {self.databus.robot2.movementStatus}"
         )
 
-        # robot 1 tab
+        # robot 1
         self.robot1_status_label.config(
             text=f"Status: {self.databus.robot1.movementStatus}"
         )
@@ -309,7 +309,7 @@ class ChessGui:
             text=f"Magnet: {self.databus.robot1.magnetStatus}"
         )
 
-        # robot 2 tab
+        # robot 2
         self.robot2_status_label.config(
             text=f"Status: {self.databus.robot2.movementStatus}"
         )
