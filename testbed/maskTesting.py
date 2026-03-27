@@ -281,7 +281,6 @@ def main():
     green_mask_file = BASE_DIR / "greenMask.m"
 
     fixed_roi: Optional[Tuple[int, int, int, int]] = None
-    # Example:
     # fixed_roi = (120, 80, 400, 300)
 
     pink_hsv = pink_threshold_from_matlab_file(pink_mask_file)

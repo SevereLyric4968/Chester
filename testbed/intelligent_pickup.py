@@ -15,7 +15,7 @@ from pyniryo.vision.image_functions import uncompress_image
 
 #needs edited to use Sams calculateIK stuff instead of move_pose
 
-PIECE_Z_HEIGHTS: Dict[str, Dict[str, float]] = { #all moves are currently starting at z = 0.208
+PIECE_Z_HEIGHTS: Dict[str, Dict[str, float]] = { #all moves are currently starting at z = 0.208 change for board
     "pawn": {
         "vision_drop_m": 0.010,
         "pick_drop_m": 0.029,
