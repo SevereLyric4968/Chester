@@ -1,6 +1,6 @@
 import tkinter as tk
 from pyniryo import NiryoRobot, PinID, PoseObject
-
+import utils.inverse_kinematics as ik
 
 class ControlPanel:
     def __init__(self):
@@ -101,7 +101,7 @@ class ControlPanel:
             roll=currentPose.roll
 
         pose = PoseObject(x, y, z, roll, pitch, yaw)
-        self.robot.move_pose(pose)
+        ik.calculateIK(self.robot,*pose)
 
 
 if __name__ == "__main__":
