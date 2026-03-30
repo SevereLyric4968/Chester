@@ -31,8 +31,8 @@ pose_target_obj2 = PoseObject(0.2, 0, 0.2, 0, 0.75, 0) # in meters and radians
 pose_home = PoseObject(0.0023, -0.1335, 0.2, 0, math.pi/2, 0)
 robot.move_pose(pose_home)
 #robot2.move_pose(pose_home)
-
 """
+
 pin_electromagnet = PinID.DO4
 
 robot = NiryoRobot(robotIpAddress)
@@ -52,6 +52,6 @@ pose_home = PoseObject(0.115, 0.0, 0.215, 0, 1.5, 0)
 #robot.move_pose(pickup2_location)
 robot.setup_electromagnet(pin_electromagnet)
 robot.activate_electromagnet(pin_electromagnet)
-robot.deactivate_electromagnet(pin_electromagnet)
-robot.move_pose(pose_home)
+#robot.deactivate_electromagnet(pin_electromagnet)
+#robot.move_pose(pose_home)
 """

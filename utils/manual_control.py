@@ -1,10 +1,10 @@
 import tkinter as tk
 from pyniryo import NiryoRobot, PinID, PoseObject
-import utils.inverse_kinematics as ik
+#import utils.inverse_kinematics as ik
 
 class ControlPanel:
     def __init__(self):
-        robot_ip = "192.168.42.2"
+        robot_ip = "192.168.42.1"
         self.robot = NiryoRobot(robot_ip)
         self.robot.calibrate_auto()
 
