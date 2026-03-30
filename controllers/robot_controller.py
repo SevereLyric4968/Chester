@@ -10,9 +10,9 @@ class RobotController:
         self.databus=databus
 
         whiteBoardCoords={
-            "boardStart": (385.1,-127.0),
-            "xOffset": 35.2,
-            "yOffset":34.4,
+            "boardStart": (353, -116),
+            "xOffset": 31.6,
+            "yOffset":25.1,
             "whiteStorageStart": (170, 170),
             "blackStorageStart": (170, -180),
             "storageOffset": 0,

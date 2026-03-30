@@ -9,13 +9,11 @@ import numpy as np
         self.robot = robot
 """
 def calculateIK(robot, x, y, z, *args):
-    d1 = 0.221
-    d2 = 0.235
-    d3 = 0.116 #need to check this value
+    print("x ", x, "y", y,"z ", z)
+    d1 = 0.221 #length of first section of arm
+    d2 = 0.235 #length of second section of arm
+    d3 = 0.075-0.1715 #roughly the height of the end effector minus the height of the first joint
     z = z + d3 #add the height of the end effector to get the position of the tip of the end effector (able to make this assumion because the end effector is always pointed down)
-    #x -= 0.0456
-    #y -= 0.0094
-    #z -= 0.0174
     #joint limits in radians -2,949 ≤ Joint 1 ≤ 2,949, -1,83 ≤ Joint 2 ≤ 0,61, -1.34 ≤ Joint 3 ≤ 1,57, -2,089 ≤ Joint 4 ≤ 2,089, -1,919 ≤ Joint 5 ≤ 1.922, -2,53 ≤ Joint 6 ≤ 2,53
     motorOneAngle = (np.arctan2(y,x))
     a = np.sqrt((x**2)+(y**2))
@@ -32,15 +30,16 @@ def calculateIK(robot, x, y, z, *args):
     theta3 = psi + zeta
     motorFiveAngle = -(np.pi - theta3)
     motorSixAngle = 0
-    print(motorOneAngle, motorTwoAngle, motorThreeAngle, motorFourAngle, motorFiveAngle, motorSixAngle)
+    #print(motorOneAngle, motorTwoAngle, motorThreeAngle, motorFourAngle, motorFiveAngle, motorSixAngle)
     robot.move_joints(motorOneAngle, motorTwoAngle, motorThreeAngle, motorFourAngle, motorFiveAngle, motorSixAngle)
 
 if __name__ == "__main__":
     robotIpAddress = "10.10.10.10"
     robot = NiryoRobot(robotIpAddress)
     robot.calibrate_auto()
-    #robot.move_joints(0,0,0,0,0,0)
-    calculateIK(robot, 0.3867, -0.1357, 0.160)
+    robot.move_joints(0,0,0,0,0,0)
+    #calculateIK(robot, 0.353, -0.116, 0.085)
+    calculateIK(robot,0.1, 0.087, 0.09)
 
     # A1 (0.3851,0.1270)
     # B2 (0.35,0.0921)
