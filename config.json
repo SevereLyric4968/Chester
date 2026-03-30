@@ -4,10 +4,10 @@
   "player_1_type": "ai",
   "player_2_type": "ai",
 
-  "white_robot_ip": "10.10.10.10",
+  "white_robot_ip": "192.168.42.1",
   "black_robot_ip": "192.168.42.2",
 
-  "robot_side":"black",
+  "robot_side":"white",
 
   "engine": {
     "path": "stockfish-windows-x86-64-avx2/stockfish/stockfish-windows-x86-64-avx2.exe",
