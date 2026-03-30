@@ -16,11 +16,7 @@ gauss_img = imgaussfilt(grey_img,5);
 canny_img = edge(gauss_img,'Canny');
 %dialate edges
 %kirsty images = 15
-<<<<<<< HEAD
-se = strel('square',15);
-=======
 se = strel('square', 15);
->>>>>>> 139f601d7c218707fee8a13bb64fa85979631ba3
 dialated_edges = imdilate(canny_img, se);
 imshow(dialated_edges);
 % fill holes
@@ -38,13 +34,8 @@ square_coords = [];
 stats = regionprops(L, 'Centroid', 'Area');
 %org value = 10000;
 %org value 1000000000;
-<<<<<<< HEAD
-minArea = 1;
-maxArea = 100000000;
-=======
 minArea = 4000;
 maxArea = 50000;
->>>>>>> 139f601d7c218707fee8a13bb64fa85979631ba3
 figure;
 imshow(gauss_img)
 imshow(label2rgb(L, @jet, [.5 .5 .5]));
