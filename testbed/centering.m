@@ -116,7 +116,7 @@ rectangle('Position',[x1,y1,side,side],'EdgeColor','g','LineWidth',2);
 
 %if running for the first time, make sure to get base co-ordinates.
 %if mode == "calibration"
-run("process_board.m");
+%run("process_board.m");
 %end
 
 %make if ~ no board_cal

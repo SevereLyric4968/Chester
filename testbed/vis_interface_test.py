@@ -14,11 +14,8 @@ def run_m_file(filepath):
     # Run the script
     eng.run(filepath, nargout=0)
     
-    # Get variables from workspace
-    A = eng.workspace['Test']
-    
     eng.quit()
     
-    return {"Test": A}
+    return
 
 run_m_file("D:/Chester-master/Chester/testbed/centering.m")

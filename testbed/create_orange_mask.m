@@ -14,15 +14,15 @@ function [BW,maskedRGBImage] = create_orange_mask(RGB)
 I = rgb2hsv(RGB);
 
 % Define thresholds for channel 1 based on histogram settings
-channel1Min = 0.262;
-channel1Max = 0.449;
+channel1Min = 0.000;
+channel1Max = 0.116;
 
 % Define thresholds for channel 2 based on histogram settings
-channel2Min = 0.633;
+channel2Min = 0.562;
 channel2Max = 1.000;
 
 % Define thresholds for channel 3 based on histogram settings
-channel3Min = 0.877;
+channel3Min = 1.000;
 channel3Max = 1.000;
 
 % Create mask based on chosen histogram thresholds
