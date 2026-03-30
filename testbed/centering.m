@@ -8,10 +8,8 @@ global fname;
 
 %calibration or off
 %mode = "";
-
+%imgRGB= imread("D:\Chester-master\Chester\testbed\image_base_folder\photo_0008_20260320_125023.png");
 %Take Photo
-
-% Variables to look for
 baseFolder = fullfile("D:\Chester-master\Chester\testbed\image_base_folder\img"); % change as needed
 cameraName = 'DroidCam Video';              % set to your camera name or leave empty to use first
 
@@ -67,15 +65,16 @@ if isempty(x)
     error('No orange pixels found.');
 end
 
-%left, right
-xmin = min(x); xmax = max(x);
-%top, bottom indicies
-ymin = min(y); ymax = max(y);
-%width and height
-w = xmax - xmin + 1;
-h = ymax - ymin + 1;
-%sides
-side = max(w,h);
+pts = [x, y];
+sums = x + y;
+diffs = x - y;
+
+[~, iTL] = min(sums);   % top-left
+[~, iTR] = max(diffs);  % top-right
+[~, iBR] = max(sums);   % bottom-right
+[~, iBL] = min(diffs);  % bottom-left
+
+corners = pts([iTL, iTR, iBR, iBL], :);  % 4x2 matrix [x, y]
 
 %centre of bounding box
 cx = xmin + w/2;
@@ -104,38 +103,48 @@ h_clip = y2 - y1 + 1;
 %make a new image that is cropped to the board
 % selects image rows, image columns, and all colour channels
 % indexing is 1-based and inclusive
-cropped = imgRGB(y1:y2, x1:x2,:);
-J = cropped;  % pos in data units
-sJ = size(J);
+srcPoints = corners;  % [x,y] for TL, TR, BR, BL
+
+% Compute output size from the corner distances
+W = round(max(norm(corners(1,:)-corners(2,:)), norm(corners(4,:)-corners(3,:))));
+H = round(max(norm(corners(1,:)-corners(4,:)), norm(corners(2,:)-corners(3,:))));
+
+dstPoints = [1,1; W,1; W,H; 1,H];
+
+% Build perspective transform and apply
+tform = fitgeotrans(srcPoints, dstPoints, 'projective');
+cropped = imwarp(imgRGB, tform, 'OutputView', imref2d([H, W]));
 title = 'cropped.png';
-%------Edit for ChesterIMG bed later
 fname = fullfile('D:\Chester-master\Chester\testbed\image_base_folder\img\',title);
 imwrite(cropped, fname);
 figure; imshow(imgRGB); hold on;
-rectangle('Position',[x1,y1,side,side],'EdgeColor','g','LineWidth',2);
 
-%if running for the first time, make sure to get base co-ordinates.
-%if mode == "calibration"
-%run("process_board.m");
-%end
+% Close the shape by appending the first point at the end
+cx_pts = corners([1,2,3,4,1], 1);
+cy_pts = corners([1,2,3,4,1], 2);
 
-%make if ~ no board_cal
-%       end.
-%update the image co-ordinates to board_adjusted (new file)
-S = load("board_calibration.mat");
-board_dictionary = S.board_dictionary;
-all_keys = board_dictionary.keys;
+plot(cx_pts, cy_pts, 'g-', 'LineWidth', 2);
+plot(corners(:,1), corners(:,2), 'ro', 'MarkerSize', 8, 'LineWidth', 2);
 
-for i = 1:numel(all_keys)
-    current_key = all_keys(i);
-    val_cell = board_dictionary(current_key); %cell array
-    coords = val_cell{1}; % Unpack the cell to get [X, Y] 
-    X = x1 + coords(:,1) - 1;
-    Y = y1 + coords(:,2) - 1;
-    plot(X, Y, 'ro', 'MarkerSize', 8, 'LineWidth', 1.5);
-    fprintf('square %s: [X: %8.2f, Y: %8.2f]\n', current_key, coords(1), coords(2));
-    val_cell{1} = [X(:), Y(:)];
-    board_dictionary(current_key) = val_cell;
+%if running for the first time, remind user to run process_board.m
+if isfile('board_calibration.mat')
+    %update the image co-ordinates to board_adjusted (new file)
+    S = load("board_calibration.mat");
+    board_dictionary = S.board_dictionary;
+    all_keys = board_dictionary.keys;
+
+    for i = 1:numel(all_keys)
+        current_key = all_keys(i);
+        val_cell = board_dictionary(current_key); %cell array
+        coords = val_cell{1}; % Unpack the cell to get [X, Y] 
+        X = x1 + coords(:,1) - 1;
+        Y = y1 + coords(:,2) - 1;
+        plot(X, Y, 'ro', 'MarkerSize', 8, 'LineWidth', 1.5);
+        fprintf('square %s: [X: %8.2f, Y: %8.2f]\n', current_key, coords(1), coords(2));
+        val_cell{1} = [X(:), Y(:)];
+        board_dictionary(current_key) = val_cell;
+    end
+    save("D:\Chester-master\Chester\testbed\board_adjusted.mat", 'board_dictionary');
+else
+    print("No calibration file found. Please run process_board.m on an empty board.")
 end
-
-save("D:\Chester-master\Chester\testbed\board_adjusted.mat", 'board_dictionary');

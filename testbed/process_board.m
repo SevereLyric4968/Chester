@@ -1,22 +1,22 @@
 close all;
 
-global fname
+global cropped
 
-fname = ('C:\\Users\\kirst\\chester\\testbed\\image_base_folder\\week11_3\\empty.jpg');
+%fname = ('C:\\Users\\kirst\\chester\\testbed\\image_base_folder\\week11_3\\empty.jpg');
 % read in image
-raw_img = imread(fname);
+raw_img = cropped;
 %rotated back to correct orientation 
 img = imrotate(raw_img,0);
 % convert to greyscale
 grey_img = rgb2gray(img);
 % gaussian blurring filter
 %kirsty images =  20
-gauss_img = imgaussfilt(grey_img,5);
+gauss_img = imgaussfilt(grey_img,1);
 % canny edge detection
 canny_img = edge(gauss_img,'Canny');
 %dialate edges
 %kirsty images = 15
-se = strel('square', 15);
+se = strel('square', 4);
 dialated_edges = imdilate(canny_img, se);
 imshow(dialated_edges);
 % fill holes

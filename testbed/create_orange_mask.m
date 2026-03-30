@@ -15,10 +15,10 @@ I = rgb2hsv(RGB);
 
 % Define thresholds for channel 1 based on histogram settings
 channel1Min = 0.000;
-channel1Max = 0.116;
+channel1Max = 0.119;
 
 % Define thresholds for channel 2 based on histogram settings
-channel2Min = 0.562;
+channel2Min = 0.495;
 channel2Max = 1.000;
 
 % Define thresholds for channel 3 based on histogram settings
