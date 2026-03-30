@@ -14,6 +14,9 @@ print("b")
 
 robot.calibrate_auto()
 #robot2.calibrate_auto()
+pose = robot.get_pose()
+print(pose)
+
 
 print("d")
 pose_target_obj = PoseObject(0.2, 0, 0.2, 0, 0.75, 0) # in meters and radians
@@ -25,9 +28,10 @@ print("e")
 pose_target_obj2 = PoseObject(0.2, 0, 0.2, 0, 0.75, 0) # in meters and radians
 #robot2.move_pose(pose_target_obj2)
 
-pose_home = PoseObject(0.14, 0, 0.2, 0, math.pi/2, 0)
+pose_home = PoseObject(0.0023, -0.1335, 0.2, 0, math.pi/2, 0)
 robot.move_pose(pose_home)
 #robot2.move_pose(pose_home)
+
 """
 pin_electromagnet = PinID.DO4
 

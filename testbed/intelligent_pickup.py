@@ -33,8 +33,8 @@ PIECE_Z_HEIGHTS: Dict[str, Dict[str, float]] = { #all moves are currently starti
     },
     "knight": {
         "vision_drop_m": 0.0, #need pieces first
-        "pick_drop_m": 0.050,
-        "place_drop_m": 0.050,
+        "pick_drop_m": 0.020,
+        "place_drop_m": 0.020,
     },
     "queen": {
         "vision_drop_m": 0.036,
@@ -42,9 +42,9 @@ PIECE_Z_HEIGHTS: Dict[str, Dict[str, float]] = { #all moves are currently starti
         "place_drop_m": 0.050,
     },
     "king": {
-        "vision_drop_m": 0.010, #need pieces first
-        "pick_drop_m": 0.050,
-        "place_drop_m": 0.050,
+        "vision_drop_m": 0.00, #need pieces first
+        "pick_drop_m": 0.020,
+        "place_drop_m": 0.020,
     },
 }
 
