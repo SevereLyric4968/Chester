@@ -1,23 +1,25 @@
 %close all; clear all; clc;
 
-data = load('board_adjusted.mat');
+data = load('board_calibration.mat');
 board_dictionary = data.board_dictionary;
 
+fname = ('C:\\Users\\kirst\\chester\\testbed\\image_base_folder\\week11_3\\3.jpg');
 % read in image
-img = imgRGB;
-%rotate
+raw_img = imread(fname);
+%rotated back to correct orientation 
+img = imrotate(raw_img,270);
 %use pink mask
-pink_masked_img = pink_mask_function(img);
+green_masked_img = green_mask_function(img);
 
 %radius of sticker
-radius = 25;
+radius = 77;
 
 white_piece_centre_coords = [];
 
 %show boundaries labeled in green
-[B,L] = bwboundaries(pink_masked_img,'noholes');
+[B,L] = bwboundaries(green_masked_img,'noholes');
 stats = regionprops(L, 'Centroid', 'Area');
-figure,imshow(img);imshow(pink_masked_img);
+figure,imshow(img);imshow(green_masked_img);
 minArea = 500;
 hold on;
 for k = 1:length(B)
@@ -35,12 +37,13 @@ end
 pos_list = board_dictionary.keys;
 
 %occupancy grid - 8x8 1s and 0s
-raw_white_occupancy_grid = zeros(8,8);
+
+white_occupancy_grid = zeros(8,8);
 
 
 for i=1:64
-    number_row = mod(i-1, 8) + 1;
-    letter_col = floor((i-1)/8) + 1;
+    number_row = floor((i-1)/8) + 1; 
+    letter_col = mod(i-1, 8) + 1;
 
 
     current_pos = pos_list(i);
@@ -51,7 +54,7 @@ for i=1:64
       euc_distances = sqrt((white_piece_centre_coords(:,1) - square_xy(1)).^2 + (white_piece_centre_coords(:,2) - square_xy(2)).^2);
 
       if any (euc_distances <=radius)
-            raw_white_occupancy_grid(number_row,letter_col) = 1;
+            white_occupancy_grid(number_row,letter_col) = 1;
       end
 
     end 
@@ -61,15 +64,15 @@ end
 
 
 %use green mask
-green_masked_img = green_mask_function(img);
+pink_masked_img = pink_mask_function(img);
 
 
 black_piece_centre_coords = [];
 
 %show boundaries labeled in green
-[B,L] = bwboundaries(green_masked_img,'noholes');
+[B,L] = bwboundaries(pink_masked_img,'noholes');
 stats = regionprops(L, 'Centroid', 'Area');
-figure,imshow(img);imshow(green_masked_img);
+figure,imshow(img);imshow(pink_masked_img);
 minArea = 500;
 hold on;
 for k = 1:length(B)
@@ -87,13 +90,13 @@ end
 pos_list = board_dictionary.keys;
 
 %occupancy grid - 8x8 1s and 0s
-raw_black_occupancy_grid = zeros(8,8);
+black_occupancy_grid = zeros(8,8);
 
 
 
 for i=1:64
-    number_row = mod(i-1, 8) + 1;
-    letter_col = floor((i-1)/8) + 1;
+    number_row = floor((i-1)/8) + 1; 
+    letter_col = mod(i-1, 8) + 1;
 
 
     current_pos = pos_list(i);
@@ -104,7 +107,7 @@ for i=1:64
       euc_distances = sqrt((black_piece_centre_coords(:,1) - square_xy(1)).^2 + (black_piece_centre_coords(:,2) - square_xy(2)).^2);
 
       if any (euc_distances <=radius)
-            raw_black_occupancy_grid(number_row,letter_col) = 1;
+            black_occupancy_grid(number_row,letter_col) = 1;
       end
 
     end 
@@ -126,9 +129,6 @@ for i = 1:64
 end
 %plot(piece_centre_coords(:,1), piece_centre_coords(:,2), 'r*', 'MarkerSize', 10);
 
-%rotate grids
-black_occupancy_grid = raw_black_occupancy_grid.';
-white_occupancy_grid = raw_white_occupancy_grid.';
 
 
 disp(white_occupancy_grid);
