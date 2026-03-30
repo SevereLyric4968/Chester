@@ -1,4 +1,4 @@
-%close all; clear all; clc;
+close all;
 
 global fname
 
@@ -14,9 +14,9 @@ gauss_img = imgaussfilt(grey_img,1);
 canny_img = edge(gauss_img,'Canny');
 %dialate edges
 %kirsty images = 15
-se = strel('square', 6);
+se = strel('square',15);
 dialated_edges = imdilate(canny_img, se);
-%imshow(dialated_edges);
+imshow(dialated_edges);
 % fill holes
 holes_filled = imfill(dialated_edges,"holes");
 %disregard big board
@@ -32,8 +32,8 @@ square_coords = [];
 stats = regionprops(L, 'Centroid', 'Area');
 %org value = 10000;
 %org value 1000000000;
-minArea = 300;
-maxArea = 5000;
+minArea = 1;
+maxArea = 100000000;
 figure;
 imshow(gauss_img)
 imshow(label2rgb(L, @jet, [.5 .5 .5]));

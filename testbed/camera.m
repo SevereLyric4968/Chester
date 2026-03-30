@@ -32,7 +32,7 @@ idx = startIdx;
 % Take one snapshot with defined camera, make sure the camera is clear after
 cam = webcam(cameraName);
 cleanupObj = onCleanup(@() clear('cam'));
-
+pause(3);
 imgRGB = snapshot(cam);
 tstamp = datestr(now, 'yyyymmdd_HHMMSS');
 fname  = sprintf('photo_%04d_%s.png', idx, tstamp);
@@ -44,5 +44,6 @@ imgRGB = imrotate(imgRGB,90);
 % Save snapshot, which is a
 imwrite(imgRGB, path);
 fprintf('Saved snapshot #%d -> %s\n', idx, fname);
+Test = 12;
 
-run("centering.m");
+%run("centering.m");

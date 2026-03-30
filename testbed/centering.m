@@ -38,7 +38,7 @@ idx = startIdx;
 
 % Take one snapshot with defined camera, make sure the camera is clear after
 cam = webcam(cameraName);
-
+pause(3);
 imgRGB = snapshot(cam);
 tstamp = datestr(now, 'yyyymmdd_HHMMSS');
 fname  = sprintf('photo_%04d_%s.png', idx, tstamp);
@@ -46,7 +46,7 @@ path   = fullfile(baseFolder, fname);
 
 % Python Integration variable (Double check).
 img = path;
-imgRGB = imrotate(imgRGB,90);
+imgRGB = imrotate(imgRGB,-90);
 % Save snapshot, which is a
 imwrite(imgRGB, path);
 fprintf('Saved snapshot #%d -> %s\n', idx, fname);
@@ -116,7 +116,7 @@ rectangle('Position',[x1,y1,side,side],'EdgeColor','g','LineWidth',2);
 
 %if running for the first time, make sure to get base co-ordinates.
 %if mode == "calibration"
-%    run("process_board.m");
+run("process_board.m");
 %end
 
 %make if ~ no board_cal
@@ -139,5 +139,3 @@ for i = 1:numel(all_keys)
 end
 
 save("D:\Chester-master\Chester\testbed\board_adjusted.mat", 'board_dictionary');
-test = 123;
-disp(test);
