@@ -18,7 +18,7 @@ from pyniryo.vision.image_functions import uncompress_image
 PIECE_Z_HEIGHTS: Dict[str, Dict[str, float]] = { #all moves are currently starting at z = 0.208 change for board
     "pawn": {
         "vision_drop_m": 0.052,
-        "pick_drop_m": 0.051,
+        "pick_drop_m": 0.052,
         "place_drop_m": 0.050,
     },
     "bishop": {
