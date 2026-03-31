@@ -1,8 +1,11 @@
 %close all; clear all; clc;
 
+%change to board_adjusted.mat
 data = load('board_calibration.mat');
 board_dictionary = data.board_dictionary;
 
+%%change to global imageRGB
+%%then imread imageRGB
 fname = ('C:\\Users\\kirst\\chester\\testbed\\image_base_folder\\week11_3\\3.jpg');
 % read in image
 raw_img = imread(fname);
