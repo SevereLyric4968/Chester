@@ -142,7 +142,6 @@ def convert_to_uci(move):
 
 if __name__ == "__main__":
     vision = VisionInterface()
-    vision.take_image()
-    vision.calibrate()
-    vision.take_image()
-    vision.process_pieces()
+    image = vision.take_image()
+    whiteOccupancyMap, blackOccupancyMap = vision.process_pieces()
+    vision.parse_move(bm.board, whiteOccupancyMap, blackOccupancyMap) #bm.board pass from someone else
