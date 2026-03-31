@@ -34,9 +34,10 @@ if ~isempty(photoFiles)
 end
 idx = startIdx;
 
+
 % Take one snapshot with defined camera, make sure the camera is clear after
 cam = webcam(cameraName);
-pause(3);
+pause(1);
 imgRGB = snapshot(cam);
 tstamp = datestr(now, 'yyyymmdd_HHMMSS');
 fname  = sprintf('photo_%04d_%s.png', idx, tstamp);

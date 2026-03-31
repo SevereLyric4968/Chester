@@ -20,7 +20,7 @@ white_piece_centre_coords = [];
 [B,L] = bwboundaries(green_masked_img,'noholes');
 stats = regionprops(L, 'Centroid', 'Area');
 figure,imshow(img);imshow(green_masked_img);
-minArea = 500;
+minArea = 400;
 hold on;
 for k = 1:length(B)
       if stats(k).Area>minArea
@@ -73,7 +73,7 @@ black_piece_centre_coords = [];
 [B,L] = bwboundaries(pink_masked_img,'noholes');
 stats = regionprops(L, 'Centroid', 'Area');
 figure,imshow(img);imshow(pink_masked_img);
-minArea = 500;
+minArea = 100;
 hold on;
 for k = 1:length(B)
       if stats(k).Area>minArea

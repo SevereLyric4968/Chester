@@ -2,13 +2,13 @@
 import subprocess
 
 import matlab.engine
-eng = matlab.engine.start_matlab()
+#eng = matlab.engine.start_matlab()
 
 class VisionInterface:
     def __init__(self):
         print("init")
         self.eng = matlab.engine.start_matlab()
-        self.script_path = "C:\\Users\\kirst\\Chester\\testbed"
+        self.script_path = "D:\\Chester-master\\Chester\\testbed"
         self.eng.addpath(self.script_path, nargout=0)
 
     def get_move(self,board_manager):
@@ -142,5 +142,7 @@ def convert_to_uci(move):
 
 if __name__ == "__main__":
     vision = VisionInterface()
+    vision.take_image()
     vision.calibrate()
+    vision.take_image()
     vision.process_pieces()
