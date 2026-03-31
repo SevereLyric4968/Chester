@@ -1,4 +1,4 @@
-import chess
+#import chess
 import subprocess
 
 import matlab.engine
@@ -6,8 +6,10 @@ eng = matlab.engine.start_matlab()
 
 class VisionInterface:
     def __init__(self):
-        self.take_image()
-        self.calibrate()
+        print("init")
+        self.eng = matlab.engine.start_matlab()
+        self.script_path = "C:\\Users\\kirst\\Chester\\testbed"
+        self.eng.addpath(self.script_path, nargout=0)
 
     def get_move(self,board_manager):
         
@@ -28,9 +30,9 @@ class VisionInterface:
         image = self.eng.workspace['imgRGB']
         return image
 
-    def process_pieces(self,image):
+    def process_pieces(self):
         print("process_pieces")
-        self.eng.process_pieces(image)
+        self.eng.process_pieces(nargout=0)
         blackOccupancyMap = self.eng.workspace['black_occupancy_grid']
         whiteOccupancyMap = self.eng.workspace['white_occupancy_grid']
         return blackOccupancyMap, whiteOccupancyMap
@@ -136,3 +138,9 @@ def findGridSquare(grid,value):
 def convert_to_uci(move):
     square = chr(ord("a") + move[0]) + str(move[1])
     return square
+
+
+if __name__ == "__main__":
+    vision = VisionInterface()
+    vision.calibrate()
+    vision.process_pieces()
