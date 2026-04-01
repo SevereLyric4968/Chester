@@ -114,17 +114,19 @@ class RobotController:
     def move_to_target(self,rm,target,color):
         if len(target) == 1:
             # find highest index occupied storage slot
-            for i in reversed(range(len(self.storageOccupancy[target]))):
-                if self.storageOccupancy[target][i]:
+            for i in range(len(self.storageOccupancy[target])):
+                if self.storageOccupancy[target][i]==False:
                     targetSlot = i
-                    self.storageOccupancy[target][i] = False
+                    self.storageOccupancy[target][i] = True
                     break
-            target += targetSlot
-        targetLocation = self.locationMap[color][target]
+            targetLocation=self.locationMap["white"][target][targetSlot]
+        else:
+            targetLocation = self.locationMap[color][target]
         self.databus.execLog.append(f"Moving to {target} ({targetLocation})...")
         x, y, z = targetLocation["x"], targetLocation["y"], targetLocation["z"]
 
-        rm.move(x, y, z)
+        rm.move(x, y)
+        return z
 
     def execute_move_queue(self,moveQueue,board,isWhite):
         with (self.lock):
@@ -144,20 +146,20 @@ class RobotController:
             self.databus.execLog.append("Starting move queue:")
             for i,move in enumerate(moveQueue):
                 self.databus.execLog.append(f"Executing move {i+1} of {len(moveQueue)} : {move[0]} to {move[1]}")
+                print(f"Executing move {i+1} of {len(moveQueue)} : {move[0]} to {move[1]}")
                 if len(move[0])==1:
                     piece = move[0]
                 else:
                     piece=board.piece_at(chess.parse_square(move[0])).symbol()
                 #pickup
-                self.move_to_target(rm,move[0],color)
+                z=self.move_to_target(rm,move[0],"white")
                 self.databus.execLog.append("picking up piece")
-                rm.pickup(piece)
+                rm.pickup(piece,z)
 
                 # place
-                self.move_to_target(rm,move[0],color)
+                z=self.move_to_target(rm,move[1],"white")
                 self.databus.execLog.append("picking up piece")
-                rm.place(piece)
-                #drop
+                rm.place(piece,z)
 
             self.databus.robotBusy = False
 
