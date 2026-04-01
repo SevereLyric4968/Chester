@@ -1,18 +1,18 @@
-import chess
+#import chess
 import subprocess
 
-#make function calibrate runs process_b
-#make funciton that runs process_p
-#make function subprocess that takes variable of matlab file.
+import matlab.engine
+#eng = matlab.engine.start_matlab()
 
 class VisionInterface:
     def __init__(self):
-        self.take_image()
-        self.calibrate()
+        print("init")
+        self.eng = matlab.engine.start_matlab()
+        self.script_path = "D:\\Chester-master\\Chester\\testbed"
+        self.eng.addpath(self.script_path, nargout=0)
 
     def get_move(self,board_manager):
-        self.take_image()
-        self.process_pieces()
+        
         while True:
             if "button pressed":
                 image=self.take_image()
@@ -23,33 +23,23 @@ class VisionInterface:
                 if move in board_manager.get_legal_moves():
                     return move
                 print("Invalid or illegal move, try again.")
-         
-    
-    #runs matlabfilepath, insert variable(s) you want you spit back out
-    # THIS REQUIRES THE VARIABLE YOU WANT TO READ TO BE PRINTED IN THE MATLAB CONSOLE FIRST
-    # MAKE SURE YOU DISP(VARIABLE)
-    def run_subprocess(filepath: str, *variables: str) -> list[str]:
-        disp_calls = "; disp('---'); ".join(f"disp({v})" for v in variables)
-        result = subprocess.run(
-            ["matlab", "-batch", f"run('{filepath}'); {disp_calls}"],
-            capture_output=True,
-            text=True
-        )
-        parts = result.stdout.strip().split('---\n')
-        return [p.strip() for p in parts]
 
-    #all of this needs tested VVV
     def take_image(self):
-        image = self.run_subprocess("D:\Chester-master\Chester\testbed\centering.m", "imgRGB")
+        print("take_image")
+        self.eng.centering(nargout=0)
+        image = self.eng.workspace['imgRGB']
         return image
 
-    def process_pieces(self,image):
-        white_occupancy_grid, black_occupancy_grid = self.run_subprocess("D:\Chester-master\Chester\testbed\centering.m", "black_occupancy_grid", "white_occupancy_grid")
-        return white_occupancy_grid, black_occupancy_grid
+    def process_pieces(self):
+        print("process_pieces")
+        self.eng.process_pieces(nargout=0)
+        blackOccupancyMap = self.eng.workspace['black_occupancy_grid']
+        whiteOccupancyMap = self.eng.workspace['white_occupancy_grid']
+        return blackOccupancyMap, whiteOccupancyMap
     
     def calibrate(self):
-        calibration_file = self.run_subprocess("D:\Chester-master\Chester\testbed\process_board.m", "board_calibration.mat")
-        return calibration_file
+        print("calibrate")
+        self.eng.process_board(nargout=0)
 
     def parse_move(self, board, whiteOccupancyMap,blackOccupancyMap):
         beforeMoveMap=[[0 for _ in range(8)] for _ in range(8)]
@@ -148,3 +138,10 @@ def findGridSquare(grid,value):
 def convert_to_uci(move):
     square = chr(ord("a") + move[0]) + str(move[1])
     return square
+
+
+if __name__ == "__main__":
+    vision = VisionInterface()
+    image = vision.take_image()
+    whiteOccupancyMap, blackOccupancyMap = vision.process_pieces()
+    vision.parse_move(bm.board, whiteOccupancyMap, blackOccupancyMap) #bm.board pass from someone else

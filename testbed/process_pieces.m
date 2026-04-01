@@ -1,18 +1,18 @@
 %close all; clear all; clc;
 
-data = load('board_calibration.mat');
+data = load('board_adjusted.mat');
 board_dictionary = data.board_dictionary;
 
-fname = ('C:\\Users\\kirst\\chester\\testbed\\image_base_folder\\week11_3\\3.jpg');
+fname = imgRGB;
 % read in image
-raw_img = imread(fname);
+raw_img = fname;
 %rotated back to correct orientation 
-img = imrotate(raw_img,270);
+img = imrotate(raw_img,0);
 %use pink mask
 green_masked_img = green_mask_function(img);
 
 %radius of sticker
-radius = 77;
+radius = 15;
 
 white_piece_centre_coords = [];
 
@@ -20,7 +20,7 @@ white_piece_centre_coords = [];
 [B,L] = bwboundaries(green_masked_img,'noholes');
 stats = regionprops(L, 'Centroid', 'Area');
 figure,imshow(img);imshow(green_masked_img);
-minArea = 500;
+minArea = 400;
 hold on;
 for k = 1:length(B)
       if stats(k).Area>minArea
@@ -73,7 +73,7 @@ black_piece_centre_coords = [];
 [B,L] = bwboundaries(pink_masked_img,'noholes');
 stats = regionprops(L, 'Centroid', 'Area');
 figure,imshow(img);imshow(pink_masked_img);
-minArea = 500;
+minArea = 100;
 hold on;
 for k = 1:length(B)
       if stats(k).Area>minArea

@@ -2,8 +2,6 @@ close all;
 
 global cropped
 
-%fname = ('C:\\Users\\kirst\\chester\\testbed\\image_base_folder\\week11_3\\empty.jpg');
-% read in image
 raw_img = cropped;
 %rotated back to correct orientation 
 img = imrotate(raw_img,0);
@@ -16,7 +14,7 @@ gauss_img = imgaussfilt(grey_img,1);
 canny_img = edge(gauss_img,'Canny');
 %dialate edges
 %kirsty images = 15
-se = strel('square', 4);
+se = strel('square', 5);
 dialated_edges = imdilate(canny_img, se);
 imshow(dialated_edges);
 % fill holes
@@ -34,7 +32,7 @@ square_coords = [];
 stats = regionprops(L, 'Centroid', 'Area');
 %org value = 10000;
 %org value 1000000000;
-minArea = 4000;
+minArea = 300;
 maxArea = 50000;
 figure;
 imshow(gauss_img)
@@ -70,7 +68,7 @@ topleft_y = yellow_centroid(1).Centroid(2);
 % make dictionary to associate 
 letters = {'a','b','c','d','e','f','g', 'h'};
 numbers = {'8','7','6','5','4','3','2', '1'};
-spacing = 112;
+spacing = 28;
 keys = strings(64,1);
 pairs = cell(64,1);
 i=1;
@@ -117,61 +115,61 @@ all_keys = board_dictionary.keys;
 
 %%%% STORAGE TIME :))))))
 %mask to detect storage left
-colour_mask = colour_mask_function(img);
+%colour_mask = colour_mask_function(img);
 %identify two biggest hits of that colour
-biggest_colour = bwpropfilt(logical(colour_mask), 'Area', 2);
+%biggest_colour = bwpropfilt(logical(colour_mask), 'Area', 2);
 %get their centrepoints
-colour_centroids = regionprops(biggest_colour, 'Centroid');
+%colour_centroids = regionprops(biggest_colour, 'Centroid');
 %turn them into a 2d, horizontal array
-centroids = cat(1, colour_centroids.Centroid);
+%centroids = cat(1, colour_centroids.Centroid);
 %sort by increasing x coords
-[~, sortIdx] = sort(centroids(:,1));
-left_storage_marker = centroids(sortIdx(1), :);
-right_storage_marker = centroids(sortIdx(2), :);
+%[~, sortIdx] = sort(centroids(:,1));
+%left_storage_marker = centroids(sortIdx(1), :);
+%right_storage_marker = centroids(sortIdx(2), :);
 
 % make dictionary to associate 
-side = {'L','R'};
-row = {'8','7','6','5','4','3','2', '1'};
-s_keys = strings(14,1);
-s_pairs = cell(14,1);
-s_idx = 1;
+%side = {'L','R'};
+%row = {'8','7','6','5','4','3','2', '1'};
+%s_keys = strings(14,1);
+%s_pairs = cell(14,1);
+%s_idx = 1;
 
-markers = [left_storage_marker; right_storage_marker];
+%markers = [left_storage_marker; right_storage_marker];
 
-for s = 1:2
-    marker_x = markers(s, 1);
-    marker_y = markers(s, 2);
+%for s = 1:2
+%    marker_x = markers(s, 1);
+%    marker_y = markers(s, 2);
     
-    for r = 1:7
+%    for r = 1:7
         % Calculate vertical projection downwards
-        x = marker_x;
-        y = marker_y + ((r-1) * spacing);
-        plot(x, y, 'g', 'MarkerSize', 5);
+%       x = marker_x;
+%        y = marker_y + ((r-1) * spacing);
+%       plot(x, y, 'g', 'MarkerSize', 5);
 
-        s_keys(s_idx) = string([side{s},row{r}] );
+%        s_keys(s_idx) = string([side{s},row{r}] );
 
          %find which centroid coord is closest
-            dists = sqrt((square_coords(:,1) - x).^2 + (square_coords(:,2) - y).^2);
-            [min_dist,idx]=min(dists);
+%            dists = sqrt((square_coords(:,1) - x).^2 + (square_coords(:,2) - y).^2);
+%            [min_dist,idx]=min(dists);
 
             %if the closest centroid is less than half a square away (with tolerance built into spacing val)
-            if min_dist<spacing/2
+ %           if min_dist<spacing/2
                 %detect this as the next square
-                pairs{i} = square_coords(idx, :);
-            else
-                error('Calibration failed');
-            end
+ %               pairs{i} = square_coords(idx, :);
+ %           else
+  %              error('Calibration failed');
+   %         end
 
         %increment s_idx
-        s_idx = s_idx + 1;
+    %z    s_idx = s_idx + 1;
 
-    end
+    %end
 
-end
+%end
 
 %create and save storage dict
-storage_dictionary = dictionary(s_keys, s_pairs);
-save('storage_calibration.mat', 'storage_dictionary');
+%storage_dictionary = dictionary(s_keys, s_pairs);
+%save('storage_calibration.mat', 'storage_dictionary');
 
 
 
