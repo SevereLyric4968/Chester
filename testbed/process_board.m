@@ -2,19 +2,21 @@ close all;
 
 global cropped
 
-raw_img = cropped;
+fname = ('C:\\Users\\kirst\\chester\\testbed\\image_base_folder\\storage_test\\storage_test_empty.jpg');
+% read in image
+raw_img = imread(fname);
 %rotated back to correct orientation 
-img = imrotate(raw_img,0);
+img = imrotate(raw_img,270);
 % convert to greyscale
 grey_img = rgb2gray(img);
 % gaussian blurring filter
 %kirsty images =  20
-gauss_img = imgaussfilt(grey_img,1);
+gauss_img = imgaussfilt(grey_img,5);
 % canny edge detection
 canny_img = edge(gauss_img,'Canny');
 %dialate edges
 %kirsty images = 15
-se = strel('square', 5);
+se = strel('square', 15);
 dialated_edges = imdilate(canny_img, se);
 imshow(dialated_edges);
 % fill holes
@@ -32,7 +34,7 @@ square_coords = [];
 stats = regionprops(L, 'Centroid', 'Area');
 %org value = 10000;
 %org value 1000000000;
-minArea = 300;
+minArea = 400;
 maxArea = 50000;
 figure;
 imshow(gauss_img)
@@ -68,7 +70,7 @@ topleft_y = yellow_centroid(1).Centroid(2);
 % make dictionary to associate 
 letters = {'a','b','c','d','e','f','g', 'h'};
 numbers = {'8','7','6','5','4','3','2', '1'};
-spacing = 28;
+spacing = 115;
 keys = strings(64,1);
 pairs = cell(64,1);
 i=1;
@@ -111,69 +113,71 @@ end
 board_dictionary = dictionary(keys, pairs);
 save('board_calibration.mat', 'board_dictionary');
 
-all_keys = board_dictionary.keys;
-
 %%%% STORAGE TIME :))))))
 %mask to detect storage left
-%colour_mask = colour_mask_function(img);
-%identify two biggest hits of that colour
-%biggest_colour = bwpropfilt(logical(colour_mask), 'Area', 2);
+red_mask = red_mask_function(img);
+%identify two biggest hits of red
+biggest_red = bwpropfilt(logical(red_mask), 'Area', 2);
 %get their centrepoints
-%colour_centroids = regionprops(biggest_colour, 'Centroid');
+red_centroids = regionprops(biggest_red, 'Centroid');
 %turn them into a 2d, horizontal array
-%centroids = cat(1, colour_centroids.Centroid);
+centroids = cat(1, red_centroids.Centroid);
+
+plot(centroids(:,1), centroids(:,2), 'mo', 'MarkerSize', 5, 'LineWidth', 2, 'MarkerFaceColor', 'r');
 %sort by increasing x coords
-%[~, sortIdx] = sort(centroids(:,1));
-%left_storage_marker = centroids(sortIdx(1), :);
-%right_storage_marker = centroids(sortIdx(2), :);
+[~, sortIdx] = sort(centroids(:,1));
+left_storage_marker = centroids(sortIdx(1), :);
+right_storage_marker = centroids(sortIdx(2), :);
 
 % make dictionary to associate 
-%side = {'L','R'};
-%row = {'8','7','6','5','4','3','2', '1'};
-%s_keys = strings(14,1);
-%s_pairs = cell(14,1);
-%s_idx = 1;
+side = {'L','R'};
+row = {'7','6','5','4','3','2', '1'};
+s_keys = strings(14,1);
+s_pairs = cell(14,1);
+s_idx = 1;
 
-%markers = [left_storage_marker; right_storage_marker];
+markers = [left_storage_marker; right_storage_marker];
 
-%for s = 1:2
-%    marker_x = markers(s, 1);
-%    marker_y = markers(s, 2);
+for s = 1:2
+    marker_x = markers(s, 1);
+    marker_y = markers(s, 2);
     
-%    for r = 1:7
+    for r = 1:7
         % Calculate vertical projection downwards
-%       x = marker_x;
-%        y = marker_y + ((r-1) * spacing);
-%       plot(x, y, 'g', 'MarkerSize', 5);
+       x = marker_x;
+       y = marker_y + ((r-1) * spacing);
+       plot(x, y, 'go', 'MarkerSize', 5);
 
-%        s_keys(s_idx) = string([side{s},row{r}] );
+        s_keys(s_idx) = string([side{s},row{r}] );
 
          %find which centroid coord is closest
-%            dists = sqrt((square_coords(:,1) - x).^2 + (square_coords(:,2) - y).^2);
-%            [min_dist,idx]=min(dists);
+         % 
+            dists = sqrt((square_coords(:,1) - x).^2 + (square_coords(:,2) - y).^2);
+            [min_dist,idx]=min(dists);
 
             %if the closest centroid is less than half a square away (with tolerance built into spacing val)
- %           if min_dist<spacing/2
+           if min_dist<spacing/2
                 %detect this as the next square
- %               pairs{i} = square_coords(idx, :);
- %           else
-  %              error('Calibration failed');
-   %         end
+                s_pairs{s_idx} = square_coords(idx, :);
+            else
+              error('Calibration failed');
+            end
 
         %increment s_idx
-    %z    s_idx = s_idx + 1;
+        s_idx = s_idx + 1;
 
-    %end
+    end
 
-%end
+end
 
 %create and save storage dict
-%storage_dictionary = dictionary(s_keys, s_pairs);
-%save('storage_calibration.mat', 'storage_dictionary');
+storage_dictionary = dictionary(s_keys, s_pairs);
+save('storage_calibration.mat', 'storage_dictionary');
 
 
 
 
+all_keys = board_dictionary.keys;
 fprintf('\nall chessboard coords:\n');
 for i = 1:numel(all_keys)
     current_key = all_keys(i);
@@ -182,4 +186,16 @@ for i = 1:numel(all_keys)
     
     %print in a readable format
     fprintf('square %s: [X: %8.2f, Y: %8.2f]\n', current_key, coords(1), coords(2));
+end
+
+
+all_storage_keys = storage_dictionary.keys;
+fprintf('\nall storage coords:\n');
+for i = 1:numel(all_storage_keys)
+    current_storage_key = all_storage_keys(i);
+
+    s_val_cell = storage_dictionary(current_storage_key);
+    s_coords = s_val_cell{1}; 
+
+    fprintf('storage %s: [X: %8.2f, Y: %8.2f]\n', current_storage_key, s_coords(1), s_coords(2));
 end
