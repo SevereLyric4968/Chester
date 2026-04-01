@@ -25,6 +25,7 @@ class RobotManipulator:
 
     zCalibrate=False
     usingIK=False
+    useIntelligentPickup=True
 
     def __init__(self,ip,boardCoords,databus):
         robot_ip=ip
@@ -74,13 +75,16 @@ class RobotManipulator:
                 tracking_roi_size=(260, 260),
             )
 
-            self.intelligent_system = IntelligentPickupSystem.create(
-                self.robot,
-                pin_electromagnet=self.pin_electromagnet,
-                cfg=cfg,
-                detector_show=True,
-                detector_min_area_px=400,
-            )
+            if self.useIntelligentPickup:
+                self.intelligent_system = IntelligentPickupSystem.create(
+                    self.robot,
+                    pin_electromagnet=self.pin_electromagnet,
+                    cfg=cfg,
+                    detector_show=True,
+                    detector_min_area_px=400,
+                )
+            else:
+                self.intelligent_system = None
 
         except:
             print("robot failed to connect")
@@ -95,7 +99,7 @@ class RobotManipulator:
 
         self.databus.movementStatus = "Moving"
 
-        if self.intelligent_system is None:
+        if not self.useIntelligentPickup or self.intelligent_system is None:
             pose = self.robot.get_pose()
             z = self.robotCalibration.getZBaseline(pose.x, pose.y) if self.zCalibrate else self.boardHeight
 
