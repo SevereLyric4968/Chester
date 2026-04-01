@@ -34,9 +34,10 @@ if ~isempty(photoFiles)
 end
 idx = startIdx;
 
+
 % Take one snapshot with defined camera, make sure the camera is clear after
 cam = webcam(cameraName);
-pause(3);
+pause(1);
 imgRGB = snapshot(cam);
 tstamp = datestr(now, 'yyyymmdd_HHMMSS');
 fname  = sprintf('photo_%04d_%s.png', idx, tstamp);
@@ -65,6 +66,7 @@ if isempty(x)
     error('No orange pixels found.');
 end
 
+%new points to compute-stays absolute to the board
 pts = [x, y];
 sums = x + y;
 diffs = x - y;
@@ -77,41 +79,47 @@ diffs = x - y;
 corners = pts([iTL, iTR, iBR, iBL], :);  % 4x2 matrix [x, y]
 
 %centre of bounding box
-cx = xmin + w/2;
-cy = ymin + h/2;
+%cx = xmin + w/2;
+%cy = ymin + h/2;
 
 %convert centre and side to integer pixel co-ordinates for the square
 % top left pixel
-x1 = round(cx - side/2);
-y1 = round(cy - side/2);
+%x1 = round(cx - side/2);
+%y1 = round(cy - side/2);
 %bottom right pixel
-x2 = x1 + side - 1;
-y2 = y1 + side - 1;
+%x2 = x1 + side - 1;
+%y2 = y1 + side - 1;
 
 %get image size
 [mrows,mcols,~] = size(imgRGB);
 %prevent the top-left corner from being <1 
 % (ifx1/y1 is outside (0), set it to 1
 % prevent bottom-rght from exceeding image bounds
-x1 = max(1,x1); y1 = max(1,y1);
-x2 = min(mcols,x2); y2 = min(mrows,y2);
+%x1 = max(1,x1); y1 = max(1,y1);
+%x2 = min(mcols,x2); y2 = min(mrows,y2);
 
 %recompute actual cropsize aftr clipping
-w_clip = x2 - x1 + 1;
-h_clip = y2 - y1 + 1;
+%w_clip = x2 - x1 + 1;
+%h_clip = y2 - y1 + 1;
 
 %make a new image that is cropped to the board
 % selects image rows, image columns, and all colour channels
 % indexing is 1-based and inclusive
 srcPoints = corners;  % [x,y] for TL, TR, BR, BL
 
-% Compute output size from the corner distances
+%use all 4 corners to compute bounds
 W = round(max(norm(corners(1,:)-corners(2,:)), norm(corners(4,:)-corners(3,:))));
 H = round(max(norm(corners(1,:)-corners(4,:)), norm(corners(2,:)-corners(3,:))));
 
-dstPoints = [1,1; W,1; W,H; 1,H];
+%compute difstance between
+padding = 10; % pixels to crop inward on each side, adjust as needed
 
-% Build perspective transform and apply
+dstPoints = [1+padding, 1+padding; 
+             W-padding, 1+padding; 
+             W-padding, H-padding; 
+             1+padding, H-padding];
+
+%build perspective transform and apply
 tform = fitgeotrans(srcPoints, dstPoints, 'projective');
 cropped = imwarp(imgRGB, tform, 'OutputView', imref2d([H, W]));
 title = 'cropped.png';
@@ -119,10 +127,11 @@ fname = fullfile('D:\Chester-master\Chester\testbed\image_base_folder\img\',titl
 imwrite(cropped, fname);
 figure; imshow(imgRGB); hold on;
 
-% Close the shape by appending the first point at the end
+%close shape by appending the first point at the end
 cx_pts = corners([1,2,3,4,1], 1);
 cy_pts = corners([1,2,3,4,1], 2);
 
+%print for testing
 plot(cx_pts, cy_pts, 'g-', 'LineWidth', 2);
 plot(corners(:,1), corners(:,2), 'ro', 'MarkerSize', 8, 'LineWidth', 2);
 
@@ -137,8 +146,7 @@ if isfile('board_calibration.mat')
         current_key = all_keys(i);
         val_cell = board_dictionary(current_key); %cell array
         coords = val_cell{1}; % Unpack the cell to get [X, Y] 
-        X = x1 + coords(:,1) - 1;
-        Y = y1 + coords(:,2) - 1;
+        [X, Y] = transformPointsInverse(tform, coords(:,1), coords(:,2));
         plot(X, Y, 'ro', 'MarkerSize', 8, 'LineWidth', 1.5);
         fprintf('square %s: [X: %8.2f, Y: %8.2f]\n', current_key, coords(1), coords(2));
         val_cell{1} = [X(:), Y(:)];

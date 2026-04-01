@@ -1,15 +1,18 @@
 #import chess
 import subprocess
 
-import matlab.engine
-eng = matlab.engine.start_matlab()
+#import matlab.engine
+#eng = matlab.engine.start_matlab()
 
 class VisionInterface:
     def __init__(self):
-        print("init")
-        self.eng = matlab.engine.start_matlab()
-        self.script_path = "C:\\Users\\kirst\\Chester\\testbed"
-        self.eng.addpath(self.script_path, nargout=0)
+        try:
+            print("init")
+            self.eng = matlab.engine.start_matlab()
+            self.script_path = "D:\\Chester-master\\Chester\\testbed"
+            self.eng.addpath(self.script_path, nargout=0)
+        except:
+            print("unlucky kirsty and kov")
 
     def get_move(self,board_manager):
         
@@ -142,5 +145,6 @@ def convert_to_uci(move):
 
 if __name__ == "__main__":
     vision = VisionInterface()
-    vision.calibrate()
-    vision.process_pieces()
+    image = vision.take_image()
+    whiteOccupancyMap, blackOccupancyMap = vision.process_pieces()
+    vision.parse_move(bm.board, whiteOccupancyMap, blackOccupancyMap) #bm.board pass from someone else
