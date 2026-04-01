@@ -1,3 +1,4 @@
+import json
 import threading
 import chess
 from controllers.robot_manipulator import RobotManipulator
@@ -9,36 +10,35 @@ class RobotController:
         self.lock=threading.Lock()
         self.databus=databus
 
-        whiteBoardCoords={
-            "boardStart": (381.8, -126),
-            "xOffset": 35.2,
-            "yOffset":34.4,
-            "whiteStorageStart": (170, 170),
-            "blackStorageStart": (170, -180),
-            "storageOffset": 0,
-            "directionMultiplier": 1
-        }
-        blackBoardCoords={
-            "boardStart": self.translate_position(whiteBoardCoords["boardStart"]),
-            "boardOffset": whiteBoardCoords["xOffset"],
-            "whiteStorageStart": self.translate_position(whiteBoardCoords["whiteStorageStart"]),
-            "blackStorageStart": self.translate_position(whiteBoardCoords["blackStorageStart"]),
-            "storageOffset": whiteBoardCoords["storageOffset"],
-            "directionMultiplier": whiteBoardCoords["directionMultiplier"]*-1
+        self.locationMap=self.load_json(r"C:\Users\Jayda\PycharmProjects\Chester\testbed\testLocations.json")
+        self.storageOccupancy={
+            "K":[False],
+            "Q":[False,True],
+            "B":[False,False,True],
+            "N":[False,False,True],
+            "R":[False,False,True],
+            "P":[False,False,False,False,False,False,False,False],
+
+            "k": [False],
+            "q": [False, True],
+            "b": [False, False, True],
+            "n": [False, False, True],
+            "r": [False, False, True],
+            "p": [False, False, False, False, False, False, False, False]
         }
 
         if robot_white is None and robot_black is not None:
             self.white_rm=None
-            self.black_rm=RobotManipulator(robot_black,blackBoardCoords,self.databus.robot1)
+            self.black_rm=RobotManipulator(robot_black, self.databus.robot1)
         elif robot_white is not None and robot_black is None:
-            self.white_rm=RobotManipulator(robot_white,whiteBoardCoords,self.databus.robot1)
+            self.white_rm=RobotManipulator(robot_white, self.databus.robot1)
             self.black_rm=None
         elif robot_white==robot_black:
-            self.white_rm=RobotManipulator(robot_white,whiteBoardCoords,self.databus.robot1)
+            self.white_rm=RobotManipulator(robot_white, self.databus.robot1)
             self.black_rm=self.white_rm
         else:
-            self.white_rm=RobotManipulator(robot_white,whiteBoardCoords,self.databus.robot1)
-            self.black_rm=RobotManipulator(robot_black,whiteBoardCoords,self.databus.robot2)
+            self.white_rm=RobotManipulator(robot_white, self.databus.robot1)
+            self.black_rm=RobotManipulator(robot_black, self.databus.robot2)
 
     def uci_to_move_queue(self,move,board):
 
@@ -111,6 +111,21 @@ class RobotController:
 
         return (moveQueue,isWhite)
 
+    def move_to_target(self,rm,target,color):
+        if len(target) == 1:
+            # find highest index occupied storage slot
+            for i in reversed(range(len(self.storageOccupancy[target]))):
+                if self.storageOccupancy[target][i]:
+                    targetSlot = i
+                    self.storageOccupancy[target][i] = False
+                    break
+            target += targetSlot
+            targetLocation = self.locationMap[color][target]
+            self.databus.execLog.append(f"Moving to {target} ({targetLocation})...")
+            x, y, z = targetLocation["x"], targetLocation["y"], targetLocation["z"]
+
+        rm.move(x, y, z)
+
     def execute_move_queue(self,moveQueue,board,isWhite):
         with (self.lock):
             if isWhite:
@@ -118,64 +133,39 @@ class RobotController:
                     return
                 rm=self.white_rm
                 self.databus.execLog.append("White robot:")
+                color="white"
             else:
                 if self.black_rm is None:
                     return
                 rm=self.black_rm
                 self.databus.execLog.append("Black robot:")
+                color="black"
 
             self.databus.execLog.append("Starting move queue:")
             for i,move in enumerate(moveQueue):
                 self.databus.execLog.append(f"Executing move {i+1} of {len(moveQueue)} : {move[0]} to {move[1]}")
-                #pickup
                 if len(move[0])==1:
-                    piece=move[0]
-                    #find highest index occupied storage slot
-                    for i in reversed(range(len(rm.storageOccupancy[piece]))):
-                        if rm.storageOccupancy[piece][i]:
-                            targetSlot = i
-                            rm.storageOccupancy[piece][i] = False
-                            break
-
-                    #move to storageMap[piece][targetSlot]
-                    self.databus.execLog.append(f"Moving to slot {piece}{targetSlot} ({rm.storageMap[piece][targetSlot]})...")
-                    x,y= rm.storageMap[piece][targetSlot]
-
+                    piece = move[0]
                 else:
-                    #move to boardMap[move[0]]
-                    piece=board.piece_at(chess.parse_square(move[0])).symbol()
-                    self.databus.execLog.append(f"Moving to square {move[0]} ({rm.boardMap[move[0]]})...")
-                    x,y=rm.boardMap[move[0]]
-
-                rm.move(x, y)
+                    board.piece_at(chess.parse_square(move[0])).symbol()
+                #pickup
+                self.move_to_target(rm,move[0],color)
                 self.databus.execLog.append("picking up piece")
                 rm.pickup(piece)
 
-                #drop
-                if len(move[1])==1:
-                    piece=move[1]
-                    #find lowest index unoccupied storage slot
-                    for i in range(len(rm.storageOccupancy[piece])):
-                        if not rm.storageOccupancy[piece][i]:
-                            targetSlot = i
-                            rm.storageOccupancy[piece][i] = True
-                            break
-                    #move to storageMap[piece][targetSlot]
-                    self.databus.execLog.append(f"Moving to slot {piece}{targetSlot} ({rm.storageMap[piece][targetSlot]})...")
-                    x,y=rm.storageMap[piece][targetSlot]
-                else:
-                    #move to boardMap[move[1]]
-                    self.databus.execLog.append(f"Moving to square {move[1]} ({rm.boardMap[move[1]]})...")
-                    x,y=rm.boardMap[move[1]]
-                #drop
-                rm.move(x, y)
-                self.databus.execLog.append("dropping piece")
+                # place
+                self.move_to_target(rm,move[0],color)
+                self.databus.execLog.append("picking up piece")
                 rm.place(piece)
+                #drop
 
-            rm.return_home()
             self.databus.robotBusy = False
 
     def translate_position(self,position,x_translation=400):
         x=-position[0]+x_translation
         y=-position[1]
         return x,y
+
+    def load_config(path):
+        with open(path, "r") as f:
+            return json.load(f)
