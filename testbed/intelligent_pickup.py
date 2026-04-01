@@ -15,50 +15,33 @@ from pyniryo.vision.image_functions import uncompress_image
 
 #needs edited to use Sams calculateIK stuff instead of move_pose
 
-PIECE_Z_HEIGHTS: Dict[str, Dict[str, float]] = { #all moves are currently starting at z = 0.208 change for board
-    "pawn": {
-        "vision_drop_m": 0.052,
-        "pick_drop_m": 0.052,
-        "place_drop_m": 0.050,
-    },
-    "bishop": {
-        "vision_drop_m": 0.039,
-        "pick_drop_m": 0.050,
-        "place_drop_m": 0.050,
-    },
-    "rook": {
-        "vision_drop_m": 0.048,
-        "pick_drop_m": 0.050,
-        "place_drop_m": 0.050,
-    },
-    "knight": {
-        "vision_drop_m": 0.0, #need pieces first
-        "pick_drop_m": 0.020,
-        "place_drop_m": 0.020,
-    },
-    "queen": {
-        "vision_drop_m": 0.036,
-        "pick_drop_m": 0.050,
-        "place_drop_m": 0.050,
-    },
-    "king": {
-        "vision_drop_m": 0.00, #need pieces first
-        "pick_drop_m": 0.020,
-        "place_drop_m": 0.020,
-    },
+PIECE_VISION_DROP_M: Dict[str, float] = {
+    "p": 0.052,
+    "b": 0.039,
+    "r": 0.048,
+    "n": 0.0,
+    "q": 0.036,
+    "k": 0.0,
 }
 
 boardHeight = 0.0520
 
 PIECE_TOP_Z_M: Dict[str, float] = {
-    "pawn":   boardHeight + 54.0 / 1000.0, #60.0
-    "rook":   boardHeight + 58.5 / 1000.0, #64.5
-    "knight": boardHeight + 63.0 / 1000.0, #69.0
-    "bishop": boardHeight + 67.5 / 1000.0, #73.5
-    "queen":  boardHeight + 72.0 / 1000.0, #78.0
-    "king":   boardHeight + 76.5 / 1000.0, #82.5
+    "p":   boardHeight + 54.0 / 1000.0, #60.0
+    "r":   boardHeight + 58.5 / 1000.0, #64.5
+    "n": boardHeight + 63.0 / 1000.0, #69.0
+    "b": boardHeight + 67.5 / 1000.0, #73.5
+    "q":  boardHeight + 72.0 / 1000.0, #78.0
+    "k":   boardHeight + 76.5 / 1000.0, #82.5
 }
 
+def piece_colour_from_symbol(piece: str) -> str:
+    piece = piece.strip()
+    return "white" if piece.isupper() else "black"
+
+
+def piece_type_from_symbol(piece: str) -> str:
+    return piece.strip().lower()
 
 @dataclass(frozen=True)
 class PinkThresholdHSV:
@@ -379,21 +362,13 @@ class VisualCenteringController:  #Read camera frame - Detect pink centroid (cx,
         if self.cfg.piece_type is None:
             return
 
-        # Pulled from the top-level tuning table so all real-board Z values
-        # can be adjusted in one place.
-        drop_table = {
-            piece: values["vision_drop_m"]
-            for piece, values in PIECE_Z_HEIGHTS.items()
-        }
-
-        # normalize piece type just in case caller passed "Rook", " rook ", etc.
         piece = self.cfg.piece_type.strip().lower()
-        if piece not in drop_table:
+        if piece not in PIECE_VISION_DROP_M:
             raise ValueError(
                 f"Unsupported piece_type '{self.cfg.piece_type}'. "
-                f"Add it to PIECE_Z_HEIGHTS at the top of the file."
+                f"Add it to PIECE_VISION_DROP_M at the top of the file."
             )
-        drop = drop_table[piece]
+        drop = PIECE_VISION_DROP_M[piece]
 
         pose = self.robot.get_pose()
         new_z = pose.z - drop
@@ -510,39 +485,49 @@ class VisualCenteringController:  #Read camera frame - Detect pink centroid (cx,
             target = self._make_target(img)
             use_roi = self._choose_roi_mode()
 
-            c = self.detector(
-                img,
-                sticker_color=self.cfg.sticker_color,
-                target_px=target,
-                use_roi=use_roi
-            )
-            
+            prev_show = self.detector.show
+            self.detector.show = False
+            try:
+                c = self.detector(
+                    img,
+                    sticker_color=self.cfg.sticker_color,
+                    target_px=target,
+                    use_roi=use_roi
+                )
+            finally:
+                self.detector.show = prev_show
+
             if c is None:
                 raise RuntimeError(f"{self.cfg.sticker_color.capitalize()} sticker not detected during Jacobian calibration.")
             return c
 
         c0 = get_centroid_for_calib()
 
-        # +X
-        self.robot.move_pose(PoseObject(
-            pose0.x + delta_m, pose0.y,
-            pose0.z, pose0.roll, pose0.pitch, pose0.yaw
-        ))
-        self._show_camera_for(settle_s)
-        c1 = get_centroid_for_calib()
+        prev_show = self.detector.show
+        self.detector.show = False
+        try:
+            # +X
+            self.robot.move_pose(PoseObject(
+                pose0.x + delta_m, pose0.y,
+                pose0.z, pose0.roll, pose0.pitch, pose0.yaw
+            ))
+            self._show_camera_for(settle_s)
+            c1 = get_centroid_for_calib()
 
-        self.robot.move_pose(pose0)
-        self._show_camera_for(settle_s)
+            self.robot.move_pose(pose0)
+            self._show_camera_for(settle_s)
 
-        self.robot.move_pose(PoseObject(
-            pose0.x, pose0.y + delta_m,
-            pose0.z, pose0.roll, pose0.pitch, pose0.yaw
-        ))
-        self._show_camera_for(settle_s)
-        c2 = get_centroid_for_calib()
+            self.robot.move_pose(PoseObject(
+                pose0.x, pose0.y + delta_m,
+                pose0.z, pose0.roll, pose0.pitch, pose0.yaw
+            ))
+            self._show_camera_for(settle_s)
+            c2 = get_centroid_for_calib()
 
-        self.robot.move_pose(pose0)
-        self._show_camera_for(settle_s)
+            self.robot.move_pose(pose0)
+            self._show_camera_for(settle_s)
+        finally:
+            self.detector.show = prev_show
 
         px0, py0 = c0
         px1, py1 = c1
@@ -581,6 +566,9 @@ class VisualCenteringController:  #Read camera frame - Detect pink centroid (cx,
 
         for i in range(1, self.cfg.max_iters + 1):
             if (time.time() - start) > self.cfg.timeout_s:  #timeout check
+                cv2.destroyWindow("Niryo Camera (vis)")
+                cv2.destroyWindow(f"{self.cfg.sticker_color.capitalize()} Mask")
+                cv2.waitKey(1)
                 return CenteringResult(False, i, last_err, last_centroid)
 
             img = self._get_frame()  #grab image and compute target
@@ -615,6 +603,9 @@ class VisualCenteringController:  #Read camera frame - Detect pink centroid (cx,
             last_err = (dx, dy)
 
             if abs(dx) <= self.cfg.deadband_px and abs(dy) <= self.cfg.deadband_px:  #stop when within deadband
+                cv2.destroyWindow("Niryo Camera (vis)")
+                cv2.destroyWindow(f"{self.cfg.sticker_color.capitalize()} Mask")
+                cv2.waitKey(1)
                 return CenteringResult(True, i, last_err, last_centroid)
 
             # Convert pixel error to robot step using Jacobian
@@ -685,37 +676,22 @@ class VisualCenteringController:  #Read camera frame - Detect pink centroid (cx,
             if not try_move(+1.0):  #if + doesnt improve try -
                 _ = try_move(-1.0)
 
+        cv2.destroyWindow("Niryo Camera (vis)")
+        cv2.destroyWindow(f"{self.cfg.sticker_color.capitalize()} Mask")
+        cv2.waitKey(1)
         return CenteringResult(False, self.cfg.max_iters, last_err, last_centroid)
-
-@dataclass(frozen=True)
-class PiecePickParams:
-    vision_drop_m: float
-    pick_drop_m: float
-    place_drop_m: float  # how far to go DOWN from current Z to contact the piece
-
-
+    
 class ElectromagnetPiecePicker:
     def __init__(
         self,
         robot: NiryoRobot,
         *,
         pin_electromagnet: PinID = PinID.DO4,
-        piece_params: Dict[str, PiecePickParams] | None = None,
         min_safe_z: float = 0.090,
     ):
         self.robot = robot
         self.pin = pin_electromagnet
         self.min_safe_z = float(min_safe_z)
-
-        self.piece_params = piece_params or {
-            piece: PiecePickParams(
-                vision_drop_m=values["vision_drop_m"],
-                pick_drop_m=values["pick_drop_m"],
-                place_drop_m=values["place_drop_m"],
-            )
-            for piece, values in PIECE_Z_HEIGHTS.items()
-        }
-
         self._magnet_setup = False
 
     def _setup_magnet_once(self):
@@ -726,16 +702,6 @@ class ElectromagnetPiecePicker:
     @staticmethod
     def _with_z(pose: PoseObject, z: float) -> PoseObject:
         return PoseObject(pose.x, pose.y, z, pose.roll, pose.pitch, pose.yaw)
-
-    def _get_piece_params(self, piece_type: str) -> PiecePickParams:
-        piece = piece_type.strip().lower()
-        params = self.piece_params.get(piece)
-        if params is None:
-            raise ValueError(
-                f"Unsupported piece_type '{piece_type}'. "
-                f"Add it to PIECE_Z_HEIGHTS at the top of the file."
-            )
-        return params
 
     def _get_piece_top_z(self, piece_type: str) -> float:
         piece = piece_type.strip().lower()
@@ -768,54 +734,6 @@ class ElectromagnetPiecePicker:
 
         self.robot.activate_electromagnet(self.pin)
         self.robot.move_pose(approach)
-
-    def place_at(
-        self,
-        piece_type: str,
-        drop_xy_pose: PoseObject,
-        *,
-        place_drop_m: float | None = None,
-    ) -> None:
-        self._setup_magnet_once()
-
-        params = self._get_piece_params(piece_type)
-
-        original_z = float(drop_xy_pose.z)
-
-        vision_z = original_z - float(params.vision_drop_m)
-        if vision_z < self.min_safe_z:
-            vision_z = self.min_safe_z
-
-        final_z = self._get_piece_top_z(piece_type)
-        if final_z < self.min_safe_z:
-            final_z = self.min_safe_z
-
-        original_pose = self._with_z(drop_xy_pose, original_z)
-        vision_pose = self._with_z(drop_xy_pose, vision_z)
-        final_pose = self._with_z(drop_xy_pose, final_z)
-
-        print(f"[PLACE] original_z={original_z:.3f}, vision_z={vision_z:.3f}, final_z={final_z:.3f}")
-
-        self.robot.move_pose(original_pose)
-        self.robot.move_pose(vision_pose)
-        self.robot.move_pose(final_pose)
-
-        pose_after = self.robot.get_pose()
-        print(f"[PLACE] actual_z={pose_after.z:.3f}")
-
-        self.robot.deactivate_electromagnet(self.pin)
-        self.robot.move_pose(original_pose)
-
-    def __call__(
-        self,
-        *,
-        piece_type: str,
-        pickup_xy_pose: PoseObject,
-        drop_xy_pose: PoseObject,
-        place_drop_m: float | None = None,
-    ) -> None:
-        self.pick_at(piece_type, pickup_xy_pose)
-        self.place_at(piece_type, drop_xy_pose, place_drop_m=place_drop_m)
 
 @dataclass
 class IntelligentPickupSystem:
@@ -893,39 +811,6 @@ class IntelligentPickupSystem:
             cfg=cfg,
         )
 
-    def move_piece(
-        self,
-        *,
-        piece_colour: str,
-        piece_type: str,
-        pickup_pose: PoseObject,
-        drop_pose: PoseObject,
-        calibrate_delta_m: float = 0.015,
-    ) -> CenteringResult:
-        self.cfg.sticker_color = sticker_from_piece_colour(piece_colour)
-        self.cfg.piece_type = piece_type.strip().lower()
-
-        self.centerer._tracking_roi = None
-        self.centerer._pre_vision_done = False
-        self.centerer.detector.roi = self.cfg.fixed_roi
-
-        self.robot.move_pose(pickup_pose)
-
-        self.centerer.calibrate_jacobian(delta_m=calibrate_delta_m)
-        result = self.centerer()
-
-        if not result.success:
-            return result
-
-        p = self.robot.get_pose()
-        pickup_xy_pose = PoseObject(p.x, p.y, p.z, p.roll, p.pitch, p.yaw)
-        self.picker.pick_at(self.cfg.piece_type, pickup_xy_pose)
-
-        self.robot.move_pose(drop_pose)
-        self.picker.place_at(self.cfg.piece_type, drop_pose)
-
-        return result
-
     def show_debug_camera_until_quit(self):
         detector = self.centerer.detector
 
@@ -948,3 +833,37 @@ class IntelligentPickupSystem:
             key = cv2.waitKey(10) & 0xFF
             if key in (ord("q"), ord("Q"), 27):
                 break
+
+    def pickup_piece(
+        self,
+        *,
+        piece: str,
+        approximate_pose: Optional[PoseObject] = None,
+        calibrate_delta_m: float = 0.015,
+    ) -> CenteringResult:
+        piece_type = piece_type_from_symbol(piece)
+        piece_colour = piece_colour_from_symbol(piece)
+
+        self.cfg.sticker_color = sticker_from_piece_colour(piece_colour)
+        self.cfg.piece_type = piece_type
+
+        self.centerer._tracking_roi = None
+        self.centerer._pre_vision_done = False
+        self.centerer.detector.roi = self.cfg.fixed_roi
+
+        if approximate_pose is None:
+            approximate_pose = self.robot.get_pose()
+
+        self.robot.move_pose(approximate_pose)
+
+        self.centerer.calibrate_jacobian(delta_m=calibrate_delta_m)
+        result = self.centerer()
+
+        if not result.success:
+            return result
+
+        p = self.robot.get_pose()
+        corrected = PoseObject(p.x, p.y, p.z, p.roll, p.pitch, p.yaw)
+        self.picker.pick_at(piece_type, corrected)
+
+        return result
