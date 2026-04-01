@@ -120,9 +120,9 @@ class RobotController:
                     self.storageOccupancy[target][i] = False
                     break
             target += targetSlot
-            targetLocation = self.locationMap[color][target]
-            self.databus.execLog.append(f"Moving to {target} ({targetLocation})...")
-            x, y, z = targetLocation["x"], targetLocation["y"], targetLocation["z"]
+        targetLocation = self.locationMap[color][target]
+        self.databus.execLog.append(f"Moving to {target} ({targetLocation})...")
+        x, y, z = targetLocation["x"], targetLocation["y"], targetLocation["z"]
 
         rm.move(x, y, z)
 
@@ -147,7 +147,7 @@ class RobotController:
                 if len(move[0])==1:
                     piece = move[0]
                 else:
-                    board.piece_at(chess.parse_square(move[0])).symbol()
+                    piece=board.piece_at(chess.parse_square(move[0])).symbol()
                 #pickup
                 self.move_to_target(rm,move[0],color)
                 self.databus.execLog.append("picking up piece")
@@ -166,6 +166,6 @@ class RobotController:
         y=-position[1]
         return x,y
 
-    def load_config(path):
+    def load_json(self,path):
         with open(path, "r") as f:
             return json.load(f)

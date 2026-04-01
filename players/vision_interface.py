@@ -1,15 +1,18 @@
 #import chess
 import subprocess
 
-import matlab.engine
+#import matlab.engine
 #eng = matlab.engine.start_matlab()
 
 class VisionInterface:
     def __init__(self):
-        print("init")
-        self.eng = matlab.engine.start_matlab()
-        self.script_path = "D:\\Chester-master\\Chester\\testbed"
-        self.eng.addpath(self.script_path, nargout=0)
+        try:
+            print("init")
+            self.eng = matlab.engine.start_matlab()
+            self.script_path = "D:\\Chester-master\\Chester\\testbed"
+            self.eng.addpath(self.script_path, nargout=0)
+        except:
+            print("unlucky kirsty and kov")
 
     def get_move(self,board_manager):
         
