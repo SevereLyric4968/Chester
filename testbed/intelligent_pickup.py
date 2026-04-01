@@ -48,6 +48,17 @@ PIECE_Z_HEIGHTS: Dict[str, Dict[str, float]] = { #all moves are currently starti
     },
 }
 
+boardHeight = 0.0520
+
+PIECE_TOP_Z_M: Dict[str, float] = {
+    "pawn":   boardHeight + 54.0 / 1000.0, #60.0
+    "rook":   boardHeight + 58.5 / 1000.0, #64.5
+    "knight": boardHeight + 63.0 / 1000.0, #69.0
+    "bishop": boardHeight + 67.5 / 1000.0, #73.5
+    "queen":  boardHeight + 72.0 / 1000.0, #78.0
+    "king":   boardHeight + 76.5 / 1000.0, #82.5
+}
+
 
 @dataclass(frozen=True)
 class PinkThresholdHSV:
@@ -304,7 +315,7 @@ class MultiColorCentroidDetector:
 
 @dataclass  #(frozen=True)
 class CenteringConfig:
-    deadband_px: int = 15  #centered condition
+    deadband_px: int = 18  #centered condition was 15
     #k_m_per_px: float = 0.5 check if use
     max_step_m: float = 0.005  #maximum x/y move
     #sign_x: int = 1
@@ -407,6 +418,22 @@ class VisualCenteringController:  #Read camera frame - Detect pink centroid (cx,
         img = uncompress_image(self.robot.get_img_compressed())
         return cv2.flip(img, 0)
 
+    def _show_camera_for(self, duration_s: float):
+        end_t = time.time() + duration_s
+        while time.time() < end_t:
+            img = self._get_frame()
+            target = self._make_target(img)
+            use_roi = self._choose_roi_mode()
+
+            self.detector(
+                img,
+                sticker_color=self.cfg.sticker_color,
+                target_px=target,
+                use_roi=use_roi
+            )
+            cv2.waitKey(1)
+            time.sleep(0.03)
+
     def _make_target(self, img: np.ndarray) -> Tuple[int, int]:
         H, W = img.shape[:2]
         ox, oy = self.cfg.target_offset_px
@@ -501,22 +528,21 @@ class VisualCenteringController:  #Read camera frame - Detect pink centroid (cx,
             pose0.x + delta_m, pose0.y,
             pose0.z, pose0.roll, pose0.pitch, pose0.yaw
         ))
-        time.sleep(settle_s)
+        self._show_camera_for(settle_s)
         c1 = get_centroid_for_calib()
 
         self.robot.move_pose(pose0)
-        time.sleep(settle_s)
+        self._show_camera_for(settle_s)
 
-        # +Y
         self.robot.move_pose(PoseObject(
             pose0.x, pose0.y + delta_m,
             pose0.z, pose0.roll, pose0.pitch, pose0.yaw
         ))
-        time.sleep(settle_s)
+        self._show_camera_for(settle_s)
         c2 = get_centroid_for_calib()
 
         self.robot.move_pose(pose0)
-        time.sleep(settle_s)
+        self._show_camera_for(settle_s)
 
         px0, py0 = c0
         px1, py1 = c1
@@ -675,13 +701,12 @@ class ElectromagnetPiecePicker:
         *,
         pin_electromagnet: PinID = PinID.DO4,
         piece_params: Dict[str, PiecePickParams] | None = None,
-        min_safe_z: float = 0.090,  # safety clamp: never go below this
+        min_safe_z: float = 0.090,
     ):
         self.robot = robot
         self.pin = pin_electromagnet
         self.min_safe_z = float(min_safe_z)
 
-        # These now come from the top-level PIECE_Z_HEIGHTS tuning table.
         self.piece_params = piece_params or {
             piece: PiecePickParams(
                 vision_drop_m=values["vision_drop_m"],
@@ -701,7 +726,7 @@ class ElectromagnetPiecePicker:
     @staticmethod
     def _with_z(pose: PoseObject, z: float) -> PoseObject:
         return PoseObject(pose.x, pose.y, z, pose.roll, pose.pitch, pose.yaw)
-    
+
     def _get_piece_params(self, piece_type: str) -> PiecePickParams:
         piece = piece_type.strip().lower()
         params = self.piece_params.get(piece)
@@ -710,15 +735,23 @@ class ElectromagnetPiecePicker:
                 f"Unsupported piece_type '{piece_type}'. "
                 f"Add it to PIECE_Z_HEIGHTS at the top of the file."
             )
-        return params    
+        return params
+
+    def _get_piece_top_z(self, piece_type: str) -> float:
+        piece = piece_type.strip().lower()
+        z = PIECE_TOP_Z_M.get(piece)
+        if z is None:
+            raise ValueError(
+                f"Unsupported piece_type '{piece_type}'. "
+                f"Add it to PIECE_TOP_Z_M at the top of the file."
+            )
+        return float(z)
 
     def pick_at(self, piece_type: str, pickup_xy_pose: PoseObject) -> None:
         self._setup_magnet_once()
 
-        params = self._get_piece_params(piece_type)
-
         approach_z = float(pickup_xy_pose.z)
-        down_z = approach_z - float(params.pick_drop_m)
+        down_z = self._get_piece_top_z(piece_type)
         if down_z < self.min_safe_z:
             down_z = self.min_safe_z
 
@@ -753,8 +786,7 @@ class ElectromagnetPiecePicker:
         if vision_z < self.min_safe_z:
             vision_z = self.min_safe_z
 
-        final_drop = params.place_drop_m if place_drop_m is None else float(place_drop_m)
-        final_z = vision_z - final_drop
+        final_z = self._get_piece_top_z(piece_type)
         if final_z < self.min_safe_z:
             final_z = self.min_safe_z
 
