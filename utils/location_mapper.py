@@ -1,7 +1,9 @@
 import json
 import os
 from pyniryo import NiryoRobot
+import inverse_kinematics.py as ik
 
+usingIK=True
 
 def generateSquares():
     files = "abcdefgh"
@@ -69,9 +71,14 @@ def calibrateBoard(robot, outputPath, pieceCounts, side):
                 return
             if cmd == "s":
                 break
-
-            pose = robot.get_pose()
-            x, y, z = pose.x, pose.y, pose.z
+            
+            x, y, z = None, None, None
+            if usingIK:
+                pose = ik.getFK(robot)
+                x, y, z = pose[0], pose[1], pose[2]
+            else:
+                pose = robot.get_pose()
+                x, y, z = pose.x, pose.y, pose.z
 
             print(f"Captured: {x:.4f}, {y:.4f}, {z:.4f}")
             confirm = input("Accept? (y/n): ").lower()
@@ -102,8 +109,13 @@ def calibrateBoard(robot, outputPath, pieceCounts, side):
                     if cmd == "s":
                         break
 
-                    pose = robot.get_pose()
-                    x, y, z = pose.x, pose.y, pose.z
+                    x, y, z = None, None, None
+                    if usingIK:
+                        pose = ik.getFK(robot)
+                        x, y, z = pose[0], pose[1], pose[2]
+                    else:
+                        pose = robot.get_pose()
+                        x, y, z = pose.x, pose.y, pose.z
 
                     print(f"Captured: {x:.4f}, {y:.4f}, {z:.4f}")
                     confirm = input("Accept? (y/n): ").lower()
