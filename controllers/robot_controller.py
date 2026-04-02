@@ -119,7 +119,7 @@ class RobotController:
                     targetSlot = i
                     self.storageOccupancy[target][i] = True
                     break
-            targetLocation=self.locationMap["white"][target][targetSlot]
+            targetLocation=self.locationMap[color][target][targetSlot]
         else:
             targetLocation = self.locationMap[color][target]
         self.databus.execLog.append(f"Moving to {target} ({targetLocation})...")
@@ -128,20 +128,18 @@ class RobotController:
         rm.move(x, y)
         return z
 
-    def execute_move_queue(self,moveQueue,board,isWhite):
+    def execute_move_queue(self,moveQueue,board,isWhite,color):
         with (self.lock):
             if isWhite:
                 if self.white_rm is None:
                     return
                 rm=self.white_rm
                 self.databus.execLog.append("White robot:")
-                color="white"
             else:
                 if self.black_rm is None:
                     return
                 rm=self.black_rm
                 self.databus.execLog.append("Black robot:")
-                color="black"
 
             self.databus.execLog.append("Starting move queue:")
             for i,move in enumerate(moveQueue):
@@ -152,15 +150,17 @@ class RobotController:
                 else:
                     piece=board.piece_at(chess.parse_square(move[0])).symbol()
                 #pickup
-                z=self.move_to_target(rm,move[0],"white")
+                z=self.move_to_target(rm,move[0],color)
                 self.databus.execLog.append("picking up piece")
                 rm.pickup(piece,z)
 
                 # place
-                z=self.move_to_target(rm,move[1],"white")
+                z=self.move_to_target(rm,move[1],color)
                 self.databus.execLog.append("picking up piece")
                 rm.place(piece,z)
 
+            if self.white_rm != self.black_rm:
+                rm.return_home()
             self.databus.robotBusy = False
 
     def translate_position(self,position,x_translation=400):
