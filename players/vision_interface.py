@@ -1,8 +1,11 @@
 #import chess
 import subprocess
+try:
+    import matlab.engine
+    eng = matlab.engine.start_matlab()
 
-import matlab.engine
-eng = matlab.engine.start_matlab()
+except ModuleNotFoundError:
+    pass
 
 class VisionInterface:
     def __init__(self):

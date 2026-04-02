@@ -33,7 +33,7 @@ class GameController:
         moveQueue,isWhite = self.rc.uci_to_move_queue(move, beforeBoard)
         threading.Thread(
             target=self.rc.execute_move_queue,
-            args=(moveQueue, beforeBoard , isWhite),
+            args=(moveQueue, beforeBoard , isWhite, currentPlayer.color),
             daemon=True
         ).start()
 
