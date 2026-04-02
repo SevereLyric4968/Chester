@@ -42,6 +42,7 @@ class RobotController:
             #drunk adam
             self.white_rm=RobotManipulator(robot_white, self.databus.robot1)
             self.black_rm=self.white_rm
+            self.robotColor="white"
         else:
             #both robots
             self.white_rm=RobotManipulator(robot_white, self.databus.robot1,True)
