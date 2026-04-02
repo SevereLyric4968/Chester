@@ -30,18 +30,21 @@ class RobotController:
         self.robotColor=None
 
         if robot_white is None and robot_black is not None:
+            #Black robot no white robot eg 1 can't connect or human
             self.white_rm=None
             self.black_rm=RobotManipulator(robot_black, self.databus.robot1)
-            self.robotColor="white"
         elif robot_white is not None and robot_black is None:
+            #White robot no black robot eg 1 can't connect or human
             self.white_rm=RobotManipulator(robot_white, self.databus.robot1)
             self.black_rm=None
             self.robotColor="black"
         elif robot_white==robot_black:
+            #drunk adam
             self.white_rm=RobotManipulator(robot_white, self.databus.robot1)
             self.black_rm=self.white_rm
         else:
-            self.white_rm=RobotManipulator(robot_white, self.databus.robot1)
+            #both robots
+            self.white_rm=RobotManipulator(robot_white, self.databus.robot1,True)
             self.black_rm=RobotManipulator(robot_black, self.databus.robot2)
 
     def uci_to_move_queue(self,move,board):

@@ -25,10 +25,10 @@ class RobotManipulator:
 
     zCalibrate=False
     usingIK=False
-    useIntelligentPickup=False
+    #useIntelligentPickup=False
 
 
-    def __init__(self,ip,databus):
+    def __init__(self,ip,databus,useIntelligentPickup=False):
         robot_ip=ip
         self.databus=databus
         self.intelligent_system = None
