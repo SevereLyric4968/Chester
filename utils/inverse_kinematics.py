@@ -9,30 +9,38 @@ import numpy as np
         self.robot = robot
 """
 def calculateIK(robot, x, y, z, *args):
-    #print("x ", x, "y", y,"z ", z)
+    print("starting")
+    print("x ", x, "y", y,"z ", z)
     d1 = 0.221 #length of first section of arm
     d2 = 0.235 #length of second section of arm
     #0.075 for end effector
     d3 = 0.075-0.1715 #roughly the height of the end effector minus the height of the first joint
     z = z + d3 #add the height of the end effector to get the position of the tip of the end effector (able to make this assumion because the end effector is always pointed down)
     #joint limits in radians -2,949 ≤ Joint 1 ≤ 2,949, -1,83 ≤ Joint 2 ≤ 0,61, -1.34 ≤ Joint 3 ≤ 1,57, -2,089 ≤ Joint 4 ≤ 2,089, -1,919 ≤ Joint 5 ≤ 1.922, -2,53 ≤ Joint 6 ≤ 2,53
+    print("m1 try")
     motorOneAngle = (np.arctan2(y,x))
+    print("m1 got")
+    print("m2 try")
     a = np.sqrt((x**2)+(y**2))
     h=np.sqrt((a**2)+(z**2))
     theta2 = np.arccos(((d1**2)+(d2**2)-(h**2))/(2*d1*d2))
     phi = np.arccos((d1**2+h**2-d2**2)/(2*d1*h))
+    print("maffs")
     lamda = np.arctan2(z,a)
     theta1 = lamda + phi
     motorTwoAngle = -(np.pi/2 - theta1)
+    print("m2 got")
     motorThreeAngle = -(np.pi/2 - theta2)
+    print("m3 got")
     motorFourAngle = 0
     psi = np.pi/2 - lamda
     zeta = np.pi - (theta2 + phi)
     theta3 = psi + zeta
     motorFiveAngle = -(np.pi - theta3)
-    motorSixAngle = 0
-    #print(motorOneAngle, motorTwoAngle, motorThreeAngle, motorFourAngle, motorFiveAngle, motorSixAngle)
+    motorSixAngle = motorOneAngle
+    print(motorOneAngle, motorTwoAngle, motorThreeAngle, motorFourAngle, motorFiveAngle, motorSixAngle)
     robot.move_joints(motorOneAngle, motorTwoAngle, motorThreeAngle, motorFourAngle, motorFiveAngle, motorSixAngle)
+    print("done")
 
 def getFK(robot):
     j1, j2, j3, j4, j5, j6 = robot.get_joints()
@@ -45,16 +53,16 @@ def getFK(robot):
     h = d1*np.cos(np.pi/2 + j2) + d2*np.sin(np.pi/2-(j3+j2))
     x = h*np.cos(j1)
     y = h*np.sin(j1)
-    #print("x ", x, "y", y,"z ", z)
+    print("x ", x, "y", y,"z ", z)
     return (x,y,z)
 
 if __name__ == "__main__":
-    robotIpAddress = "10.10.10.10"
+    robotIpAddress = "192.168.42.1"
     robot = NiryoRobot(robotIpAddress)
     robot.calibrate_auto()
     #robot.move_joints(0,0,0,0,0,0)
-    calculateIK(robot, 0.2104, 0.0440, 0.0524) #warped bottom left
-    getFK(robot)
+    calculateIK(robot, 0.3543676477996121, 0.11341379158825125, 0.0172321307395477) #warped bottom left
+    #getFK(robot)
     #print(robot.get_pose())
     #calculateIK(robot,0.353, 0.087, 0.09) #warped top right
 

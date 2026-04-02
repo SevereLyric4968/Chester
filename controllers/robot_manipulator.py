@@ -11,7 +11,7 @@ from testbed.intelligent_pickup import (
 
 class RobotManipulator:
 
-    global pieceHeights, cruiseHeight, boardHeight, zCalibrate
+    global pieceHeights, cruiseHeight, boardHeight, zCalibrate,usingIK
     pieceHeights = {
         'p': 60/1000,
         'r': 64.5/1000,
@@ -20,22 +20,28 @@ class RobotManipulator:
         'q': 78/1000,
         'k': 82.5/1000
     }
-    cruiseHeight = 0.208
-    boardHeight = 0.0530
 
     zCalibrate=False
-    usingIK=False
+    usingIK=True
+
+    """if usingIK:
+        getPose="ik.getFK(self.robot)"
+        moveTo="ik.calculateIK(self.robot,pose)"
+    else:
+        getPose="self.robot.get_pose"
+        moveTo="self.robot.move_pose(pose)"""
+
     #useIntelligentPickup=False
 
 
     def __init__(self,ip,databus,useIntelligentPickup=False):
+        print("Initializing RobotManipulator")
+
         robot_ip=ip
         self.databus=databus
         self.intelligent_system = None
         self.last_target_pose = None
         self.useIntelligentPickup=useIntelligentPickup
-
-        print("MAKING MANIPULATOR")
 
         try:
             print("trying to connect")
@@ -50,17 +56,15 @@ class RobotManipulator:
             print("robot calibrated")
             if zCalibrate:
                 self.robotCalibration = zCal.ZCalibration(self.robot)
-            
-            self.home = PoseObject(0.0023, -0.1335, 0.2, 0, math.pi/2, 0)
-            
-            print("trying ik")
 
-            if self.usingIK:
+            if usingIK:
+                self.home=(0.014421, -0.09438,0.16172)
+                print("l")
                 ik.calculateIK(self.robot, *self.home)
+                print("wasnt sam")
             else:
+                self.home = PoseObject(0.0023, -0.1335, 0.2, 0, math.pi / 2, 0)
                 self.robot.move_pose(self.home)
-
-            print("robot calculated")
             
             self.databus.homedStatus="Homed"
             self.databus.magnetStatus = "Off"
@@ -87,9 +91,10 @@ class RobotManipulator:
                 )
             else:
                 self.intelligent_system = None
-
-        except:
-            print("robot failed to connect")
+            print("robot manipulator initialised")
+        except Exception as e:
+            print(e)
+            print("robot manipulator initialization failed")
             self.robot = None
 
     def pickup(self, piece,z):
@@ -100,15 +105,20 @@ class RobotManipulator:
 
         if not self.useIntelligentPickup or self.intelligent_system is None:
             pickZ=z+pieceHeights[piece.lower()]
-            pose = self.robot.get_pose()
-            #z = self.robotCalibration.getZBaseline(pose.x, pose.y) if self.zCalibrate else self.boardHeight
-
-            target = PoseObject(pose.x, pose.y,pickZ,0, math.pi/2, 0)
-
-            self.robot.move_pose(target)
-            self.robot.activate_electromagnet(self.pin_electromagnet)
-            self.databus.magnetStatus = "On"
-            self.robot.move_pose(pose)
+            if usingIK:
+                pose=ik.getFK(self.robot)
+                target = [pose[0],pose[1],pickZ]
+                ik.calculateIK(self.robot,*target)
+                self.robot.activate_electromagnet(self.pin_electromagnet)
+                self.databus.magnetStatus = "On"
+                ik.calculateIK(self.robot,*pose)
+            else:
+                pose = self.robot.get_pose()
+                target = PoseObject(pose.x, pose.y, pickZ, 0, math.pi / 2, 0)
+                self.robot.move_pose(target)
+                self.robot.activate_electromagnet(self.pin_electromagnet)
+                self.databus.magnetStatus = "On"
+                self.robot.move_pose(pose)
             return
 
         result = self.intelligent_system.pickup_piece(
@@ -129,8 +139,9 @@ class RobotManipulator:
             self.databus.movementStatus = "Moving"
             pose = self.robot.get_pose()
             #z = self.robotCalibration.getZBaseline(pose.x, pose.y) if zCalibrate == True else boardHeight
-            if self.usingIK:
-                move = [pose.x, pose.y, z+pieceHeights[piece.lower()], 0, math.pi/2, 0]
+            if usingIK:
+                pose=ik.getFK(self.robot)
+                move = [pose[0], pose[1], z+pieceHeights[piece.lower()], 0, math.pi/2, 0]
                 ik.calculateIK(self.robot,*move)
             else:
                 move=PoseObject(pose.x, pose.y, placeZ, 0, math.pi/2, 0)
@@ -140,7 +151,7 @@ class RobotManipulator:
             self.databus.magnetStatus = "Off"
 
             # raise
-            if self.usingIK:
+            if usingIK:
                 ik.calculateIK(self.robot, *pose)
             else:
                 self.robot.move_pose(pose)
@@ -154,7 +165,7 @@ class RobotManipulator:
             print("y =",y)
             print("z =",z)
 
-            if self.usingIK:
+            if usingIK:
                 move=[x, y, z, 0, math.pi/2, 0]
                 ik.calculateIK(self.robot,*move)
             else:
@@ -164,7 +175,7 @@ class RobotManipulator:
     def return_home(self):
         if self.robot is not None:
             print("trying")
-            if self.usingIK:
+            if usingIK:
                 ik.calculateIK(self.robot, self.home[0], self.home[1], self.home[2])
             else:
                 self.robot.move_pose(self.home)

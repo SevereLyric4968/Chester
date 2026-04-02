@@ -1,7 +1,7 @@
 import json
 import os
 from pyniryo import NiryoRobot
-import inverse_kinematics.py as ik
+import utils.inverse_kinematics as ik
 
 usingIK=True
 
