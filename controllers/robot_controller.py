@@ -27,12 +27,16 @@ class RobotController:
             "p": [False, False, False, False, False, False, False, False]
         }
 
+        self.robotColor=None
+
         if robot_white is None and robot_black is not None:
             self.white_rm=None
             self.black_rm=RobotManipulator(robot_black, self.databus.robot1)
+            self.robotColor="white"
         elif robot_white is not None and robot_black is None:
             self.white_rm=RobotManipulator(robot_white, self.databus.robot1)
             self.black_rm=None
+            self.robotColor="black"
         elif robot_white==robot_black:
             self.white_rm=RobotManipulator(robot_white, self.databus.robot1)
             self.black_rm=self.white_rm
@@ -140,6 +144,9 @@ class RobotController:
                     return
                 rm=self.black_rm
                 self.databus.execLog.append("Black robot:")
+
+            if self.robotColor is not None:
+                color=self.robotColor
 
             self.databus.execLog.append("Starting move queue:")
             for i,move in enumerate(moveQueue):
