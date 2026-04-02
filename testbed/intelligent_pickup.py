@@ -24,15 +24,13 @@ PIECE_VISION_DROP_M: Dict[str, float] = {
     "k": 0.0,
 }
 
-boardHeight = 0.0520
-
-PIECE_TOP_Z_M: Dict[str, float] = {
-    "p":   boardHeight + 54.0 / 1000.0, #60.0
-    "r":   boardHeight + 58.5 / 1000.0, #64.5
-    "n": boardHeight + 63.0 / 1000.0, #69.0
-    "b": boardHeight + 67.5 / 1000.0, #73.5
-    "q":  boardHeight + 72.0 / 1000.0, #78.0
-    "k":   boardHeight + 76.5 / 1000.0, #82.5
+PIECE_HEIGHT_M: Dict[str, float] = {
+    "p": 60.0 / 1000.0,
+    "r": 64.5 / 1000.0,
+    "n": 69.0 / 1000.0,
+    "b": 73.5 / 1000.0,
+    "q": 78.0 / 1000.0,
+    "k": 82.5 / 1000.0,
 }
 
 def piece_colour_from_symbol(piece: str) -> str:
@@ -703,21 +701,21 @@ class ElectromagnetPiecePicker:
     def _with_z(pose: PoseObject, z: float) -> PoseObject:
         return PoseObject(pose.x, pose.y, z, pose.roll, pose.pitch, pose.yaw)
 
-    def _get_piece_top_z(self, piece_type: str) -> float:
+    def _get_piece_height(self, piece_type: str) -> float:
         piece = piece_type.strip().lower()
-        z = PIECE_TOP_Z_M.get(piece)
+        z = PIECE_HEIGHT_M.get(piece)
         if z is None:
             raise ValueError(
                 f"Unsupported piece_type '{piece_type}'. "
-                f"Add it to PIECE_TOP_Z_M at the top of the file."
+                f"Add it to PIECE_HEIGHT_M at the top of the file."
             )
         return float(z)
 
-    def pick_at(self, piece_type: str, pickup_xy_pose: PoseObject) -> None:
+    def pick_at(self, piece_type: str, pickup_xy_pose: PoseObject, pickup_z: float) -> None:
         self._setup_magnet_once()
 
         approach_z = float(pickup_xy_pose.z)
-        down_z = self._get_piece_top_z(piece_type)
+        down_z = float(pickup_z) + self._get_piece_height(piece_type)
         if down_z < self.min_safe_z:
             down_z = self.min_safe_z
 
@@ -734,6 +732,26 @@ class ElectromagnetPiecePicker:
 
         self.robot.activate_electromagnet(self.pin)
         self.robot.move_pose(approach)
+
+    def blind_pick_at(self, piece_type: str, pickup_xy_pose: PoseObject, pickup_z: float) -> None:
+        self._setup_magnet_once()
+
+        down_z = float(pickup_z) + self._get_piece_height(piece_type)
+        if down_z < self.min_safe_z:
+            down_z = self.min_safe_z
+
+        down = self._with_z(pickup_xy_pose, down_z)
+
+        print(f"[BLIND PICK] approach_z={pickup_xy_pose.z:.3f}, down_z={down_z:.3f}")
+
+        self.robot.move_pose(pickup_xy_pose)
+        self.robot.move_pose(down)
+
+        pose_after = self.robot.get_pose()
+        print(f"[BLIND PICK] actual_z={pose_after.z:.3f}")
+
+        self.robot.activate_electromagnet(self.pin)
+        self.robot.move_pose(pickup_xy_pose)
 
 @dataclass
 class IntelligentPickupSystem:
@@ -838,8 +856,10 @@ class IntelligentPickupSystem:
         self,
         *,
         piece: str,
+        pickup_z: float,
         approximate_pose: Optional[PoseObject] = None,
         calibrate_delta_m: float = 0.015,
+        fallback_to_blind_pick: bool = True,
     ) -> CenteringResult:
         piece_type = piece_type_from_symbol(piece)
         piece_colour = piece_colour_from_symbol(piece)
@@ -859,11 +879,16 @@ class IntelligentPickupSystem:
         self.centerer.calibrate_jacobian(delta_m=calibrate_delta_m)
         result = self.centerer()
 
-        if not result.success:
+        if result.success:
+            p = self.robot.get_pose()
+            corrected = PoseObject(p.x, p.y, p.z, p.roll, p.pitch, p.yaw)
+            self.picker.pick_at(piece_type, corrected, pickup_z)
             return result
 
-        p = self.robot.get_pose()
-        corrected = PoseObject(p.x, p.y, p.z, p.roll, p.pitch, p.yaw)
-        self.picker.pick_at(piece_type, corrected)
+        if fallback_to_blind_pick:
+            print(f"[INTELLIGENT PICKUP] Centering failed, falling back to blind pickup at approximate pose.")
+            self.robot.move_pose(approximate_pose)
+            self.picker.blind_pick_at(piece_type, approximate_pose, pickup_z)
+            return CenteringResult(True, result.iters, result.last_error_px, result.last_centroid_px)
 
         return result

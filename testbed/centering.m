@@ -10,7 +10,7 @@ global path;
 %mode = "";
 %imgRGB= imread("D:\Chester-master\Chester\testbed\image_base_folder\photo_0008_20260320_125023.png");
 %Take Photo
-baseFolder = fullfile("D:\Chester-master\Chester\testbed\image_base_folder\img"); % change as needed
+baseFolder = fullfile("testbed\image_base_folder\img"); % change as needed
 cameraName = 'DroidCam Video';              % set to your camera name or leave empty to use first
 
 % Ensure output folder exists
