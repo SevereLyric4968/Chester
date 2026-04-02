@@ -38,11 +38,13 @@ class RobotController:
             self.black_rm=None
             self.robotColor="black"
         elif robot_white==robot_black:
+            #Drunk Adam
             self.white_rm=RobotManipulator(robot_white, self.databus.robot1)
             self.black_rm=self.white_rm
         else:
             self.white_rm=RobotManipulator(robot_white, self.databus.robot1)
             self.black_rm=RobotManipulator(robot_black, self.databus.robot2)
+            self.white_rm.useIntelligentPickup=True
 
     def uci_to_move_queue(self,move,board):
 
