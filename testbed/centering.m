@@ -3,7 +3,7 @@
 % Full camera control (expand later)
 global imgRGB;
 %and process_pieces
-global fname;
+global path;
 
 
 %calibration or off
@@ -112,7 +112,7 @@ W = round(max(norm(corners(1,:)-corners(2,:)), norm(corners(4,:)-corners(3,:))))
 H = round(max(norm(corners(1,:)-corners(4,:)), norm(corners(2,:)-corners(3,:))));
 
 %compute difstance between
-padding = 10; % pixels to crop inward on each side, adjust as needed
+padding = 15; % pixels to crop inward on each side, adjust as needed
 
 dstPoints = [1+padding, 1+padding; 
              W-padding, 1+padding; 
@@ -153,6 +153,27 @@ if isfile('board_calibration.mat')
         board_dictionary(current_key) = val_cell;
     end
     save("D:\Chester-master\Chester\testbed\board_adjusted.mat", 'board_dictionary');
+else
+    print("No calibration file found. Please run process_board.m on an empty board.")
+end
+
+if isfile('storage_calibration.mat')
+    %update the image co-ordinates to board_adjusted (new file)
+    S = load("storage_calibration.mat");
+    storage_dictionary = S.storage_dictionary;
+    all_keys = storage_dictionary.keys;
+
+    for i = 1:numel(all_keys)
+        current_key = all_keys(i);
+        val_cell = storage_dictionary(current_key); %cell array
+        coords = val_cell{1}; % Unpack the cell to get [X, Y] 
+        [X, Y] = transformPointsInverse(tform, coords(:,1), coords(:,2));
+        plot(X, Y, 'ro', 'MarkerSize', 8, 'LineWidth', 1.5);
+        fprintf('square %s: [X: %8.2f, Y: %8.2f]\n', current_key, coords(1), coords(2));
+        val_cell{1} = [X(:), Y(:)];
+        storage_dictionary(current_key) = val_cell;
+    end
+    save("D:\Chester-master\Chester\testbed\storage_adjusted.mat", 'storage_dictionary');
 else
     print("No calibration file found. Please run process_board.m on an empty board.")
 end

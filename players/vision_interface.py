@@ -1,8 +1,8 @@
 #import chess
 import subprocess
 
-#import matlab.engine
-#eng = matlab.engine.start_matlab()
+import matlab.engine
+eng = matlab.engine.start_matlab()
 
 class VisionInterface:
     def __init__(self):
@@ -36,9 +36,9 @@ class VisionInterface:
     def process_pieces(self):
         print("process_pieces")
         self.eng.process_pieces(nargout=0)
-        blackOccupancyMap = self.eng.workspace['black_occupancy_grid']
-        whiteOccupancyMap = self.eng.workspace['white_occupancy_grid']
-        return blackOccupancyMap, whiteOccupancyMap
+        black_game_occupancy = self.eng.workspace['black_game_occupancy']
+        white_game_occupancy = self.eng.workspace['white_game_occupancy']
+        return black_game_occupancy, white_game_occupancy
     
     def calibrate(self):
         print("calibrate")
@@ -145,6 +145,7 @@ def convert_to_uci(move):
 
 if __name__ == "__main__":
     vision = VisionInterface()
-    image = vision.take_image()
-    whiteOccupancyMap, blackOccupancyMap = vision.process_pieces()
-    vision.parse_move(bm.board, whiteOccupancyMap, blackOccupancyMap) #bm.board pass from someone else
+    vision.take_image()
+    vision.calibrate()
+    vision.take_image()
+    vision.process_pieces()
