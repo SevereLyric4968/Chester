@@ -70,9 +70,11 @@ def build():
         if config["robot_side"]=="white":
             white_robot=config["white_robot_ip"]
             black_robot=config["white_robot_ip"]
+            databus.robotColor="white"
         else:
             white_robot=config["black_robot_ip"]
             black_robot=config["black_robot_ip"]
+            databus.robotColor = "black"
     elif config["control_type"]=="man vs ned":
         if config["robot_side"] == "white":
             white_robot = config["white_robot_ip"]

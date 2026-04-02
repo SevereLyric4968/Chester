@@ -118,7 +118,7 @@ def calibrateBoard(robot, outputPath, pieceCounts, side):
 
     print(f"\n{side} calibration complete.")
 
-robot = NiryoRobot("192.168.42.2")
+robot = NiryoRobot("192.168.42.1")
 robot.calibrate_auto()
 
 pieceCounts = {
@@ -130,4 +130,4 @@ pieceCounts = {
         "p": 8
     }
 
-calibrateBoard(robot, r"D:\Chester-master\Chester\testbed\testLocations.json", pieceCounts,"black")
+calibrateBoard(robot, r"C:\Users\Jayda\PycharmProjects\Chester\testbed\IKLocations.json", pieceCounts,"white")

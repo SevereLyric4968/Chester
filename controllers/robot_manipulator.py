@@ -33,6 +33,7 @@ class RobotManipulator:
         self.databus=databus
         self.intelligent_system = None
         self.last_target_pose = None
+        self.useIntelligentPickup=useIntelligentPickup
 
         print("MAKING MANIPULATOR")
 
