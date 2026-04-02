@@ -10,7 +10,7 @@ class RobotController:
         self.lock=threading.Lock()
         self.databus=databus
 
-        self.locationMap=self.load_json(r"C:\Users\Jayda\PycharmProjects\Chester\testbed\testLocations.json")
+        self.locationMap=self.load_json("testbed/testLocations.json")
         self.storageOccupancy={
             "K":[False],
             "Q":[False,True],

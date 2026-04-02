@@ -4,7 +4,7 @@ from pyniryo import NiryoRobot
 
 
 def generateSquares():
-    files = "ABCDEFGH"
+    files = "abcdefgh"
     ranks = "12345678"
 
     squares = []
@@ -21,7 +21,7 @@ def initSideTemplate(pieceCounts):
     sideData = {}
 
     # board squares
-    for f in "ABCDEFGH":
+    for f in "abcdefgh":
         for r in "12345678":
             sideData[f + r] = {"x": 0, "y": 0, "z": 0}
 
@@ -118,7 +118,7 @@ def calibrateBoard(robot, outputPath, pieceCounts, side):
 
     print(f"\n{side} calibration complete.")
 
-robot = NiryoRobot("192.168.42.1")
+robot = NiryoRobot("192.168.42.2")
 robot.calibrate_auto()
 
 pieceCounts = {
@@ -130,4 +130,4 @@ pieceCounts = {
         "p": 8
     }
 
-calibrateBoard(robot, r"C:\Users\Jayda\PycharmProjects\Chester\testbed\testLocations.json", pieceCounts,"white")
+calibrateBoard(robot, r"D:\Chester-master\Chester\testbed\testLocations.json", pieceCounts,"black")

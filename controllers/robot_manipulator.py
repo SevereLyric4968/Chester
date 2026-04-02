@@ -25,7 +25,7 @@ class RobotManipulator:
 
     zCalibrate=False
     usingIK=False
-    useIntelligentPickup=False
+    useIntelligentPickup=True
 
 
     def __init__(self,ip,databus):
@@ -66,12 +66,12 @@ class RobotManipulator:
             self.databus.movementStatus = "Idle"
 
             cfg = CenteringConfig(
-                deadband_px=15,
+                deadband_px=18,
                 max_step_m=0.004,
                 dt_s=0.15,
                 max_iters=600,
                 timeout_s=59.0,
-                target_offset_px=(0, -90),
+                target_offset_px=(-40, -60),
                 use_tracking_roi=True,
                 tracking_roi_size=(260, 260),
             )
@@ -112,6 +112,7 @@ class RobotManipulator:
 
         result = self.intelligent_system.pickup_piece(
             piece=piece,
+            pickup_z=z,
             approximate_pose=self.robot.get_pose(),
         )
 

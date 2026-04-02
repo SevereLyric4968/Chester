@@ -1,17 +1,22 @@
 #import chess
 import subprocess
+"""
+#import matlab.engine
+eng = matlab.engine.start_matlab()
+"""
+
 try:
     import matlab.engine
     eng = matlab.engine.start_matlab()
-
-except ModuleNotFoundError:
-    pass
+except Exception as e:
+    print("MATLAB not available:", e)
+    eng = None
 
 class VisionInterface:
     def __init__(self):
         try:
             print("init")
-            self.eng = matlab.engine.start_matlab()
+            self.eng = eng #self.eng = matlab.engine.start_matlab()
             self.script_path = "D:\\Chester-master\\Chester\\testbed"
             self.eng.addpath(self.script_path, nargout=0)
         except:
