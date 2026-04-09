@@ -39,8 +39,13 @@ def calculateIK(robot, x, y, z, *args):
     motorFiveAngle = -(np.pi - theta3)
     motorSixAngle = motorOneAngle
     print(motorOneAngle, motorTwoAngle, motorThreeAngle, motorFourAngle, motorFiveAngle, motorSixAngle)
+    if(np.isnan(angle) for angle in [motorOneAngle, motorTwoAngle, motorThreeAngle, motorFourAngle, motorFiveAngle, motorSixAngle]):
+        print("point too far for arm to reach")
+        return
+    if(-2.949 > motorOneAngle > 2.949 or -1.83 > motorTwoAngle > 0.61 or -1.34 > motorThreeAngle > 1.57 or -2.089 > motorFourAngle > 2.089 or -1.919 > motorFiveAngle > 1.922 or -2.53 > motorSixAngle > 2.53):
+        print("calculated angles are out of bounds")
+        return
     robot.move_joints(motorOneAngle, motorTwoAngle, motorThreeAngle, motorFourAngle, motorFiveAngle, motorSixAngle)
-    print("done")
 
 def getFK(robot):
     j1, j2, j3, j4, j5, j6 = robot.get_joints()
@@ -61,7 +66,7 @@ if __name__ == "__main__":
     robot = NiryoRobot(robotIpAddress)
     robot.calibrate_auto()
     #robot.move_joints(0,0,0,0,0,0)
-    calculateIK(robot, 0.3543676477996121, 0.11341379158825125, 0.0172321307395477) #warped bottom left
+    calculateIK(robot, 0.0001,0.0001,0.0975) #warped bottom left
     #getFK(robot)
     #print(robot.get_pose())
     #calculateIK(robot,0.353, 0.087, 0.09) #warped top right
