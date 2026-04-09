@@ -11,11 +11,11 @@ import numpy as np
 def calculateIK(robot, x, y, z, *args):
     print("starting")
     print("x ", x, "y", y,"z ", z)
+    baseHeight = 0.1715
     d1 = 0.221 #length of first section of arm
     d2 = 0.235 #length of second section of arm
-    #0.075 for end effector
-    d3 = 0.075-0.1715 #roughly the height of the end effector minus the height of the first joint
-    z = z + d3 #add the height of the end effector to get the position of the tip of the end effector (able to make this assumion because the end effector is always pointed down)
+    d3 = 0.075 #roughly the height of the end effector minus the height of the first joint
+    z = z + d3 - baseHeight #add the height of the end effector to get the position of the tip of the end effector (able to make this assumion because the end effector is always pointed down)
     #joint limits in radians -2,949 ≤ Joint 1 ≤ 2,949, -1,83 ≤ Joint 2 ≤ 0,61, -1.34 ≤ Joint 3 ≤ 1,57, -2,089 ≤ Joint 4 ≤ 2,089, -1,919 ≤ Joint 5 ≤ 1.922, -2,53 ≤ Joint 6 ≤ 2,53
     print("m1 try")
     motorOneAngle = (np.arctan2(y,x))
@@ -39,10 +39,10 @@ def calculateIK(robot, x, y, z, *args):
     motorFiveAngle = -(np.pi - theta3)
     motorSixAngle = motorOneAngle
     print(motorOneAngle, motorTwoAngle, motorThreeAngle, motorFourAngle, motorFiveAngle, motorSixAngle)
-    if(np.isnan(angle) for angle in [motorOneAngle, motorTwoAngle, motorThreeAngle, motorFourAngle, motorFiveAngle, motorSixAngle]):
+    if(any(np.isnan(angle) for angle in [motorOneAngle, motorTwoAngle, motorThreeAngle, motorFourAngle, motorFiveAngle, motorSixAngle])):
         print("point too far for arm to reach")
         return
-    if(-2.949 > motorOneAngle > 2.949 or -1.83 > motorTwoAngle > 0.61 or -1.34 > motorThreeAngle > 1.57 or -2.089 > motorFourAngle > 2.089 or -1.919 > motorFiveAngle > 1.922 or -2.53 > motorSixAngle > 2.53):
+    if(not(-2.949 < motorOneAngle < 2.949) or not(-1.83 < motorTwoAngle < 0.61) or not(-1.34 < motorThreeAngle < 1.57) or not(-2.089 < motorFourAngle < 2.089) or not(-1.919 < motorFiveAngle < 1.922) or not(-2.53 < motorSixAngle < 2.53)):
         print("calculated angles are out of bounds")
         return
     robot.move_joints(motorOneAngle, motorTwoAngle, motorThreeAngle, motorFourAngle, motorFiveAngle, motorSixAngle)
@@ -66,8 +66,8 @@ if __name__ == "__main__":
     robot = NiryoRobot(robotIpAddress)
     robot.calibrate_auto()
     #robot.move_joints(0,0,0,0,0,0)
-    calculateIK(robot, 0.0001,0.0001,0.0975) #warped bottom left
-    #getFK(robot)
+    calculateIK(robot, 0.26993942034112556, -0.011295693362662618, 0.09742201572241542)
+    getFK(robot)
     #print(robot.get_pose())
     #calculateIK(robot,0.353, 0.087, 0.09) #warped top right
 
