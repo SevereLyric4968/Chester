@@ -1,7 +1,7 @@
 import json
 import threading
 import chess
-from controllers.robot_manipulator import RobotManipulator
+from testbed.robot_manipulator_new_ik import RobotManipulator
 
 class RobotController:
 
