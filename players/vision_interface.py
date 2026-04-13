@@ -1,9 +1,5 @@
-#import chess
+import chess
 import subprocess
-"""
-#import matlab.engine
-eng = matlab.engine.start_matlab()
-"""
 
 try:
     import matlab.engine
@@ -25,15 +21,15 @@ class VisionInterface:
     def get_move(self,board_manager):
         
         while True:
-            if "button pressed":
-                image=self.take_image()
-                #print(image)
-                newBoard=self.process_pieces(image)
-                move = self.parse_move(board_manager.board,newBoard)
+            input("Please press enter when move is complete.") #wait for key press
+            image=self.take_image()
+            #print(image)
+            newBoard=self.process_pieces(image)
+            move = self.parse_move(board_manager.board,newBoard)
 
-                if move in board_manager.get_legal_moves():
-                    return move
-                print("Invalid or illegal move, try again.")
+            if move in board_manager.get_legal_moves():
+                return move
+            print("Invalid or illegal move, try again.")
 
     def take_image(self):
         print("take_image")

@@ -61,7 +61,7 @@ if __name__ == "__main__":
     robot = NiryoRobot(robotIpAddress)
     robot.calibrate_auto()
     #robot.move_joints(0,0,0,0,0,0)
-    calculateIK(robot, 0.3543676477996121, 0.11341379158825125, 0.0172321307395477) #warped bottom left
+    calculateIK(robot, 0.12380003928137202, -0.012949346433395688, 0.03890685072932594+69/1000) #warped bottom left
     #getFK(robot)
     #print(robot.get_pose())
     #calculateIK(robot,0.353, 0.087, 0.09) #warped top right
