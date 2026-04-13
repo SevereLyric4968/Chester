@@ -8,30 +8,28 @@ import numpy as np
     def __init__(self, robot): #the desired end effector position in meters and radians
         self.robot = robot
 """
+baseHeight = 0.1715
+d1Length = 0.221 #length of first section of arm
+d1Offset = 0.009 #offset between second and third motor
+d2Length = 0.235 #length of second section of arm
+d2Offset = 0.0375 #offset between third and fifth motor
+d3 = 0.075 #roughly the height of the end effector minus the height of the first joint
+
 def calculateIK(robot, x, y, z, *args):
-    print("starting")
     print("x ", x, "y", y,"z ", z)
-    d1 = 0.221 #length of first section of arm
-    d2 = 0.235 #length of second section of arm
-    #0.075 for end effector
-    d3 = 0.075-0.1715 #roughly the height of the end effector minus the height of the first joint
-    z = z + d3 #add the height of the end effector to get the position of the tip of the end effector (able to make this assumion because the end effector is always pointed down)
+    d1 = np.sqrt((d1Length**2) + (d1Offset**2))
+    d2 = np.sqrt((d2Length**2) + (d2Offset**2))
+    z = z + d3 - baseHeight #add the height of the end effector to get the position of the tip of the end effector (able to make this assumion because the end effector is always pointed down)
     #joint limits in radians -2,949 ≤ Joint 1 ≤ 2,949, -1,83 ≤ Joint 2 ≤ 0,61, -1.34 ≤ Joint 3 ≤ 1,57, -2,089 ≤ Joint 4 ≤ 2,089, -1,919 ≤ Joint 5 ≤ 1.922, -2,53 ≤ Joint 6 ≤ 2,53
-    print("m1 try")
     motorOneAngle = (np.arctan2(y,x))
-    print("m1 got")
-    print("m2 try")
     a = np.sqrt((x**2)+(y**2))
     h=np.sqrt((a**2)+(z**2))
-    theta2 = np.arccos(((d1**2)+(d2**2)-(h**2))/(2*d1*d2))
+    theta2 = np.arccos(((d1**2)+(d2**2)-(h**2))/(2*d1*d2)) - np.arctan2(d2Offset, d2Length)
     phi = np.arccos((d1**2+h**2-d2**2)/(2*d1*h))
-    print("maffs")
     lamda = np.arctan2(z,a)
-    theta1 = lamda + phi
+    theta1 = lamda + phi + np.arctan2(d1Offset, d1Length)
     motorTwoAngle = -(np.pi/2 - theta1)
-    print("m2 got")
     motorThreeAngle = -(np.pi/2 - theta2)
-    print("m3 got")
     motorFourAngle = 0
     psi = np.pi/2 - lamda
     zeta = np.pi - (theta2 + phi)
@@ -39,16 +37,21 @@ def calculateIK(robot, x, y, z, *args):
     motorFiveAngle = -(np.pi - theta3)
     motorSixAngle = motorOneAngle
     print(motorOneAngle, motorTwoAngle, motorThreeAngle, motorFourAngle, motorFiveAngle, motorSixAngle)
+    if(any(np.isnan(angle) for angle in [motorOneAngle, motorTwoAngle, motorThreeAngle, motorFourAngle, motorFiveAngle, motorSixAngle])):
+        print("point too far for arm to reach")
+        return
+    if(not(-2.949 < motorOneAngle < 2.949) or not(-1.83 < motorTwoAngle < 0.61) or not(-1.34 < motorThreeAngle < 1.57) or not(-2.089 < motorFourAngle < 2.089) or not(-1.919 < motorFiveAngle < 1.922) or not(-2.53 < motorSixAngle < 2.53)):
+        print("calculated angles are out of bounds")
+        return
     robot.move_joints(motorOneAngle, motorTwoAngle, motorThreeAngle, motorFourAngle, motorFiveAngle, motorSixAngle)
-    print("done")
 
 def getFK(robot):
     j1, j2, j3, j4, j5, j6 = robot.get_joints()
-    baseHeight = 0.1715
-    d1 = 0.221 #length of first section of arm
-    d2 = 0.235 #length of second section of arm
+    d1 = np.sqrt((d1Length**2) + (d1Offset**2))
+    d2 = np.sqrt((d2Length**2) + (d2Offset**2))
     #0.075 for end effector
-    d3 = 0.075
+    j2 = j2 - np.arctan2(d1Offset, d1Length)
+    j3 = j3 + np.arctan2(d2Offset, d2Length)
     z = baseHeight + d1*np.sin(np.pi/2 + j2) + d2*np.cos(np.pi/2-(j3+j2)) + d3*np.cos(np.pi/2-(j3+j2)-j5)
     h = d1*np.cos(np.pi/2 + j2) + d2*np.sin(np.pi/2-(j3+j2))
     x = h*np.cos(j1)
@@ -60,11 +63,16 @@ if __name__ == "__main__":
     robotIpAddress = "192.168.42.1"
     robot = NiryoRobot(robotIpAddress)
     robot.calibrate_auto()
+    pin_electromagnet = PinID.DO4
+    robot.setup_electromagnet(pin_electromagnet)
+    robot.activate_electromagnet(pin_electromagnet)
+
+    #board height
+    #calculateIK(robot, 0.118974, -0.015566, 0.03613866)
     #robot.move_joints(0,0,0,0,0,0)
-    calculateIK(robot, 0.12380003928137202, -0.012949346433395688, 0.03890685072932594+69/1000) #warped bottom left
-    #getFK(robot)
+    #calculateIK(robot, 0.372028, -0.016702, 0.03613866)
+    getFK(robot)
     #print(robot.get_pose())
-    #calculateIK(robot,0.353, 0.087, 0.09) #warped top right
 
     # A1 (0.353, -0.116, 0.055)  #old board 0.307, 0.095, 0.045
     # B2 (0.35,0.0921)
