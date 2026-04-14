@@ -142,4 +142,7 @@ pieceCounts = {
         "p": 8
     }
 
-calibrateBoard(robot, r"testbed\IKLocations.json", pieceCounts,"white")
+if usingIK:
+    calibrateBoard(robot, r"testbed\IKLocations.json", pieceCounts,"white")
+else:
+    calibrateBoard(robot, r"testbed\testLocations.json", pieceCounts, "white")

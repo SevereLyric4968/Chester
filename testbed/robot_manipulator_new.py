@@ -36,7 +36,7 @@ class RobotManipulator:
             self.robot.calibrate_auto()
             print("robot calibrated")
 
-            self.return_home()
+            self.return_home(0.0023, -0.1335,0.2,0,math.pi/2,0)
 
             self.databus.homedStatus = "Homed"
             self.databus.magnetStatus = "Off"

@@ -10,7 +10,7 @@ class RobotController:
         self.lock=threading.Lock()
         self.databus=databus
 
-        locationFile="normal.json" if databus.usingCustomIK else "customIK.json"
+        locationFile="normal_locations.json" if databus.usingCustomIK else "custom_ik_locations.json"
         self.locationMap=self.load_json("location_maps/"+locationFile)
         self.storageOccupancy={
             "K":[False],
@@ -33,20 +33,20 @@ class RobotController:
         if robot_white is None and robot_black is not None:
             #Black robot no white robot eg 1 can't connect or human
             self.white_rm=None
-            self.black_rm=RobotManipulator(robot_black, self.databus.robot1)
+            self.black_rm=RobotManipulator(robot_black, self.databus.robot1,databus.usingCustomIK)
         elif robot_white is not None and robot_black is None:
             #White robot no black robot eg 1 can't connect or human
-            self.white_rm=RobotManipulator(robot_white, self.databus.robot1)
+            self.white_rm=RobotManipulator(robot_white, self.databus.robot1,databus.usingCustomIK)
             self.black_rm=None
         elif robot_white==robot_black:
             #drunk adam
-            self.white_rm=RobotManipulator(robot_white, self.databus.robot1)
+            self.white_rm=RobotManipulator(robot_white, self.databus.robot1,databus.usingCustomIK)
             self.black_rm=self.white_rm
             self.robotColor=databus.robotColor
         else:
             #both robots
-            self.white_rm=RobotManipulator(robot_white, self.databus.robot1)
-            self.black_rm=RobotManipulator(robot_black, self.databus.robot2)
+            self.white_rm=RobotManipulator(robot_white, self.databus.robot1,databus.usingCustomIK)
+            self.black_rm=RobotManipulator(robot_black, self.databus.robot2,databus.usingCustomIK)
             #self.white_rm.useIntelligentPickup=True
 
     def uci_to_move_queue(self,move,board):
