@@ -93,11 +93,13 @@ def build():
     else:
         raise ValueError("Invalid control_type")
 
+    databus.usingCustomIK=config["use_custom_ik"]
+
     controller = GameController(
         board_manager=bm,
         white_player=white,
         black_player=black,
-        robot_controller=RobotController(white_robot, black_robot,databus,config["location_map"]),
+        robot_controller=RobotController(white_robot, black_robot,databus),
         gui=gui,
         databus=databus
     )
