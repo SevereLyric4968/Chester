@@ -1,7 +1,7 @@
 import json
 import os
 from pyniryo import NiryoRobot
-import utils.inverse_kinematics as ik
+import inverse_kinematics as ik
 
 usingIK=True
 
@@ -142,4 +142,4 @@ pieceCounts = {
         "p": 8
     }
 
-calibrateBoard(robot, r"C:\Users\Jayda\PycharmProjects\Chester\testbed\IKLocations.json", pieceCounts,"white")
+calibrateBoard(robot, r"testbed\IKLocations.json", pieceCounts,"white")

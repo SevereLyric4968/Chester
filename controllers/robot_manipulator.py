@@ -13,12 +13,20 @@ class RobotManipulator:
 
     global pieceHeights, cruiseHeight, boardHeight, zCalibrate,usingIK
     pieceHeights = {
-        'p': 60/1000,
-        'r': 64.5/1000,
-        'n': 69/1000,
-        'b': 73.5/1000,
-        'q': 78/1000,
-        'k': 82.5/1000
+        #heights needed for custom kinematics
+        'p': 56/1000,
+        'r': 62/1000,
+        'n': 66/1000,
+        'b': 71/1000,
+        'q': 77/1000,
+        'k': 77/1000
+        #actual heights
+        #'p': 60/1000,
+        #'r': 64.5/1000,
+        #'n': 69/1000,
+        #'b': 73.5/1000,
+        #'q': 78/1000,
+        #'k': 82.5/1000
     }
 
     zCalibrate=False

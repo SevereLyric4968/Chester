@@ -7,12 +7,12 @@ import math
 class RobotManipulator:
     global pieceHeights
     pieceHeights = {
-        'p': 60 / 1000,
-        'r': 64.5 / 1000,
-        'n': 69 / 1000,
-        'b': 73.5 / 1000,
-        'q': 78 / 1000,
-        'k': 82.5 / 1000
+        'p': 56/1000,
+        'r': 62/1000,
+        'n': 66/1000,
+        'b': 70/1000,
+        'q': 76/1000,
+        'k': 77/1000
     }
 
     def __init__(self, ip, databus):
@@ -57,7 +57,6 @@ class RobotManipulator:
         self.databus.homedStatus = "Not Homed"
         self.databus.movementStatus = "Moving"
 
-        x,y,z = ik.getFK()
         ik.calculateIK(self.robot,x,y,z)
         self.databus.homedStatus = "Idle"
 
@@ -99,7 +98,10 @@ class RobotManipulator:
         preDropX,preDropY,preDropZ = ik.getFK(self.robot)
 
         self.databus.movementStatus = "Moving"
-        ik.calculateIK(self.robot,preDropX,preDropY,targetZ)
+        deltaZ=preDropZ-targetZ
+        incremnents=2
+        for i in range(incremnents):
+            ik.calculateIK(self.robot,preDropX,preDropY,preDropZ-deltaZ*(i+1)/incremnents)
         self.toggle_magnet()
         ik.calculateIK(self.robot,preDropX,preDropY,preDropZ)
         self.databus.movementStatus = "Idle"
