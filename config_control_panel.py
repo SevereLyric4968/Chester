@@ -20,6 +20,9 @@ def run():
             p2_strength_dropdown.grid_remove()
             p2_strength_label.grid_remove()
 
+    def updateModeDesc(*args):
+        modeDescLabel.config(text=modeDescriptions[control_mode.get()])
+
     def save_config():
         config={
             "control_type": control_mode.get(),
@@ -35,7 +38,7 @@ def run():
 
             "robot_side": robot_side.get(),
 
-            "location_file": location_file_name.get(),
+            "location_map": location_file_name.get(),
 
             "starting_board": board_name.get(),
 
@@ -60,7 +63,8 @@ def run():
     frame = tk.Frame(root)
     frame.grid(row=0, column=0, padx=10, pady=10)
 
-
+#todo display descriptions for robot side and player types, only display robot side if control mode is drunk adam or human
+#todo human player type and robot side is redundant. get rid of 1 or streamline
 
     # Control Mode
     tk.Label(frame, text="Control Mode").grid(row=0, column=0, sticky="w")
@@ -69,6 +73,19 @@ def run():
     control_mode = tk.StringVar(value=controlModes[0])
 
     tk.OptionMenu(frame, control_mode, *controlModes).grid(row=0, column=1)
+
+    modeDescriptions = {
+        "drunk adam": "Single robot controls both sides",
+        "robot wars": "One robot plays each side",
+        "man vs ned": "Human vs robot play mode",
+        "test": "Debug mode, no robots"
+    }
+
+    modeDescLabel = tk.Label(frame, text="", justify="left")
+    modeDescLabel.grid(row=0, column=2, columnspan=4, sticky="w")
+
+    control_mode.trace_add("write", updateModeDesc)
+    updateModeDesc()
 
     # Player 1 Type
     tk.Label(frame, text="Player 1 type").grid(row=1, column=0, sticky="w")
