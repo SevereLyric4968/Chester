@@ -63,7 +63,7 @@ class RobotManipulator:
     def return_home(self):
         if self.robot is None:
             return
-        home = PoseObject()
+        home = PoseObject(0.0023, -0.1335, 0.2, 0, math.pi / 2, 0)
         self.robot.move_pose(home)
         self.databus.homedStatus = "Homed"
         self.databus.movementStatus = "Idle"
