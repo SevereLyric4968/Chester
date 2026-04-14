@@ -1,18 +1,19 @@
 {
-  "control_type": "drunk adam",
-
-  "player_1_type": "rc",
-  "player_2_type": "rc",
-
-  "white_robot_ip": "192.168.42.1",
-  "black_robot_ip": "192.168.42.2",
-
-  "robot_side":"white",
-
-  "engine": {
-    "path": "stockfish-windows-x86-64-avx2/stockfish/stockfish-windows-x86-64-avx2.exe",
-    "depth": 15,
-    "threads": 2,
-    "min_time": 30
-  }
+    "control_type": "drunk adam",
+    "player_1_type": "rc",
+    "player_1_strength": "10",
+    "player_2_type": "rc",
+    "player_2_strength": "10",
+    "white_robot_ip": "192.168.42.1",
+    "black_robot_ip": "192.168.42.2",
+    "robot_side": "white",
+    "location_file": "1.json",
+    "starting_board": "standard",
+    "robot_setup": false,
+    "engine": {
+        "path": "stockfish-windows-x86-64-avx2/stockfish/stockfish-windows-x86-64-avx2.exe",
+        "depth": 15,
+        "threads": 2,
+        "min_time": 30
+    }
 }

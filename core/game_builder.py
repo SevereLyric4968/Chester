@@ -27,14 +27,8 @@ def build():
 
     # 2. setup engine
     engine_cfg = config["engine"]
-    engine = EngineInterface(
-        path=engine_cfg["path"],
-        depth=engine_cfg["depth"],
-        threads=engine_cfg["threads"],
-        min_time=engine_cfg["min_time"],
-    )
 
-    # 3. setup player types
+    # 2. setup player types
     white_player_type=config["player_1_type"]
     black_player_type=config["player_2_type"]
 
@@ -44,18 +38,29 @@ def build():
     if white_player_type=="human":
         white = HumanPlayer("white",vision_interface)
     elif white_player_type=="ai":
-        white = AIPlayer("white", engine)
-        #white_robot=config["white_robot_ip"]
+        white_engine = EngineInterface(
+            path=engine_cfg["path"],
+            depth=engine_cfg["depth"],
+            threads=engine_cfg["threads"],
+            min_time=engine_cfg["min_time"],
+            skill=config["player_1_skill"],
+        )
+        white = AIPlayer("white", white_engine)
     elif white_player_type=="rc":
         white = rcPlayer("white", gui_interface)
-        #white_robot = config["white_robot_ip"]
     else:
         raise ValueError("Invalid player_1_type")
     if black_player_type=="human":
         black = HumanPlayer("black",vision_interface)
     elif black_player_type=="ai":
-        black = AIPlayer("black", engine)
-        #black_robot = config["black_robot_ip"]
+        black_engine = EngineInterface(
+            path=engine_cfg["path"],
+            depth=engine_cfg["depth"],
+            threads=engine_cfg["threads"],
+            min_time=engine_cfg["min_time"],
+            skill=config["player_2_skill"],
+        )
+        black = AIPlayer("black", black_engine)
     elif black_player_type=="rc":
         black = rcPlayer("black", gui_interface)
         #black_robot = config["black_robot_ip"]
@@ -92,7 +97,7 @@ def build():
         board_manager=bm,
         white_player=white,
         black_player=black,
-        robot_controller=RobotController(white_robot, black_robot,databus),
+        robot_controller=RobotController(white_robot, black_robot,databus,config["location_map"]),
         gui=gui,
         databus=databus
     )

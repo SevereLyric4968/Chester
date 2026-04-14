@@ -5,12 +5,12 @@ from testbed.robot_manipulator_new_ik import RobotManipulator
 
 class RobotController:
 
-    def __init__(self ,robot_white=None,robot_black=None,databus=None):
+    def __init__(self ,robot_white=None,robot_black=None,databus=None,locationMap=None):
 
         self.lock=threading.Lock()
         self.databus=databus
 
-        self.locationMap=self.load_json("testbed/IKLocations.json")
+        self.locationMap=self.load_json("location_maps/"+locationMap)
         self.storageOccupancy={
             "K":[False],
             "Q":[False,True],
