@@ -139,7 +139,7 @@ def run():
     }
 
     p1DescLabel = tk.Label(frame, text="", justify="left")
-    p1DescLabel.grid(row=1, column=4, columnspan=4, sticky="w")
+    p1DescLabel.grid(row=1, column=3, columnspan=4, sticky="w")
 
     p1_type.trace_add("write", updateP1Desc)
     updateP1Desc()
@@ -158,8 +158,8 @@ def run():
 
     tk.OptionMenu(frame, robot_side, *sides).grid(row=3, column=1)
 
-    robotSideDescLabel = tk.Label(frame, text="AAAAAAAAAAAAAA", justify="left")
-    robotSideDescLabel.grid(row=3, column=4, columnspan=4, sticky="w")
+    robotSideDescLabel = tk.Label(frame, text="Decides which side robot makes moves for drunk adam or man vs ned mode", justify="left")
+    robotSideDescLabel.grid(row=3, column=2, columnspan=4, sticky="w")
 
     # Starting Board
     tk.Label(frame, text="Starting Board").grid(row=4, column=0, sticky="w")
@@ -172,6 +172,9 @@ def run():
 
     tk.OptionMenu(frame, board_name, *boardList).grid(row=4, column=1)
 
+    boardDescLabel = tk.Label(frame, text="Initial board state", justify="left")
+    boardDescLabel.grid(row=4, column=2, columnspan=4, sticky="w")
+
     # Check boxes
     robot_setup = tk.BooleanVar(value=prevConfig["robot_setup"])
 
@@ -181,7 +184,7 @@ def run():
         variable=robot_setup
     ).grid(row=5, column=0, columnspan=2, sticky="w")
 
-    use_ik = tk.BooleanVar(value=prevConfig["use_ik"])
+    use_ik = tk.BooleanVar(value=prevConfig["use_custom_ik"])
 
     tk.Checkbutton(
         frame,
