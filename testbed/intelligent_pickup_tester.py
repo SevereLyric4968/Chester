@@ -320,7 +320,7 @@ class MultiColorCentroidDetector:
 
 @dataclass
 class CenteringConfig:
-    deadband_px: int = 18
+    deadband_px: int = 5
     max_step_m: float = 0.005
     dt_s: float = 0.05
     max_iters: int = 200

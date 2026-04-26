@@ -19,9 +19,9 @@ PIECE_VISION_DROP_M: Dict[str, float] = {
     "p": 0.052,
     "b": 0.039,
     "r": 0.048,
-    "n": 0.0,
+    "n": 0.0, #needs measured
     "q": 0.036,
-    "k": 0.0,
+    "k": 0.0, #needs measured
 }
 
 PIECE_HEIGHT_M: Dict[str, float] = {
@@ -296,7 +296,7 @@ class MultiColorCentroidDetector:
 
 @dataclass  #(frozen=True)
 class CenteringConfig:
-    deadband_px: int = 18  #centered condition was 15
+    deadband_px: int = 5  #centered condition was 15
     #k_m_per_px: float = 0.5 check if use
     max_step_m: float = 0.005  #maximum x/y move
     #sign_x: int = 1
