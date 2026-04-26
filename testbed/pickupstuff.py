@@ -2,7 +2,7 @@ import cv2
 
 from pyniryo import NiryoRobot, PoseObject, PinID
 import math
-from intelligent_pickup import (
+from intelligent_pickup_tester import (
     CenteringConfig,
     IntelligentPickupSystem,
 )
@@ -12,16 +12,19 @@ def main():
     robot = NiryoRobot("192.168.42.1")
 
     square_poses = {
-        "B4": PoseObject(0.235,  0.075, 0.208, 0, math.pi/2, 0),
-        "E4": PoseObject(0.23,  -0.02, 0.208, 0, math.pi/2, 0),
-        "E2": PoseObject(0.16,  -0.02, 0.208, 0, math.pi/2, 0),
-        "F1": PoseObject(0.122,  -0.05, 0.208, 0, math.pi/2, 0),
+        "B4": PoseObject(0.2459,  0.0899, 0.208, 0, math.pi/2, 0),
+        "E4": PoseObject(0.2423,  -0.0167, 0.208, 0, math.pi/2, 0),
+        "E2": PoseObject(0.178,  -0.0137, 0.208, 0, math.pi/2, 0),
+        "F1": PoseObject(0.1445,  -0.0467, 0.208, 0, math.pi/2, 0),
+        "B5": PoseObject(0.2837,  0.0890, 0.208, 0, math.pi/2, 0),
+        "F2": PoseObject(0.1774,  -0.0409, 0.208, 0, math.pi/2, 0),
+        "F4": PoseObject(0.2491,  -0.0485, 0.208, 0, math.pi/2, 0)
     }
 
-    home_pose = PoseObject(0.14, 0, 0.2, 0, 1.5, 0)
+    home_pose = PoseObject(0.0023, -0.1335, 0.2, 0, math.pi / 2, 0)
 
     cfg = CenteringConfig(
-        deadband_px=15,
+        deadband_px=5,
         max_step_m=0.004,
         dt_s=0.15,
         max_iters=600,
