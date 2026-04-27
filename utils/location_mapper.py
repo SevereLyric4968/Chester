@@ -3,7 +3,7 @@ import os
 from pyniryo import NiryoRobot
 import inverse_kinematics as ik
 
-usingIK=True
+usingIK=False
 
 def generateSquares():
     files = "abcdefgh"
@@ -130,7 +130,7 @@ def calibrateBoard(robot, outputPath, pieceCounts, side):
 
     print(f"\n{side} calibration complete.")
 
-robot = NiryoRobot("192.168.42.1")
+robot = NiryoRobot("192.168.42.2")
 robot.calibrate_auto()
 
 pieceCounts = {
@@ -143,6 +143,6 @@ pieceCounts = {
     }
 
 if usingIK:
-    calibrateBoard(robot, r"testbed\IKLocations.json", pieceCounts,"white")
+    calibrateBoard(robot, r"testbed\IKLocations.json", pieceCounts,"black")
 else:
-    calibrateBoard(robot, r"testbed\testLocations.json", pieceCounts, "white")
+    calibrateBoard(robot, r"testbed\testLocations.json", pieceCounts, "black")
