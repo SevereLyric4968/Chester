@@ -33,10 +33,10 @@ def run():
             "control_type": control_mode.get(),
 
             "player_1_type": p1_type.get(),
-            "player_1_skill": p1_strength.get(),
+            "player_1_skill": int(p1_strength.get()),
 
             "player_2_type": p2_type.get(),
-            "player_2_skill": p2_strength.get(),
+            "player_2_skill": int(p2_strength.get()),
 
             "white_robot_ip": "192.168.42.1",
             "black_robot_ip": "192.168.42.2",
@@ -139,7 +139,7 @@ def run():
     }
 
     p1DescLabel = tk.Label(frame, text="", justify="left")
-    p1DescLabel.grid(row=1, column=3, columnspan=4, sticky="w")
+    p1DescLabel.grid(row=1, column=2, columnspan=4, sticky="w")
 
     p1_type.trace_add("write", updateP1Desc)
     updateP1Desc()
