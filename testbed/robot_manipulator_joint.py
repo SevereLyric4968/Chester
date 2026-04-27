@@ -30,6 +30,12 @@ class RobotManipulator:
             self.robot.calibrate_auto()
             print("robot calibrated")
 
+            self.home = (0,0,0)
+
+            if usingIK:
+                self.home=(0.014421, -0.09438,0.16172)
+            else:
+                self.home = PoseObject(0.0023, -0.1335, 0.2, 0, math.pi / 2, 0)
             self.return_home()
 
             self.databus.homedStatus = "Homed"
@@ -55,7 +61,7 @@ class RobotManipulator:
             }
         else:
             pieceHeights = {
-                'p': 34 / 1000, #60
+                'p': 60 / 1000, #60
                 'r': 64.5 / 1000,
                 'n': 69 / 1000,
                 'b': 73.5 / 1000,
@@ -81,12 +87,12 @@ class RobotManipulator:
     def return_home(self):
         if self.robot is None:
             return
-        home = (0.014421, -0.09438, 0.16172)
+
         if self.usingIK:
-            ik.calculateIK(self.robot,*home)
+            ik.calculateIK(self.robot,*self.home)
         else:
-            homePose = PoseObject(*home, 0, math.pi / 2, 0)
-            self.robot.move_pose(homePose)
+            self.robot.move_pose(self.home)
+
         self.databus.homedStatus = "Homed"
         self.databus.movementStatus = "Idle"
 
@@ -116,7 +122,12 @@ class RobotManipulator:
         self.lower(targetZ)
 
     def lower(self,targetZ):
-        preDropX,preDropY,preDropZ = ik.getFK(self.robot)
+        preDropX,preDropY,preDropZ = 0,0,0
+        if self.usingIK:
+            preDropX,preDropY,preDropZ = ik.getFK(self.robot)
+        else:
+            pose = self.robot.get_pose()
+            preDropX,preDropY,preDropZ = pose.x, pose.y, pose.z
 
         self.databus.movementStatus = "Moving"
         deltaZ=preDropZ-targetZ

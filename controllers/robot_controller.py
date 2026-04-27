@@ -10,7 +10,7 @@ class RobotController:
         self.lock=threading.Lock()
         self.databus=databus
 
-        locationFile="normal_locations.json" if databus.usingCustomIK else "custom_ik_locations.json"
+        locationFile="normal_locations.json" if not databus.usingCustomIK else "custom_ik_locations.json"
         self.locationMap=self.load_json("location_maps/"+locationFile)
         self.storageOccupancy={
             "K":[False],
