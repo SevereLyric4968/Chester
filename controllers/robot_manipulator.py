@@ -79,7 +79,7 @@ class RobotManipulator:
             self.databus.movementStatus = "Idle"
 
             cfg = CenteringConfig(
-                deadband_px=18,
+                deadband_px=5,
                 max_step_m=0.004,
                 dt_s=0.15,
                 max_iters=600,
