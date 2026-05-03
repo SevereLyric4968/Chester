@@ -1066,8 +1066,44 @@ class IntelligentPickupSystem:  # combines vision and picker
 
         self.robot.move_pose(approximate_pose)  # move near piece
 
-        self.centerer.calibrate_jacobian(delta_m=calibrate_delta_m)  # calibrate camera motion
-        result = self.centerer()  # center on sticker
+        try:
+            self.centerer.calibrate_jacobian(delta_m=calibrate_delta_m)  # calibrate camera motion
+            result = self.centerer()  # center on sticker
+
+        except RuntimeError as e:
+            msg = str(e).lower()
+
+            vision_failure = (
+                "sticker not detected" in msg
+                or "could not lock calibration roi" in msg
+                or "jacobian was not calibrated" in msg
+            )
+
+            if not vision_failure:
+                raise
+
+            print(f"[INTELLIGENT PICKUP] Vision calibration/centering failed: {e}")
+
+            self.centerer._close_windows()
+
+            if fallback_to_blind_pick:
+                print("[INTELLIGENT PICKUP] Falling back to blind pickup at approximate pose.")
+                self.robot.move_pose(approximate_pose)
+                self.picker.blind_pick_at(piece_type, approximate_pose, pickup_z)
+
+                return CenteringResult(
+                    True,
+                    0,
+                    (0, 0),
+                    None
+                )
+
+            return CenteringResult(
+                False,
+                0,
+                (0, 0),
+                None
+            )
 
         if result.success:  # if centered
             p = self.robot.get_pose()  # get corrected pose
@@ -1076,9 +1112,9 @@ class IntelligentPickupSystem:  # combines vision and picker
             return result  # return success
 
         if fallback_to_blind_pick:  # if vision failed but fallback allowed
-            print("[INTELLIGENT PICKUP] Centering failed, falling back to blind pickup at approximate pose.")  # status
-            self.robot.move_pose(approximate_pose)  # go back to approximate pose
-            self.picker.blind_pick_at(piece_type, approximate_pose, pickup_z)  # blind pick
-            return CenteringResult(True, result.iters, result.last_error_px, result.last_centroid_px)  # report picked
+            print("[INTELLIGENT PICKUP] Centering failed, falling back to blind pickup at approximate pose.")
+            self.robot.move_pose(approximate_pose)
+            self.picker.blind_pick_at(piece_type, approximate_pose, pickup_z)
+            return CenteringResult(True, result.iters, result.last_error_px, result.last_centroid_px)
 
         return result  # return failed result
