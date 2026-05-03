@@ -56,6 +56,7 @@ def getFK(robot):
     h = d1*np.cos(np.pi/2 + j2) + d2*np.sin(np.pi/2-(j3+j2))
     x = h*np.cos(j1)
     y = h*np.sin(j1)
+    print("IKKKKK")
     print("x ", x, "y", y,"z ", z)
     return (x,y,z)
 

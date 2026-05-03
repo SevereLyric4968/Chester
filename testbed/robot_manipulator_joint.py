@@ -5,25 +5,6 @@ from testbed.intelligent_pickup import CenteringConfig,IntelligentPickupSystem
 import math
 
 class RobotManipulator:
-    global pieceHeights
-    if self.usingIK:
-        pieceHeights = {
-            'p': 56/1000,
-            'r': 62/1000,
-            'n': 66/1000,
-            'b': 70/1000,
-            'q': 76/1000,
-            'k': 77/1000
-        }
-    else:
-        pieceHeights = {
-            'p': 60 / 1000,
-            'r': 64.5 / 1000,
-            'n': 69 / 1000,
-            'b': 73.5 / 1000,
-            'q': 78 / 1000,
-            'k': 82.5 / 1000
-        }
 
     def __init__(self, ip, databus, usingIK):
 
@@ -49,6 +30,12 @@ class RobotManipulator:
             self.robot.calibrate_auto()
             print("robot calibrated")
 
+            self.home = (0,0,0)
+
+            if usingIK:
+                self.home=(0.014421, -0.09438,0.16172)
+            else:
+                self.home = PoseObject(0.0023, -0.1335, 0.2, 0, math.pi / 2, 0)
             self.return_home()
 
             self.databus.homedStatus = "Homed"
@@ -61,6 +48,26 @@ class RobotManipulator:
             print(e)
             print("robot manipulator initialization failed")
             self.robot = None
+
+        global pieceHeights
+        if self.usingIK:
+            pieceHeights = {
+                'p': 56 / 1000, #56
+                'r': 62 / 1000,
+                'n': 66 / 1000,
+                'b': 70 / 1000,
+                'q': 76 / 1000,
+                'k': 77 / 1000
+            }
+        else:
+            pieceHeights = {
+                'p': 59 / 1000, #60
+                'r': 64.5 / 1000,
+                'n': 67 / 1000,
+                'b': 71.5 / 1000,
+                'q': 78 / 1000,
+                'k': 80.5 / 1000
+            }
 
     def move(self, x, y, z=0.208):
         if self.robot is None:
@@ -75,17 +82,17 @@ class RobotManipulator:
             move = PoseObject(x, y, z, 0, math.pi / 2, 0)
             self.robot.move_pose(move)
 
-        self.databus.homedStatus = "Idle"
+        self.databus.movementStatus = "Idle"
 
     def return_home(self):
         if self.robot is None:
             return
-        home = (0.014421, -0.09438, 0.16172)
+
         if self.usingIK:
-            ik.calculateIK(self.robot,*home)
+            ik.calculateIK(self.robot,*self.home)
         else:
-            homePose = PoseObject(*home, 0, math.pi / 2, 0)
-            self.robot.move_pose(homePose)
+            self.robot.move_pose(self.home)
+
         self.databus.homedStatus = "Homed"
         self.databus.movementStatus = "Idle"
 
@@ -115,7 +122,12 @@ class RobotManipulator:
         self.lower(targetZ)
 
     def lower(self,targetZ):
-        preDropX,preDropY,preDropZ = ik.getFK(self.robot)
+        preDropX,preDropY,preDropZ = 0,0,0
+        if self.usingIK:
+            preDropX,preDropY,preDropZ = ik.getFK(self.robot)
+        else:
+            pose = self.robot.get_pose()
+            preDropX,preDropY,preDropZ = pose.x, pose.y, pose.z
 
         self.databus.movementStatus = "Moving"
         deltaZ=preDropZ-targetZ

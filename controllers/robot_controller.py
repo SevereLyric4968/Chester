@@ -1,7 +1,7 @@
 import json
 import threading
 import chess
-from testbed.robot_manipulator_new_ik import RobotManipulator
+from testbed.robot_manipulator_joint import RobotManipulator
 
 class RobotController:
 
@@ -10,7 +10,7 @@ class RobotController:
         self.lock=threading.Lock()
         self.databus=databus
 
-        locationFile="normal_locations.json" if databus.usingCustomIK else "custom_ik_locations.json"
+        locationFile="normal_locations.json" if not databus.usingCustomIK else "custom_ik_locations.json"
         self.locationMap=self.load_json("location_maps/"+locationFile)
         self.storageOccupancy={
             "K":[False],
@@ -40,7 +40,7 @@ class RobotController:
             self.black_rm=None
         elif robot_white==robot_black:
             #drunk adam
-            self.white_rm=RobotManipulator(robot_white, self.databus.robot1)
+            self.white_rm=RobotManipulator(robot_white, self.databus.robot1,databus.usingCustomIK)
             self.black_rm=self.white_rm
             self.robotColor=databus.robotColor
         else:

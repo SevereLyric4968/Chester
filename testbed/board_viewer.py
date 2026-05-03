@@ -66,5 +66,5 @@ def plot(locations):
     fig.show()
 
 if __name__ == "__main__":
-    locations = loadLocations(r"/location_maps/testLocations.json")
+    locations = loadLocations(r"location_maps/normal_locations.json")
     plot(locations)
