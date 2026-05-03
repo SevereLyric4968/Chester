@@ -13,9 +13,8 @@ import numpy.linalg as LA
 from pyniryo import NiryoRobot, PoseObject, PinID
 from pyniryo.vision.image_functions import uncompress_image
 
-# needs edited to use Sams calculateIK stuff instead of move_pose
 
-PIECE_VISION_DROP_M: Dict[str, float] = {
+PIECE_VISION_DROP_M: Dict[str, float] = { #measure knights and kings
     "p": 0.052,
     "b": 0.039,
     "r": 0.048,
