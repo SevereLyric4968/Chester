@@ -18,8 +18,11 @@ def build():
 
     config = load_config()
 
+    #starting board
+    boards=load_config("boards.json")
+
     # 1. create board
-    bm = BoardManager()
+    bm = BoardManager(boards[config["starting_board"]])
     databus = DataBus()
     gui = ChessGui(bm.board,databus)
     

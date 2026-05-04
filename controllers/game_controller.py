@@ -38,4 +38,5 @@ class GameController:
         ).start()
 
         self.bm.apply_move(move)
+        self.bm.save_board()
         self.gui.draw_board(self.bm.board)
