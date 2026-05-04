@@ -4,10 +4,7 @@ import utils.inverse_kinematics as ik
 
 import math
 
-from testbed.intelligent_pickup import (
-    CenteringConfig,
-    IntelligentPickupSystem,
-)
+from testbed.intelligent_pickup import IntelligentPickupSystem
 
 class RobotManipulator:
 
@@ -78,25 +75,14 @@ class RobotManipulator:
             self.databus.magnetStatus = "Off"
             self.databus.movementStatus = "Idle"
 
-            cfg = CenteringConfig(
-                deadband_px=18,
-                max_step_m=0.004,
-                dt_s=0.15,
-                max_iters=600,
-                timeout_s=59.0,
-                target_offset_px=(-40, -60),
-                use_tracking_roi=True,
-                tracking_roi_size=(260, 260),
-            )
-
             if self.useIntelligentPickup:
                 self.intelligent_system = IntelligentPickupSystem.create(
                     self.robot,
                     pin_electromagnet=self.pin_electromagnet,
-                    cfg=cfg,
                     detector_show=True,
                     detector_min_area_px=400,
                 )
+                
             else:
                 self.intelligent_system = None
             print("robot manipulator initialised")
