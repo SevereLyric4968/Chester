@@ -13,7 +13,7 @@ class VisionInterface:
         try:
             print("init")
             self.eng = eng #self.eng = matlab.engine.start_matlab()
-            self.script_path = "D:\\Chester-master\\Chester\\testbed"
+            self.script_path = "D:\\Chester-master\\Chester\\image_processing"
             self.eng.addpath(self.script_path, nargout=0)
         except:
             print("unlucky kirsty and kov")
