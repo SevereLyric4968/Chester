@@ -6,7 +6,7 @@ global imgRGB;
 global path;
 
 %Take Photo
-baseFolder = fullfile("testbed\image_base_folder\img"); % change as needed
+baseFolder = fullfile("image_processing\image_base_folder\img"); % change as needed
 cameraName = 'DroidCam Video';              % set to your camera name or leave empty to use first
 
 % Ensure output folder exists
@@ -123,7 +123,7 @@ if isfile('board_calibration.mat')
         val_cell{1} = [X(:), Y(:)];
         board_dictionary(current_key) = val_cell;
     end
-    save("D:\Chester-master\Chester\testbed\board_adjusted.mat", 'board_dictionary');
+    save("D:\Chester-master\Chester\image_processing\board_adjusted.mat", 'board_dictionary');
 else
     print("No calibration file found. Please run process_board.m on an empty board.")
 end
@@ -144,7 +144,7 @@ if isfile('storage_calibration.mat')
         val_cell{1} = [X(:), Y(:)];
         storage_dictionary(current_key) = val_cell;
     end
-    save("D:\Chester-master\Chester\testbed\storage_adjusted.mat", 'storage_dictionary');
+    save("D:\Chester-master\Chester\image_processing\storage_adjusted.mat", 'storage_dictionary');
 else
     print("No calibration file found. Please run process_board.m on an empty board.")
 end
