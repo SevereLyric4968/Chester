@@ -5,10 +5,6 @@ global imgRGB;
 %and process_pieces
 global path;
 
-
-%calibration or off
-%mode = "";
-%imgRGB= imread("D:\Chester-master\Chester\testbed\image_base_folder\photo_0008_20260320_125023.png");
 %Take Photo
 baseFolder = fullfile("testbed\image_base_folder\img"); % change as needed
 cameraName = 'DroidCam Video';              % set to your camera name or leave empty to use first
@@ -78,33 +74,8 @@ diffs = x - y;
 
 corners = pts([iTL, iTR, iBR, iBL], :);  % 4x2 matrix [x, y]
 
-%centre of bounding box
-%cx = xmin + w/2;
-%cy = ymin + h/2;
-
-%convert centre and side to integer pixel co-ordinates for the square
-% top left pixel
-%x1 = round(cx - side/2);
-%y1 = round(cy - side/2);
-%bottom right pixel
-%x2 = x1 + side - 1;
-%y2 = y1 + side - 1;
-
 %get image size
 [mrows,mcols,~] = size(imgRGB);
-%prevent the top-left corner from being <1 
-% (ifx1/y1 is outside (0), set it to 1
-% prevent bottom-rght from exceeding image bounds
-%x1 = max(1,x1); y1 = max(1,y1);
-%x2 = min(mcols,x2); y2 = min(mrows,y2);
-
-%recompute actual cropsize aftr clipping
-%w_clip = x2 - x1 + 1;
-%h_clip = y2 - y1 + 1;
-
-%make a new image that is cropped to the board
-% selects image rows, image columns, and all colour channels
-% indexing is 1-based and inclusive
 srcPoints = corners;  % [x,y] for TL, TR, BR, BL
 
 %use all 4 corners to compute bounds
