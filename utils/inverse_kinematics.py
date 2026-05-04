@@ -47,16 +47,17 @@ def calculateIK(robot, x, y, z, *args):
 
 def getFK(robot):
     j1, j2, j3, j4, j5, j6 = robot.get_joints()
+
     d1 = np.sqrt((d1Length**2) + (d1Offset**2))
     d2 = np.sqrt((d2Length**2) + (d2Offset**2))
-    #0.075 for end effector
     j2 = j2 - np.arctan2(d1Offset, d1Length)
     j3 = j3 + np.arctan2(d2Offset, d2Length)
+
     z = baseHeight + d1*np.sin(np.pi/2 + j2) + d2*np.cos(np.pi/2-(j3+j2)) + d3*np.cos(np.pi/2-(j3+j2)-j5)
+    
     h = d1*np.cos(np.pi/2 + j2) + d2*np.sin(np.pi/2-(j3+j2))
     x = h*np.cos(j1)
     y = h*np.sin(j1)
-    print("IKKKKK")
     print("x ", x, "y", y,"z ", z)
     return (x,y,z)
 
@@ -66,28 +67,8 @@ if __name__ == "__main__":
     robot.calibrate_auto()
     pin_electromagnet = PinID.DO4
     robot.setup_electromagnet(pin_electromagnet)
-    robot.activate_electromagnet(pin_electromagnet)
+    #robot.activate_electromagnet(pin_electromagnet)
 
-    #board height
-    #calculateIK(robot, 0.118974, -0.015566, 0.03613866)
     #robot.move_joints(0,0,0,0,0,0)
-    #calculateIK(robot, 0.372028, -0.016702, 0.03613866)
+    calculateIK(robot, getFK(robot)[0], getFK(robot)[1], getFK(robot)[2])
     getFK(robot)
-    #print(robot.get_pose())
-
-    # A1 (0.353, -0.116, 0.055)  #old board 0.307, 0.095, 0.045
-    # B2 (0.35,0.0921)
-    # C3 (0.3148,0.1)
-    # D4 (0.3851,0.1270)
-    # E5 (0.3851,0.1270)
-    # F6 (0.3851,0.1270)
-    # G7 (0.3851,0.1270)
-    # H8 (0.1, 0.087)
-
-
-
-#x = 0.0456, y = 0.0094, z = 0.0174
-
-#small square
-#x = 0.3142, y = -0.0499
-#x = 0.2080, y = 0.0545
