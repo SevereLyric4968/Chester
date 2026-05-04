@@ -1,6 +1,6 @@
 {
-    "control_type": "drunk adam",
-    "player_1_type": "ai",
+    "control_type": "robot wars",
+    "player_1_type": "rc",
     "player_1_skill": 20,
     "player_2_type": "ai",
     "player_2_skill": 20,

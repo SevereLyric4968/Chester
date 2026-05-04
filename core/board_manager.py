@@ -1,8 +1,9 @@
 import chess
+import json
 
 class BoardManager:
-    def __init__(self):
-        self.board = chess.Board()
+    def __init__(self,boardFen=None):
+        self.board = chess.Board(boardFen)
 
     def reset(self):
         self.board.reset()
@@ -45,8 +46,16 @@ class BoardManager:
 
         if self.board.is_check():
             return "check"
-
+        print("im incompetant")
         return "normal"
 
     def __str__(self):
         return str(self.board)
+
+    def save_board(self):
+        board=self.get_fen()
+        with open("boards.json", "r") as f:
+            data = json.load(f)
+        data["last board"] = board
+        with open("boards.json", "w") as f:
+            json.dump(data, f, indent=4)
