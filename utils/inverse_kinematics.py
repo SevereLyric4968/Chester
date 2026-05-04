@@ -36,7 +36,7 @@ def calculateIK(robot, x, y, z, *args):
     theta3 = psi + zeta
     motorFiveAngle = -(np.pi - theta3)
     motorSixAngle = motorOneAngle
-    print(motorOneAngle, motorTwoAngle, motorThreeAngle, motorFourAngle, motorFiveAngle, motorSixAngle)
+    #print(motorOneAngle, motorTwoAngle, motorThreeAngle, motorFourAngle, motorFiveAngle, motorSixAngle)
     if(any(np.isnan(angle) for angle in [motorOneAngle, motorTwoAngle, motorThreeAngle, motorFourAngle, motorFiveAngle, motorSixAngle])):
         print("point too far for arm to reach")
         return
@@ -54,7 +54,7 @@ def getFK(robot):
     j3 = j3 + np.arctan2(d2Offset, d2Length)
 
     z = baseHeight + d1*np.sin(np.pi/2 + j2) + d2*np.cos(np.pi/2-(j3+j2)) + d3*np.cos(np.pi/2-(j3+j2)-j5)
-    
+
     h = d1*np.cos(np.pi/2 + j2) + d2*np.sin(np.pi/2-(j3+j2))
     x = h*np.cos(j1)
     y = h*np.sin(j1)
@@ -70,5 +70,6 @@ if __name__ == "__main__":
     #robot.activate_electromagnet(pin_electromagnet)
 
     #robot.move_joints(0,0,0,0,0,0)
-    calculateIK(robot, getFK(robot)[0], getFK(robot)[1], getFK(robot)[2])
+    #calculateIK(robot, getFK(robot)[0], getFK(robot)[1], getFK(robot)[2])
+    calculateIK(robot, 0.11985564015130774, -0.01410839852121709, 0.09510379105605733)
     getFK(robot)
