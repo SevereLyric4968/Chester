@@ -71,5 +71,5 @@ if __name__ == "__main__":
 
     #robot.move_joints(0,0,0,0,0,0)
     #calculateIK(robot, getFK(robot)[0], getFK(robot)[1], getFK(robot)[2])
-    calculateIK(robot, 0.11985564015130774, -0.01410839852121709, 0.09510379105605733)
-    getFK(robot)
+    print(robot.get_joints())
+    #getFK(robot)

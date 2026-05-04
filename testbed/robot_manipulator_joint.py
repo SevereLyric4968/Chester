@@ -153,3 +153,14 @@ class RobotManipulator:
         else:
             self.robot.activate_electromagnet(self.pin_electromagnet)
             self.databus.magnetStatus = "On"
+
+    def fist_bump(self):
+        if self.robot is None:
+            return
+
+        unbump = [-1.5500506554354578, 0.34488448662206134, -0.9264197991304157, -0.19318892568379775, 0.3389171005329339, 0.2071800599543545]
+        bump = [-1.5500506554354578, 0.055529840592425495, -0.7491711416148796, -0.14870348283511436, 0.5644122763521229, 0.18263636734818434]
+        print("Fist bumping")
+        self.robot.move_joints(unbump)
+        self.robot.move_joints(bump)
+        self.robot.move_joints(unbump)

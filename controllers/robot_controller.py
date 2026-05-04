@@ -171,8 +171,12 @@ class RobotController:
                 self.databus.execLog.append("picking up piece")
                 rm.place(piece,z)
 
+            print("trying to fist bump")
+            rm.fist_bump()
+
             if self.white_rm != self.black_rm:
                 rm.return_home()
+            
             self.databus.robotBusy = False
 
     def translate_position(self,position,x_translation=400):

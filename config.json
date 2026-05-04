@@ -1,13 +1,13 @@
 {
-    "control_type": "robot wars",
-    "player_1_type": "rc",
+    "control_type": "drunk adam",
+    "player_1_type": "ai",
     "player_1_skill": 20,
-    "player_2_type": "rc",
+    "player_2_type": "ai",
     "player_2_skill": 20,
     "white_robot_ip": "192.168.42.1",
     "black_robot_ip": "192.168.42.2",
     "robot_side": "white",
-    "use_custom_ik": false,
+    "use_custom_ik": true,
     "starting_board": "standard",
     "robot_setup": false,
     "engine": {
