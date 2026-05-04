@@ -94,7 +94,7 @@ dstPoints = [1+padding, 1+padding;
 tform = fitgeotrans(srcPoints, dstPoints, 'projective');
 cropped = imwarp(imgRGB, tform, 'OutputView', imref2d([H, W]));
 title = 'cropped.png';
-fname = fullfile('D:\Chester-master\Chester\testbed\image_base_folder\img\',title);
+fname = fullfile('D:\Chester-master\Chester\image_processing\image_base_folder\img\',title);
 imwrite(cropped, fname);
 figure; imshow(imgRGB); hold on;
 
