@@ -24,8 +24,8 @@ class VisionInterface:
             input("Please press enter when move is complete.") #wait for key press
             image=self.take_image()
             #print(image)
-            newBoard=self.process_pieces(image)
-            move = self.parse_move(board_manager.board,newBoard)
+            whiteOccupancyMap,blackOccupancyMap=self.process_pieces(image)
+            move = self.parse_move(board_manager.board,whiteOccupancyMap,blackOccupancyMap)
 
             if move in board_manager.get_legal_moves():
                 return move
@@ -37,7 +37,7 @@ class VisionInterface:
         image = self.eng.workspace['imgRGB']
         return image
 
-    def process_pieces(self):
+    def process_pieces(self,image):
         print("process_pieces")
         self.eng.process_pieces(nargout=0)
         black_game_occupancy = self.eng.workspace['black_game_occupancy']
@@ -133,6 +133,7 @@ class VisionInterface:
         #convert from index to board ref
         move=(fromSq,toSq)
         move=convert_to_uci(move)
+        print(move)
         return move
 
 def findGridSquare(grid,value):

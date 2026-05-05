@@ -1,8 +1,9 @@
 % Centering.m
 % Author: Kov Ciuchta
 % Full camera control (expand later)
-global imgRGB;
+global imageRGB;
 %and process_pieces
+global fname;
 global path;
 
 %Take Photo
@@ -32,9 +33,10 @@ idx = startIdx;
 
 
 % Take one snapshot with defined camera, make sure the camera is clear after
-cam = webcam(cameraName);
-pause(1);
-imgRGB = snapshot(cam);
+cam = webcam(2);
+pause(3);
+imageRGB = snapshot(cam);
+imgRGB = imageRGB;
 tstamp = datestr(now, 'yyyymmdd_HHMMSS');
 fname  = sprintf('photo_%04d_%s.png', idx, tstamp);
 path   = fullfile(baseFolder, fname);
