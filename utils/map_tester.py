@@ -15,7 +15,7 @@ robot.setup_electromagnet(pin_electromagnet)
 
 checkingMainBoard = False
 checkingStorage = True
-makingAdjustments = True
+makingAdjustments = False
 
 flip = False
 
@@ -25,17 +25,29 @@ def makeAdjustment(square):
     print("Checking Square:", square)
     while not keyboard.is_pressed('enter'):
         if keyboard.is_pressed('w'):
-            ik.calculateIK(robot, newX+0.001, newY, locationMap[colour][square]["z"]+0.001)
-            newX += 0.001
+            ik.calculateIK(robot, newX+0.0005, newY, locationMap[colour][square]["z"]+0.001)
+            newX += 0.0005
         elif keyboard.is_pressed('s'):
-            ik.calculateIK(robot, newX-0.001, newY, locationMap[colour][square]["z"]+0.001)
-            newX -= 0.001
+            ik.calculateIK(robot, newX-0.0005, newY, locationMap[colour][square]["z"]+0.001)
+            newX -= 0.0005
         elif keyboard.is_pressed('a'):
-            ik.calculateIK(robot, newX, newY+0.001, locationMap[colour][square]["z"]+0.001)
-            newY += 0.001
+            ik.calculateIK(robot, newX, newY+0.0005, locationMap[colour][square]["z"]+0.001)
+            newY += 0.0005
         elif keyboard.is_pressed('d'):
-            ik.calculateIK(robot, newX, newY-0.001, locationMap[colour][square]["z"]+0.001)
-            newY -= 0.001
+            ik.calculateIK(robot, newX, newY-0.0005, locationMap[colour][square]["z"]+0.001)
+            newY -= 0.0005
+        elif keyboard.is_pressed('j'):
+            ik.calculateIK(robot, newX+0.002, newY, locationMap[colour][square]["z"]+0.001)
+            newX += 0.002
+        elif keyboard.is_pressed('k'):
+            ik.calculateIK(robot, newX-0.002, newY, locationMap[colour][square]["z"]+0.001)
+            newX -= 0.002
+        elif keyboard.is_pressed('l'):
+            ik.calculateIK(robot, newX, newY+0.002, locationMap[colour][square]["z"]+0.001)
+            newY += 0.002
+        elif keyboard.is_pressed('i'):
+            ik.calculateIK(robot, newX, newY-0.002, locationMap[colour][square]["z"]+0.001)
+            newY -= 0.002
     locationMap[colour][square]["x"] = newX
     locationMap[colour][square]["y"] = newY
     
@@ -47,17 +59,29 @@ def makeStorageAdjustment(square, number):
     print("Checking Piece:", square, "Number:", number)
     while not keyboard.is_pressed('enter'):
         if keyboard.is_pressed('w'):
-            ik.calculateIK(robot, newX+0.001, newY, locationMap[colour][square][number]["z"]+0.001)
-            newX += 0.001
+            ik.calculateIK(robot, newX+0.0005, newY, locationMap[colour][square][number]["z"]+0.001)
+            newX += 0.0005
         elif keyboard.is_pressed('s'):
-            ik.calculateIK(robot, newX-0.001, newY, locationMap[colour][square][number]["z"]+0.001)
-            newX -= 0.001
+            ik.calculateIK(robot, newX-0.0005, newY, locationMap[colour][square][number]["z"]+0.001)
+            newX -= 0.0005
         elif keyboard.is_pressed('a'):
-            ik.calculateIK(robot, newX, newY+0.001, locationMap[colour][square][number]["z"]+0.001)
-            newY += 0.001
+            ik.calculateIK(robot, newX, newY+0.0005, locationMap[colour][square][number]["z"]+0.001)
+            newY += 0.0005
         elif keyboard.is_pressed('d'):
-            ik.calculateIK(robot, newX, newY-0.001, locationMap[colour][square][number]["z"]+0.001)
-            newY -= 0.001
+            ik.calculateIK(robot, newX, newY-0.0005, locationMap[colour][square][number]["z"]+0.001)
+            newY -= 0.0005
+        elif keyboard.is_pressed('j'):
+            ik.calculateIK(robot, newX+0.002, newY, locationMap[colour][square][number]["z"]+0.001)
+            newX += 0.002
+        elif keyboard.is_pressed('k'):
+            ik.calculateIK(robot, newX-0.002, newY, locationMap[colour][square][number]["z"]+0.001)
+            newX -= 0.002
+        elif keyboard.is_pressed('l'):
+            ik.calculateIK(robot, newX, newY+0.002, locationMap[colour][square][number]["z"]+0.001)
+            newY += 0.002
+        elif keyboard.is_pressed('i'):
+            ik.calculateIK(robot, newX, newY-0.002, locationMap[colour][square][number]["z"]+0.001)
+            newY -= 0.002
     locationMap[colour][square][number]["x"] = newX
     locationMap[colour][square][number]["y"] = newY
 
@@ -72,24 +96,25 @@ if checkingMainBoard:
         for j in column:
             ik.calculateIK(robot, locationMap[colour][i+j]["x"], locationMap[colour][i+j]["y"], locationMap[colour][i+j]["z"]+0.01)
             ik.calculateIK(robot, locationMap[colour][i+j]["x"], locationMap[colour][i+j]["y"], locationMap[colour][i+j]["z"])
-            ik.calculateIK(robot, locationMap[colour][i+j]["x"], locationMap[colour][i+j]["y"], locationMap[colour][i+j]["z"]+0.01)
-            
             if makingAdjustments:
                 makeAdjustment(i+j)
+            ik.calculateIK(robot, locationMap[colour][i+j]["x"], locationMap[colour][i+j]["y"], locationMap[colour][i+j]["z"]+0.01)
         flip = not flip
 
 #storage
 if checkingStorage:
     for a in "KQBNRPkqbnrp":
         i = 0
+        print(a+str(i))
         try:
             while locationMap[colour][a][i]["x"] != 0:
                 ik.calculateIK(robot, locationMap[colour][a][i]["x"], locationMap[colour][a][i]["y"], locationMap[colour][a][i]["z"]+0.01)
                 ik.calculateIK(robot, locationMap[colour][a][i]["x"], locationMap[colour][a][i]["y"], locationMap[colour][a][i]["z"])
-                ik.calculateIK(robot, locationMap[colour][a][i]["x"], locationMap[colour][a][i]["y"], locationMap[colour][a][i]["z"]+0.01)
-
                 if makingAdjustments:
                     makeStorageAdjustment(a,i)
+                ik.calculateIK(robot, locationMap[colour][a][i]["x"], locationMap[colour][a][i]["y"], locationMap[colour][a][i]["z"]+0.01)
+                if ((a+str(i))=="P7"):
+                    ik.calculateIK(robot, locationMap[colour][a][i]["x"], locationMap[colour][a][i]["y"], locationMap[colour][a][i]["z"]+0.1)
                 i += 1
         except:
             pass
