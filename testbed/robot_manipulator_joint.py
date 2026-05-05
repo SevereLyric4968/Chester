@@ -57,7 +57,7 @@ class RobotManipulator:
                 'n': 0/1000, #66/1000,
                 'b': 4/1000, #70/1000,
                 'q': 8/1000, #76/1000,
-                'k': 10/1000  #77/1000
+                'k': 9/1000  #77/1000
             }
         else:
             pieceHeights = {
@@ -112,16 +112,16 @@ class RobotManipulator:
             return
 
         targetZ = z + pieceHeights[piece.lower()]
-        self.lower(targetZ)
+        self.lower(targetZ, 1)
 
     def place(self, piece, z):
         if self.robot is None:
             return
 
         targetZ = z + pieceHeights[piece.lower()]
-        self.lower(targetZ)
+        self.lower(targetZ, 2)
 
-    def lower(self,targetZ):
+    def lower(self,targetZ,increments):
         preDropX,preDropY,preDropZ = 0,0,0
         if self.usingIK:
             preDropX,preDropY,preDropZ = ik.getFK(self.robot)
@@ -131,12 +131,12 @@ class RobotManipulator:
 
         self.databus.movementStatus = "Moving"
         deltaZ=preDropZ-targetZ
-        incremnents=2
-        for i in range(incremnents):
+
+        for i in range(increments):
             if self.usingIK:
-                ik.calculateIK(self.robot,preDropX,preDropY,preDropZ-deltaZ*(i+1)/incremnents)
+                ik.calculateIK(self.robot,preDropX,preDropY,preDropZ-deltaZ*(i+1)/increments)
             else:
-                move = PoseObject(preDropX, preDropY, preDropZ-deltaZ*(i+1)/incremnents, 0, math.pi / 2, 0)
+                move = PoseObject(preDropX, preDropY, preDropZ-deltaZ*(i+1)/increments, 0, math.pi / 2, 0)
                 self.robot.move_pose(move)
         self.toggle_magnet()
         if self.usingIK:
