@@ -2,9 +2,9 @@ close all;
 
 global cropped
 
-fname = ('C:\\Users\\kirst\\chester\\testbed\\image_base_folder\\storage_test\\storage_test_empty.jpg');
+%fname = ('C:\\Users\\kirst\\chester\\testbed\\image_base_folder\\storage_test\\storage_test_empty.jpg');
 % read in image
-raw_img = imread(fname);
+raw_img = cropped;
 %rotated back to correct orientation 
 img = imrotate(raw_img,270);
 % convert to greyscale

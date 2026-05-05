@@ -6,7 +6,7 @@ global imgRGB;
 global path;
 
 %Take Photo
-baseFolder = fullfile("image_processing\image_base_folder\img"); % change as needed
+baseFolder = fullfile("image_processing\image_base_folder"); % change as needed
 cameraName = 'DroidCam Video';              % set to your camera name or leave empty to use first
 
 % Ensure output folder exists
@@ -94,7 +94,7 @@ dstPoints = [1+padding, 1+padding;
 tform = fitgeotrans(srcPoints, dstPoints, 'projective');
 cropped = imwarp(imgRGB, tform, 'OutputView', imref2d([H, W]));
 title = 'cropped.png';
-fname = fullfile('D:\Chester-master\Chester\image_processing\image_base_folder\img\',title);
+fname = fullfile('D:\Chester-master\Chester\image_processing\image_base_folder',title);
 imwrite(cropped, fname);
 figure; imshow(imgRGB); hold on;
 
