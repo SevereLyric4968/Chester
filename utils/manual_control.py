@@ -1,6 +1,6 @@
 import tkinter as tk
 from pyniryo import NiryoRobot, PinID, PoseObject
-import utils.inverse_kinematics as ik
+import inverse_kinematics as ik
 
 class ControlPanel:
     def __init__(self):

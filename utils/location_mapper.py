@@ -1,10 +1,12 @@
 import json
 import os
 from pyniryo import NiryoRobot
+import inverse_kinematics as ik
 
+usingIK=True
 
 def generateSquares():
-    files = "ABCDEFGH"
+    files = "abcdefgh"
     ranks = "12345678"
 
     squares = []
@@ -21,7 +23,7 @@ def initSideTemplate(pieceCounts):
     sideData = {}
 
     # board squares
-    for f in "ABCDEFGH":
+    for f in "abcdefgh":
         for r in "12345678":
             sideData[f + r] = {"x": 0, "y": 0, "z": 0}
 
@@ -69,9 +71,14 @@ def calibrateBoard(robot, outputPath, pieceCounts, side):
                 return
             if cmd == "s":
                 break
-
-            pose = robot.get_pose()
-            x, y, z = pose.x, pose.y, pose.z
+            
+            x, y, z = None, None, None
+            if usingIK:
+                pose = ik.getFK(robot)
+                x, y, z = pose[0], pose[1], pose[2]
+            else:
+                pose = robot.get_pose()
+                x, y, z = pose.x, pose.y, pose.z
 
             print(f"Captured: {x:.4f}, {y:.4f}, {z:.4f}")
             confirm = input("Accept? (y/n): ").lower()
@@ -102,8 +109,13 @@ def calibrateBoard(robot, outputPath, pieceCounts, side):
                     if cmd == "s":
                         break
 
-                    pose = robot.get_pose()
-                    x, y, z = pose.x, pose.y, pose.z
+                    x, y, z = None, None, None
+                    if usingIK:
+                        pose = ik.getFK(robot)
+                        x, y, z = pose[0], pose[1], pose[2]
+                    else:
+                        pose = robot.get_pose()
+                        x, y, z = pose.x, pose.y, pose.z
 
                     print(f"Captured: {x:.4f}, {y:.4f}, {z:.4f}")
                     confirm = input("Accept? (y/n): ").lower()
@@ -118,7 +130,7 @@ def calibrateBoard(robot, outputPath, pieceCounts, side):
 
     print(f"\n{side} calibration complete.")
 
-robot = NiryoRobot("192.168.42.1")
+robot = NiryoRobot("192.168.42.2")
 robot.calibrate_auto()
 
 pieceCounts = {
@@ -130,4 +142,7 @@ pieceCounts = {
         "p": 8
     }
 
-calibrateBoard(robot, r"C:\Users\Jayda\PycharmProjects\Chester\testbed\testLocations.json", pieceCounts,"white")
+if usingIK:
+    calibrateBoard(robot, r"location_maps\custom_ik_locations.json", pieceCounts,"black")
+else:
+    calibrateBoard(robot, r"location_maps\testLocations.json", pieceCounts, "black")

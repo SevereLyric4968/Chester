@@ -23,6 +23,9 @@ class DataBus:
         self.errorLog = []
 
         self.robotBusy = False
+        self.robotColor=None
+
+        self.usingCustomIK=False
 
     def logGame(self, msg):
         self.gameLog.append(msg)

@@ -3,14 +3,10 @@
 % Full camera control (expand later)
 global imgRGB;
 %and process_pieces
-global fname;
+global path;
 
-
-%calibration or off
-%mode = "";
-%imgRGB= imread("D:\Chester-master\Chester\testbed\image_base_folder\photo_0008_20260320_125023.png");
 %Take Photo
-baseFolder = fullfile("D:\Chester-master\Chester\testbed\image_base_folder\img"); % change as needed
+baseFolder = fullfile("image_processing\image_base_folder"); % change as needed
 cameraName = 'DroidCam Video';              % set to your camera name or leave empty to use first
 
 % Ensure output folder exists
@@ -78,33 +74,8 @@ diffs = x - y;
 
 corners = pts([iTL, iTR, iBR, iBL], :);  % 4x2 matrix [x, y]
 
-%centre of bounding box
-%cx = xmin + w/2;
-%cy = ymin + h/2;
-
-%convert centre and side to integer pixel co-ordinates for the square
-% top left pixel
-%x1 = round(cx - side/2);
-%y1 = round(cy - side/2);
-%bottom right pixel
-%x2 = x1 + side - 1;
-%y2 = y1 + side - 1;
-
 %get image size
 [mrows,mcols,~] = size(imgRGB);
-%prevent the top-left corner from being <1 
-% (ifx1/y1 is outside (0), set it to 1
-% prevent bottom-rght from exceeding image bounds
-%x1 = max(1,x1); y1 = max(1,y1);
-%x2 = min(mcols,x2); y2 = min(mrows,y2);
-
-%recompute actual cropsize aftr clipping
-%w_clip = x2 - x1 + 1;
-%h_clip = y2 - y1 + 1;
-
-%make a new image that is cropped to the board
-% selects image rows, image columns, and all colour channels
-% indexing is 1-based and inclusive
 srcPoints = corners;  % [x,y] for TL, TR, BR, BL
 
 %use all 4 corners to compute bounds
@@ -112,7 +83,7 @@ W = round(max(norm(corners(1,:)-corners(2,:)), norm(corners(4,:)-corners(3,:))))
 H = round(max(norm(corners(1,:)-corners(4,:)), norm(corners(2,:)-corners(3,:))));
 
 %compute difstance between
-padding = 10; % pixels to crop inward on each side, adjust as needed
+padding = 15; % pixels to crop inward on each side, adjust as needed
 
 dstPoints = [1+padding, 1+padding; 
              W-padding, 1+padding; 
@@ -123,7 +94,7 @@ dstPoints = [1+padding, 1+padding;
 tform = fitgeotrans(srcPoints, dstPoints, 'projective');
 cropped = imwarp(imgRGB, tform, 'OutputView', imref2d([H, W]));
 title = 'cropped.png';
-fname = fullfile('D:\Chester-master\Chester\testbed\image_base_folder\img\',title);
+fname = fullfile('D:\Chester-master\Chester\image_processing\image_base_folder',title);
 imwrite(cropped, fname);
 figure; imshow(imgRGB); hold on;
 
@@ -152,7 +123,28 @@ if isfile('board_calibration.mat')
         val_cell{1} = [X(:), Y(:)];
         board_dictionary(current_key) = val_cell;
     end
-    save("D:\Chester-master\Chester\testbed\board_adjusted.mat", 'board_dictionary');
+    save("D:\Chester-master\Chester\image_processing\board_adjusted.mat", 'board_dictionary');
+else
+    print("No calibration file found. Please run process_board.m on an empty board.")
+end
+
+if isfile('storage_calibration.mat')
+    %update the image co-ordinates to board_adjusted (new file)
+    S = load("storage_calibration.mat");
+    storage_dictionary = S.storage_dictionary;
+    all_keys = storage_dictionary.keys;
+
+    for i = 1:numel(all_keys)
+        current_key = all_keys(i);
+        val_cell = storage_dictionary(current_key); %cell array
+        coords = val_cell{1}; % Unpack the cell to get [X, Y] 
+        [X, Y] = transformPointsInverse(tform, coords(:,1), coords(:,2));
+        plot(X, Y, 'ro', 'MarkerSize', 8, 'LineWidth', 1.5);
+        fprintf('square %s: [X: %8.2f, Y: %8.2f]\n', current_key, coords(1), coords(2));
+        val_cell{1} = [X(:), Y(:)];
+        storage_dictionary(current_key) = val_cell;
+    end
+    save("D:\Chester-master\Chester\image_processing\storage_adjusted.mat", 'storage_dictionary');
 else
     print("No calibration file found. Please run process_board.m on an empty board.")
 end

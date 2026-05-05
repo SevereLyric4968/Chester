@@ -33,9 +33,10 @@ class GameController:
         moveQueue,isWhite = self.rc.uci_to_move_queue(move, beforeBoard)
         threading.Thread(
             target=self.rc.execute_move_queue,
-            args=(moveQueue, beforeBoard , isWhite),
+            args=(moveQueue, beforeBoard , isWhite, currentPlayer.color),
             daemon=True
         ).start()
 
         self.bm.apply_move(move)
+        self.bm.save_board()
         self.gui.draw_board(self.bm.board)

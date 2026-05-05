@@ -1,7 +1,7 @@
 import json
 import threading
 import chess
-from controllers.robot_manipulator import RobotManipulator
+from testbed.robot_manipulator_joint import RobotManipulator
 
 class RobotController:
 
@@ -10,7 +10,8 @@ class RobotController:
         self.lock=threading.Lock()
         self.databus=databus
 
-        self.locationMap=self.load_json(r"C:\Users\Jayda\PycharmProjects\Chester\testbed\testLocations.json")
+        locationFile="normal_locations.json" if not databus.usingCustomIK else "custom_ik_locations.json"
+        self.locationMap=self.load_json("location_maps/"+locationFile)
         self.storageOccupancy={
             "K":[False],
             "Q":[False,True],
@@ -27,18 +28,26 @@ class RobotController:
             "p": [False, False, False, False, False, False, False, False]
         }
 
+        self.robotColor=None
+
         if robot_white is None and robot_black is not None:
+            #Black robot no white robot eg 1 can't connect or human
             self.white_rm=None
-            self.black_rm=RobotManipulator(robot_black, self.databus.robot1)
+            self.black_rm=RobotManipulator(robot_black, self.databus.robot1,databus.usingCustomIK)
         elif robot_white is not None and robot_black is None:
-            self.white_rm=RobotManipulator(robot_white, self.databus.robot1)
+            #White robot no black robot eg 1 can't connect or human
+            self.white_rm=RobotManipulator(robot_white, self.databus.robot1,databus.usingCustomIK)
             self.black_rm=None
         elif robot_white==robot_black:
-            self.white_rm=RobotManipulator(robot_white, self.databus.robot1)
+            #drunk adam
+            self.white_rm=RobotManipulator(robot_white, self.databus.robot1,databus.usingCustomIK)
             self.black_rm=self.white_rm
+            self.robotColor=databus.robotColor
         else:
-            self.white_rm=RobotManipulator(robot_white, self.databus.robot1)
-            self.black_rm=RobotManipulator(robot_black, self.databus.robot2)
+            #both robots
+            self.white_rm=RobotManipulator(robot_white, self.databus.robot1,databus.usingCustomIK)
+            self.black_rm=RobotManipulator(robot_black, self.databus.robot2,databus.usingCustomIK)
+            #self.white_rm.useIntelligentPickup=True
 
     def uci_to_move_queue(self,move,board):
 
@@ -119,7 +128,7 @@ class RobotController:
                     targetSlot = i
                     self.storageOccupancy[target][i] = True
                     break
-            targetLocation=self.locationMap["white"][target][targetSlot]
+            targetLocation=self.locationMap[color][target][targetSlot]
         else:
             targetLocation = self.locationMap[color][target]
         self.databus.execLog.append(f"Moving to {target} ({targetLocation})...")
@@ -128,20 +137,21 @@ class RobotController:
         rm.move(x, y)
         return z
 
-    def execute_move_queue(self,moveQueue,board,isWhite):
+    def execute_move_queue(self,moveQueue,board,isWhite,color):
         with (self.lock):
             if isWhite:
                 if self.white_rm is None:
                     return
                 rm=self.white_rm
                 self.databus.execLog.append("White robot:")
-                color="white"
             else:
                 if self.black_rm is None:
                     return
                 rm=self.black_rm
                 self.databus.execLog.append("Black robot:")
-                color="black"
+
+            if self.robotColor is not None:
+                color=self.robotColor
 
             self.databus.execLog.append("Starting move queue:")
             for i,move in enumerate(moveQueue):
@@ -152,15 +162,21 @@ class RobotController:
                 else:
                     piece=board.piece_at(chess.parse_square(move[0])).symbol()
                 #pickup
-                z=self.move_to_target(rm,move[0],"white")
+                z=self.move_to_target(rm,move[0],color)
                 self.databus.execLog.append("picking up piece")
                 rm.pickup(piece,z)
 
                 # place
-                z=self.move_to_target(rm,move[1],"white")
+                z=self.move_to_target(rm,move[1],color)
                 self.databus.execLog.append("picking up piece")
                 rm.place(piece,z)
 
+            #print("trying to fist bump")
+            #rm.fist_bump()
+
+            if self.white_rm != self.black_rm:
+                rm.return_home()
+            
             self.databus.robotBusy = False
 
     def translate_position(self,position,x_translation=400):
