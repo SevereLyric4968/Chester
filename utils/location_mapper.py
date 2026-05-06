@@ -130,7 +130,7 @@ def calibrateBoard(robot, outputPath, pieceCounts, side):
 
     print(f"\n{side} calibration complete.")
 
-robot = NiryoRobot("192.168.42.2")
+robot = NiryoRobot("192.168.42.3")
 robot.calibrate_auto()
 
 pieceCounts = {
