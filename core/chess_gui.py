@@ -323,6 +323,7 @@ class ChessGui:
             text=f"Magnet: {self.databus.robot2.magnetStatus}"
         )
         self.update_logs()
+        print("updating")
 
 
         self.window.after(100, self.update_loop)

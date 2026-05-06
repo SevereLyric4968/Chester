@@ -9,22 +9,26 @@ class GameController:
         self.rc=robot_controller
         self.databus=databus
 
-        self.robotBusy=False
+        self.moveNumber=0
 
     def step(self):
-
         if self.databus.robotBusy:
             return
+
+        print("Starting step")
+
+        self.moveNumber+=1
 
         currentPlayer = (
             self.white_player if self.bm.board.turn else self.black_player
         )
+        print(currentPlayer.color)
         self.databus.game.turn = currentPlayer.color.capitalize()
         self.databus.game.status = self.bm.get_status()
 
         move = currentPlayer.get_move(self.bm)
 
-        self.databus.gameLog.append(f"{currentPlayer.color.capitalize()}: {move}")
+        self.databus.gameLog.append(f"{self.moveNumber} - {currentPlayer.color.capitalize()}: {move}")
 
         beforeBoard=self.bm.board.copy()
 
@@ -40,3 +44,5 @@ class GameController:
         self.bm.apply_move(move)
         self.bm.save_board()
         self.gui.draw_board(self.bm.board)
+
+        print("finishing step")
