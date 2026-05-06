@@ -2,21 +2,21 @@ close all;
 
 global cropped
 
-fname = ('C:\\Users\\kirst\\chester\\testbed\\image_base_folder\\storage_test\\storage_test_empty.jpg');
+%fname = ('C:\\Users\\kirst\\chester\\testbed\\image_base_folder\\storage_test\\storage_test_empty.jpg');
 % read in image
-raw_img = imread(fname);
+raw_img = cropped;
 %rotated back to correct orientation 
-img = imrotate(raw_img,270);
+img = imrotate(raw_img,0);
 % convert to greyscale
 grey_img = rgb2gray(img);
 % gaussian blurring filter
 %kirsty images =  20
-gauss_img = imgaussfilt(grey_img,5);
+gauss_img = imgaussfilt(grey_img,1.5);
 % canny edge detection
 canny_img = edge(gauss_img,'Canny');
 %dialate edges
 %kirsty images = 15
-se = strel('square', 15);
+se = strel('square', 5);
 dialated_edges = imdilate(canny_img, se);
 imshow(dialated_edges);
 % fill holes
@@ -34,8 +34,8 @@ square_coords = [];
 stats = regionprops(L, 'Centroid', 'Area');
 %org value = 10000;
 %org value 1000000000;
-minArea = 400;
-maxArea = 50000;
+minArea = 10;
+maxArea = 500000;
 figure;
 imshow(gauss_img)
 imshow(label2rgb(L, @jet, [.5 .5 .5]));
@@ -70,7 +70,7 @@ topleft_y = yellow_centroid(1).Centroid(2);
 % make dictionary to associate 
 letters = {'a','b','c','d','e','f','g', 'h'};
 numbers = {'8','7','6','5','4','3','2', '1'};
-spacing = 115;
+spacing = 40;
 keys = strings(64,1);
 pairs = cell(64,1);
 i=1;

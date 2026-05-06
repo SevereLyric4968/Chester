@@ -1,12 +1,13 @@
 % Centering.m
 % Author: Kov Ciuchta
 % Full camera control (expand later)
-global imgRGB;
+global imageRGB;
 %and process_pieces
+global fname;
 global path;
 
 %Take Photo
-baseFolder = fullfile("image_processing\image_base_folder\img"); % change as needed
+baseFolder = fullfile("image_processing\image_base_folder"); % change as needed
 cameraName = 'DroidCam Video';              % set to your camera name or leave empty to use first
 
 % Ensure output folder exists
@@ -32,9 +33,10 @@ idx = startIdx;
 
 
 % Take one snapshot with defined camera, make sure the camera is clear after
-cam = webcam(cameraName);
-pause(1);
-imgRGB = snapshot(cam);
+cam = webcam(2);
+pause(3);
+imageRGB = snapshot(cam);
+imgRGB = imageRGB;
 tstamp = datestr(now, 'yyyymmdd_HHMMSS');
 fname  = sprintf('photo_%04d_%s.png', idx, tstamp);
 path   = fullfile(baseFolder, fname);
@@ -94,7 +96,7 @@ dstPoints = [1+padding, 1+padding;
 tform = fitgeotrans(srcPoints, dstPoints, 'projective');
 cropped = imwarp(imgRGB, tform, 'OutputView', imref2d([H, W]));
 title = 'cropped.png';
-fname = fullfile('D:\Chester-master\Chester\image_processing\image_base_folder\img\',title);
+fname = fullfile('D:\Chester-master\Chester\image_processing\image_base_folder',title);
 imwrite(cropped, fname);
 figure; imshow(imgRGB); hold on;
 

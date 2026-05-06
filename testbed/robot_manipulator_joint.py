@@ -57,7 +57,7 @@ class RobotManipulator:
                 'n': 0/1000, #66/1000,
                 'b': 4/1000, #70/1000,
                 'q': 8/1000, #76/1000,
-                'k': 10/1000  #77/1000
+                'k': 9/1000  #77/1000
             }
         else:
             pieceHeights = {
@@ -112,16 +112,16 @@ class RobotManipulator:
             return
 
         targetZ = z + pieceHeights[piece.lower()]
-        self.lower(targetZ)
+        self.lower(targetZ, 1)
 
     def place(self, piece, z):
         if self.robot is None:
             return
 
         targetZ = z + pieceHeights[piece.lower()]
-        self.lower(targetZ)
+        self.lower(targetZ, 2)
 
-    def lower(self,targetZ):
+    def lower(self,targetZ,increments):
         preDropX,preDropY,preDropZ = 0,0,0
         if self.usingIK:
             preDropX,preDropY,preDropZ = ik.getFK(self.robot)
@@ -131,12 +131,12 @@ class RobotManipulator:
 
         self.databus.movementStatus = "Moving"
         deltaZ=preDropZ-targetZ
-        incremnents=2
-        for i in range(incremnents):
+
+        for i in range(increments):
             if self.usingIK:
-                ik.calculateIK(self.robot,preDropX,preDropY,preDropZ-deltaZ*(i+1)/incremnents)
+                ik.calculateIK(self.robot,preDropX,preDropY,preDropZ-deltaZ*(i+1)/increments)
             else:
-                move = PoseObject(preDropX, preDropY, preDropZ-deltaZ*(i+1)/incremnents, 0, math.pi / 2, 0)
+                move = PoseObject(preDropX, preDropY, preDropZ-deltaZ*(i+1)/increments, 0, math.pi / 2, 0)
                 self.robot.move_pose(move)
         self.toggle_magnet()
         if self.usingIK:
@@ -153,3 +153,14 @@ class RobotManipulator:
         else:
             self.robot.activate_electromagnet(self.pin_electromagnet)
             self.databus.magnetStatus = "On"
+
+    def fist_bump(self):
+        if self.robot is None:
+            return
+
+        unbump = [-1.5500506554354578, 0.34488448662206134, -0.9264197991304157, -0.19318892568379775, 0.3389171005329339, 0.2071800599543545]
+        bump = [-1.5500506554354578, 0.055529840592425495, -0.7491711416148796, -0.14870348283511436, 0.5644122763521229, 0.18263636734818434]
+        print("Fist bumping")
+        self.robot.move_joints(unbump)
+        self.robot.move_joints(bump)
+        self.robot.move_joints(unbump)

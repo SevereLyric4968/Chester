@@ -1,16 +1,19 @@
-close all; clear all; clc;
+%close all; clear all; clc;
+
+global fname;
+global imageRGB;
 
 %load gamesquare coords
-data = load('board_calibration.mat');
+data = load('board_adjusted.mat');
 board_dictionary = data.board_dictionary;
 %load storage coords
-data = load('storage_calibration.mat');
+data = load('storage_adjusted.mat');
 storage_dictionary = data.storage_dictionary;
 
 
-fname = ('C:\\Users\\kirst\\chester\\testbed\\image_base_folder\\storage_test\\storage_test_full.jpg');
+%fname = ('C:\\Users\\kirst\\chester\\testbed\\image_base_folder\\storage_test\\storage_test_full.jpg');
 % read in image
-raw_img = imread(fname);
+raw_img = imageRGB;
 %rotated back to correct orientation 
 img = imrotate(raw_img,270);
 %use green mask
